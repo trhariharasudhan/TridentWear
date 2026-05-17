@@ -65,31 +65,62 @@ function unique(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
+function toTitleSlug(value) {
+  return String(value || "").toLowerCase().replaceAll("&", "and").replaceAll("/", " ").replace(/\s+/g, "-");
+}
+
+function listValue(value, fallback = []) {
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .length
+    ? String(value).split(",").map((item) => item.trim()).filter(Boolean)
+    : fallback;
+}
+
 export function getCategoryMeta(slug) {
   return CATEGORY_LOOKUP.get(slug) || null;
 }
 
 export function getProductCardTags(product) {
   const gsmLabel = product.gsm ? `${product.gsm} GSM` : null;
-  return unique([product.fit_type, product.material, gsmLabel]);
+  return unique([product.fit_type, product.fabric || product.material, gsmLabel]);
 }
 
 export function normalizeProduct(product) {
-  const fitType = product.fit_type || "Regular Fit";
+  const clothType = product.cloth_type || "Half Sleeve T-Shirt";
+  const fitType = product.fit_type || "Unisex";
   const neckType = product.neck_type || "Round Neck";
-  const material = product.material || "Cotton";
-  const gsm = Number(product.gsm || 220);
+  const fabric = product.fabric || product.material || "100% Cotton";
+  const material = fabric;
+  const gsm = Number(product.gsm || 150);
   const designType = product.design_type || "Plain";
   const specialType = product.special_type || "";
+  const printMethod = listValue(product.print_method, ["DTG", "Embroidery"]);
+  const washCare = listValue(product.wash_care, [
+    "Machine wash cold with like colours",
+    "Do not bleach",
+    "Dry inside out in shade",
+    "Warm iron inside out; do not iron on print",
+  ]);
+  const tagMetadata = {
+    season: product.tag_metadata?.season || "All season",
+    style: product.tag_metadata?.style || clothType,
+    material: product.tag_metadata?.material || fabric,
+    model_size: product.tag_metadata?.model_size || "Model wears M",
+    factory: product.tag_metadata?.factory || "TridentWear India",
+  };
   const categories = unique(
     Array.isArray(product.categories) && product.categories.length
       ? product.categories
       : [
-          fitType.toLowerCase().replaceAll(" ", "-"),
-          neckType.toLowerCase().replaceAll(" ", "-"),
-          material.toLowerCase().replaceAll(" ", "-"),
-          designType.toLowerCase().replaceAll(" ", "-"),
-          specialType.toLowerCase().replaceAll(" ", "-"),
+          toTitleSlug(fitType),
+          toTitleSlug(neckType),
+          toTitleSlug(material.replace("100%", "")),
+          toTitleSlug(designType),
+          toTitleSlug(specialType),
         ],
   );
 
@@ -97,14 +128,23 @@ export function normalizeProduct(product) {
     ...product,
     category: product.category || "tshirt",
     categories,
+    cloth_type: clothType,
+    base_color: product.base_color || "",
     fit_type: fitType,
     neck_type: neckType,
+    fabric,
     material,
     gsm,
     design_type: designType,
+    design_color: product.design_color || "",
+    print_method: printMethod,
+    wash_care_label: product.wash_care_label !== false,
+    wash_care: washCare,
+    size_quantities: product.size_quantities || {},
+    tag_metadata: tagMetadata,
     special_type: specialType,
     sizes: Array.isArray(product.sizes) && product.sizes.length ? product.sizes : ["S", "M", "L", "XL", "XXL"],
-    card_tags: getProductCardTags({ fit_type: fitType, material, gsm }),
+    card_tags: getProductCardTags({ fit_type: fitType, fabric, material, gsm }),
     category_labels: categories.map((slug) => getCategoryMeta(slug)?.label).filter(Boolean),
   };
 }

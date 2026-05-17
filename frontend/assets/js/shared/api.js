@@ -464,6 +464,11 @@ function normalizeProductPayload(input, existingProduct = null) {
     .filter(Boolean);
   const stock = Number(input.stock || 0);
   const featuredRaw = String(input.featured ?? existingProduct?.featured ?? false).toLowerCase();
+  const fabric = String(input.fabric || existingProduct?.fabric || existingProduct?.material || "100% Cotton").trim();
+  const printMethod = String(input.print_method || existingProduct?.print_method?.join(", ") || "DTG, Embroidery")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 
   if (name.length < 3) {
     throw createHttpError(400, "Product name must be at least 3 characters.");
@@ -487,10 +492,27 @@ function normalizeProductPayload(input, existingProduct = null) {
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL"],
     stock: Math.round(stock),
     featured: ["true", "1", "yes", "on"].includes(featuredRaw),
-    fit_type: existingProduct?.fit_type || (name.toLowerCase().includes("oversized") ? "Oversized Fit" : "Regular Fit"),
-    neck_type: existingProduct?.neck_type || "Round Neck",
-    material: existingProduct?.material || "Cotton",
-    gsm: existingProduct?.gsm || 220,
+    cloth_type: existingProduct?.cloth_type || "Half Sleeve T-Shirt",
+    fabric,
+    material: fabric,
+    gsm: Number(input.gsm || existingProduct?.gsm || 150),
+    fit_type: String(input.fit_type || existingProduct?.fit_type || "Unisex").trim(),
+    neck_type: String(input.neck_type || existingProduct?.neck_type || "Round Neck").trim(),
+    print_method: printMethod,
+    wash_care_label: String(input.wash_care_label ?? existingProduct?.wash_care_label ?? "true").toLowerCase() !== "false",
+    wash_care: existingProduct?.wash_care || [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print",
+    ],
+    tag_metadata: existingProduct?.tag_metadata || {
+      season: "All season",
+      style: "Half Sleeve T-Shirt",
+      material: fabric,
+      model_size: "Model wears M",
+      factory: "TridentWear India",
+    },
     design_type: existingProduct?.design_type || "Plain",
     special_type: existingProduct?.special_type || "",
   };

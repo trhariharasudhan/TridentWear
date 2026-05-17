@@ -1663,6 +1663,41 @@ a[data-login-link]:hover .fa-circle-user {
   gap: 0.75rem;
 }
 
+.detail-spec-hero {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0 0 1.5rem;
+}
+
+.detail-spec-hero article {
+  min-height: 5.4rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(18,20,29,0.08);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 0.65rem 1.5rem rgba(18,20,29,0.05);
+}
+
+.detail-spec-hero span,
+.detail-tag-metadata span {
+  display: block;
+  color: var(--gray);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detail-spec-hero strong,
+.detail-tag-metadata strong {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--dark);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
 .detail-info-item,
 .detail-service-block > div {
   padding: 1rem;
@@ -1679,6 +1714,73 @@ a[data-login-link]:hover .fa-circle-user {
 .detail-service-block i {
   color: var(--primary);
   margin-right: 0.45rem;
+}
+
+.detail-apparel-panel {
+  display: grid;
+  gap: 1rem;
+  margin: 0 0 2rem;
+  padding: 1rem;
+  border: 1px solid rgba(18,20,29,0.08);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff 0%, #f8f9fb 100%);
+}
+
+.detail-panel-header h2 {
+  margin: 0;
+  color: var(--dark);
+  font-size: 1.05rem;
+}
+
+.detail-panel-header .eyebrow {
+  margin-bottom: 0.45rem;
+}
+
+.detail-apparel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.detail-apparel-grid > div {
+  padding: 1rem;
+  border: 1px solid rgba(18,20,29,0.08);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.78);
+}
+
+.detail-apparel-grid > div > strong {
+  display: block;
+  margin-bottom: 0.7rem;
+  color: var(--dark);
+}
+
+.detail-care-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.detail-care-list li {
+  position: relative;
+  padding-left: 1rem;
+  color: var(--gray-dark);
+  font-size: 0.88rem;
+}
+
+.detail-care-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65rem;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.detail-tag-metadata {
+  display: grid;
+  gap: 0.6rem;
 }
 
 /* ───────── BUTTONS ───────── */
@@ -15563,6 +15665,11 @@ body[data-page] main {
   }
 
   .rating-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-spec-hero,
+  .detail-apparel-grid {
     grid-template-columns: 1fr;
   }
 

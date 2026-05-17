@@ -14,7 +14,7 @@ import {
   toggleWishlist,
 } from "../shared/site.js?v=20260430-v3";
 import { addCartItem } from "../shared/cart.js?v=20260430-v3";
-import { normalizeProduct } from "../shared/catalog.js?v=20260430-v3";
+import { normalizeProduct, relatedProducts } from "../shared/catalog.js?v=20260430-v3";
 
 /* ─── Recently viewed ─── */
 const RV_KEY = "trident_recently_viewed";
@@ -118,10 +118,12 @@ function renderInfoGrid(product) {
   if (!grid) return;
   const item = normalizeProduct(product);
   const details = [
-    ["Fabric", `${item.material} / ${item.gsm} GSM`],
+    ["Fabric", item.fabric],
+    ["Weight", `${item.gsm} GSM`],
     ["Fit", item.fit_type],
     ["Neck", item.neck_type],
-    ["Design", item.design_type],
+    ["Cloth Type", item.cloth_type],
+    ["Print", item.print_method.join(" + ")],
   ].filter(([, value]) => value);
 
   grid.innerHTML = details.map(([label, value]) => `
@@ -130,6 +132,46 @@ function renderInfoGrid(product) {
       <strong>${escapeHtml(value)}</strong>
     </div>
   `).join("");
+}
+
+function renderProductHighlights(product) {
+  const item = normalizeProduct(product);
+  const hero = document.getElementById("detail-spec-hero");
+  if (hero) {
+    hero.innerHTML = [
+      ["Fabric", `${item.fabric}, ${item.gsm} GSM`],
+      ["Fit", `${item.fit_type} fit`],
+      ["Neck", item.neck_type],
+      ["Print", item.print_method.join(" + ")],
+    ].map(([label, value]) => `
+      <article>
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+      </article>
+    `).join("");
+  }
+
+  const care = document.getElementById("detail-care-list");
+  if (care) {
+    care.innerHTML = item.wash_care.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("");
+  }
+
+  const tag = document.getElementById("detail-tag-metadata");
+  if (tag) {
+    const entries = [
+      ["Wash-care label", item.wash_care_label ? "Included" : "Not included"],
+      ["Season", item.tag_metadata.season],
+      ["Style", item.tag_metadata.style],
+      ["Material tag", item.tag_metadata.material],
+      ["Factory", item.tag_metadata.factory],
+    ];
+    tag.innerHTML = entries.map(([label, value]) => `
+      <div>
+        <span>${escapeHtml(label)}</span>
+        <strong>${escapeHtml(value)}</strong>
+      </div>
+    `).join("");
+  }
 }
 
 function initQuantity(product) {
@@ -186,6 +228,7 @@ async function loadProductDetail() {
       return;
     }
 
+    product = normalizeProduct(product);
     currentProduct = product;
 
     // Track as recently viewed
@@ -200,6 +243,7 @@ async function loadProductDetail() {
     renderGallery(product);
     initImageZoom();
     renderInfoGrid(product);
+    renderProductHighlights(product);
     initQuantity(product);
 
     // Update page title
@@ -366,11 +410,14 @@ async function loadRelatedProducts(currentProd) {
     const all = (Array.isArray(data) ? data : data.products || []);
 
     // Same category, exclude current
-    let related = all.filter(p => p.category === currentProd.category && String(p.id) !== String(currentProd.id));
+    let related = relatedProducts(all, currentProd);
 
     // Fallback to random if not enough
     if (related.length < 4) {
-      const others = all.filter(p => String(p.id) !== String(currentProd.id));
+      const relatedIds = new Set(related.map((product) => String(product.id)));
+      const others = all
+        .map(normalizeProduct)
+        .filter(p => String(p.id) !== String(currentProd.id) && !relatedIds.has(String(p.id)));
       related = [...related, ...others].slice(0, 4);
     } else {
       // Shuffle and pick 4

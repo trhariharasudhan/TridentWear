@@ -33,10 +33,19 @@ async def create_product(
     sizes: str = Form("S, M, L, XL"),
     stock: str = Form("0"),
     featured: str = Form("false"),
+    fabric: str = Form("100% Cotton"),
+    gsm: str = Form("150"),
+    fit_type: str = Form("Unisex"),
+    neck_type: str = Form("Round Neck"),
+    print_method: str = Form("DTG, Embroidery"),
+    wash_care_label: str = Form("true"),
     image: Optional[UploadFile] = File(None),
     _: Dict[str, Any] = Depends(require_admin),
 ) -> Dict[str, Any]:
-    return await process_create_product(name, category, price, description, tag, sizes, stock, featured, image)
+    return await process_create_product(
+        name, category, price, description, tag, sizes, stock, featured, image,
+        fabric, gsm, fit_type, neck_type, print_method, wash_care_label,
+    )
 
 @router.put("/products/{product_id}")
 async def update_product(
@@ -50,10 +59,19 @@ async def update_product(
     sizes: str = Form("S, M, L, XL"),
     stock: str = Form("0"),
     featured: str = Form("false"),
+    fabric: str = Form("100% Cotton"),
+    gsm: str = Form("150"),
+    fit_type: str = Form("Unisex"),
+    neck_type: str = Form("Round Neck"),
+    print_method: str = Form("DTG, Embroidery"),
+    wash_care_label: str = Form("true"),
     image: Optional[UploadFile] = File(None),
     _: Dict[str, Any] = Depends(require_admin),
 ) -> Dict[str, Any]:
-    return await process_update_product(product_id, name, category, price, description, tag, sizes, stock, featured, image)
+    return await process_update_product(
+        product_id, name, category, price, description, tag, sizes, stock, featured, image,
+        fabric, gsm, fit_type, neck_type, print_method, wash_care_label,
+    )
 
 @router.delete("/products/{product_id}")
 def delete_product(product_id: int, _: Dict[str, Any] = Depends(require_admin)) -> Dict[str, Any]:

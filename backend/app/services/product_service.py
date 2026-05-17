@@ -86,6 +86,28 @@ DEFAULT_PRODUCTS: List[Dict[str, Any]] = [
 
 from app.db.json_manager import read_json, update_json, write_json as db_write_json
 
+CANVA_TSHIRT_SPEC: Dict[str, Any] = {
+    "cloth_type": "Half Sleeve T-Shirt",
+    "fabric": "100% Cotton",
+    "gsm": 150,
+    "fit_type": "Unisex",
+    "neck_type": "Round Neck",
+    "print_method": ["DTG", "Embroidery"],
+    "wash_care_label": True,
+    "wash_care": [
+        "Machine wash cold with like colours",
+        "Do not bleach",
+        "Dry inside out in shade",
+        "Warm iron inside out; do not iron on print",
+    ],
+    "tag_metadata": {
+        "season": "All season",
+        "style": "Half Sleeve T-Shirt",
+        "material": "100% Cotton",
+        "factory": "TridentWear India",
+    },
+}
+
 def normalize_image_path(value: str) -> str:
     image_value = str(value or "").strip()
     if not image_value:
@@ -108,8 +130,31 @@ def normalize_bool(value: Any) -> bool:
         return value
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
-def normalize_product(raw_product: Dict[str, Any], index: int = 0) -> Dict[str, Any]:
+def normalize_string_list(value: Any) -> List[str]:
+    if isinstance(value, list):
+        items = value
+    else:
+        items = str(value or "").split(",")
+    return [str(item).strip() for item in items if str(item).strip()]
+
+def normalize_tag_metadata(raw_product: Dict[str, Any], normalized: Dict[str, Any]) -> Dict[str, Any]:
+    metadata = raw_product.get("tag_metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+    defaults = CANVA_TSHIRT_SPEC["tag_metadata"]
     return {
+        "season": str(metadata.get("season") or defaults["season"]).strip(),
+        "style": str(metadata.get("style") or normalized["cloth_type"]).strip(),
+        "material": str(metadata.get("material") or normalized["fabric"]).strip(),
+        "model_size": str(metadata.get("model_size") or "Model wears M").strip(),
+        "factory": str(metadata.get("factory") or defaults["factory"]).strip(),
+    }
+
+def normalize_product(raw_product: Dict[str, Any], index: int = 0) -> Dict[str, Any]:
+    fabric = str(raw_product.get("fabric") or raw_product.get("material") or CANVA_TSHIRT_SPEC["fabric"]).strip()
+    print_method = normalize_string_list(raw_product.get("print_method", CANVA_TSHIRT_SPEC["print_method"]))
+    wash_care = normalize_string_list(raw_product.get("wash_care", CANVA_TSHIRT_SPEC["wash_care"]))
+    normalized = {
         "id": int(raw_product.get("id", index + 1)),
         "name": str(raw_product.get("name", "")).strip(),
         "category": str(raw_product.get("category", "tshirt")).strip().lower(),
@@ -120,12 +165,22 @@ def normalize_product(raw_product: Dict[str, Any], index: int = 0) -> Dict[str, 
         "sizes": normalize_sizes(raw_product.get("sizes", [])),
         "stock": max(int(float(raw_product.get("stock", 0) or 0)), 0),
         "featured": normalize_bool(raw_product.get("featured", index < 4)),
-        "material": str(raw_product.get("material", "100% Cotton")),
-        "gsm": int(float(raw_product.get("gsm", 220) or 220)),
-        "fit_type": str(raw_product.get("fit_type", "Oversized")),
-        "neck_type": str(raw_product.get("neck_type", "Round Neck")),
-        "design_type": str(raw_product.get("design_type", "Graphic")),
+        "cloth_type": str(raw_product.get("cloth_type") or CANVA_TSHIRT_SPEC["cloth_type"]).strip(),
+        "base_color": str(raw_product.get("base_color", "")).strip(),
+        "fabric": fabric,
+        "material": fabric,
+        "gsm": int(float(raw_product.get("gsm", CANVA_TSHIRT_SPEC["gsm"]) or CANVA_TSHIRT_SPEC["gsm"])),
+        "fit_type": str(raw_product.get("fit_type") or CANVA_TSHIRT_SPEC["fit_type"]).strip(),
+        "neck_type": str(raw_product.get("neck_type") or CANVA_TSHIRT_SPEC["neck_type"]).strip(),
+        "design_type": str(raw_product.get("design_type", "Graphic")).strip(),
+        "design_color": str(raw_product.get("design_color", "")).strip(),
+        "print_method": print_method,
+        "wash_care_label": normalize_bool(raw_product.get("wash_care_label", CANVA_TSHIRT_SPEC["wash_care_label"])),
+        "wash_care": wash_care,
+        "size_quantities": raw_product.get("size_quantities") if isinstance(raw_product.get("size_quantities"), dict) else {},
     }
+    normalized["tag_metadata"] = normalize_tag_metadata(raw_product, normalized)
+    return normalized
 
 def product_sort_key(product: Dict[str, Any]) -> Any:
     return (product["category"] != "tshirt", not product["featured"], product["id"])
@@ -225,6 +280,12 @@ def validate_product_fields(
     sizes: str,
     stock: str,
     featured: str,
+    fabric: str = "",
+    gsm: str = "",
+    fit_type: str = "",
+    neck_type: str = "",
+    print_method: str = "",
+    wash_care_label: str = "true",
 ) -> Dict[str, Any]:
     product_name = name.strip()
     category_value = category.strip().lower()
@@ -246,6 +307,10 @@ def validate_product_fields(
         stock_value = max(int(float(stock or 0)), 0)
     except ValueError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Stock must be a valid number.") from error
+    try:
+        gsm_value = int(float(gsm or CANVA_TSHIRT_SPEC["gsm"]))
+    except ValueError as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="GSM must be a valid number.") from error
 
     return {
         "name": product_name,
@@ -256,10 +321,19 @@ def validate_product_fields(
         "sizes": normalize_sizes(sizes),
         "stock": stock_value,
         "featured": normalize_bool(featured),
+        "fabric": (fabric or CANVA_TSHIRT_SPEC["fabric"]).strip(),
+        "material": (fabric or CANVA_TSHIRT_SPEC["fabric"]).strip(),
+        "gsm": gsm_value,
+        "fit_type": (fit_type or CANVA_TSHIRT_SPEC["fit_type"]).strip(),
+        "neck_type": (neck_type or CANVA_TSHIRT_SPEC["neck_type"]).strip(),
+        "print_method": normalize_string_list(print_method or CANVA_TSHIRT_SPEC["print_method"]),
+        "wash_care_label": normalize_bool(wash_care_label),
+        "wash_care": CANVA_TSHIRT_SPEC["wash_care"],
+        "cloth_type": CANVA_TSHIRT_SPEC["cloth_type"],
     }
 
-async def process_create_product(name, category, price, description, tag, sizes, stock, featured, image) -> Dict[str, Any]:
-    product_data = validate_product_fields(name, category, price, description, tag, sizes, stock, featured)
+async def process_create_product(name, category, price, description, tag, sizes, stock, featured, image, fabric="", gsm="", fit_type="", neck_type="", print_method="", wash_care_label="true") -> Dict[str, Any]:
+    product_data = validate_product_fields(name, category, price, description, tag, sizes, stock, featured, fabric, gsm, fit_type, neck_type, print_method, wash_care_label)
 
     image_path = "/images/hero-banner.png"
     if image and getattr(image, "filename", None):
@@ -288,8 +362,8 @@ async def process_create_product(name, category, price, description, tag, sizes,
     update_json(str(PRODUCTS_PATH), _create)
     return {"success": True, "message": "Product added successfully.", "product": returned_product}
 
-async def process_update_product(product_id: int, name, category, price, description, tag, sizes, stock, featured, image) -> Dict[str, Any]:
-    product_data = validate_product_fields(name, category, price, description, tag, sizes, stock, featured)
+async def process_update_product(product_id: int, name, category, price, description, tag, sizes, stock, featured, image, fabric="", gsm="", fit_type="", neck_type="", print_method="", wash_care_label="true") -> Dict[str, Any]:
+    product_data = validate_product_fields(name, category, price, description, tag, sizes, stock, featured, fabric, gsm, fit_type, neck_type, print_method, wash_care_label)
     
     # Pre-flight check to fail early if product not found
     products = load_products()
@@ -308,6 +382,7 @@ async def process_update_product(product_id: int, name, category, price, descrip
     def _update(products: list):
         nonlocal returned_product
         updated_product = {
+            **existing,
             "id": product_id,
             **product_data,
             "image": image_path,

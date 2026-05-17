@@ -20,7 +20,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Black",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 2,
@@ -42,7 +65,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "White",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 7,
@@ -65,7 +111,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Navy",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 9,
@@ -87,7 +156,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 10,
@@ -110,7 +202,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 13,
@@ -132,7 +247,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 14,
@@ -155,7 +293,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "White",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 16,
@@ -177,7 +338,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Navy",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 18,
@@ -200,7 +384,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 20,
@@ -222,7 +429,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Black",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 21,
@@ -245,7 +475,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "White",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 23,
@@ -267,7 +520,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 24,
@@ -290,7 +566,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 5,
@@ -312,7 +611,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Charcoal",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 8,
@@ -334,7 +656,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Charcoal",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 11,
@@ -357,7 +702,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "White",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 12,
@@ -378,7 +746,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 15,
@@ -400,7 +791,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "White",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 17,
@@ -422,7 +836,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 19,
@@ -445,7 +882,30 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 22,
@@ -468,12 +928,35 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 3,
     "name": "Navy Formal Shirt",
-    "category": "tshirt",
+    "category": "shirt",
     "price": 1299,
     "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
     "image": "/images/navy-shirt.png",
@@ -490,12 +973,35 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Navy",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 4,
     "name": "Olive Casual Shirt",
-    "category": "tshirt",
+    "category": "shirt",
     "price": 1099,
     "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
     "image": "/images/olive-shirt.png",
@@ -512,12 +1018,35 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Olive",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   },
   {
     "id": 6,
     "name": "Stone Linen Shirt",
-    "category": "tshirt",
+    "category": "shirt",
     "price": 1199,
     "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
     "image": "/images/olive-shirt.png",
@@ -534,6 +1063,29 @@
     "gsm": 220,
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
-    "design_type": "Graphic"
+    "design_type": "Graphic",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "base_color": "Stone",
+    "fabric": "100% Cotton",
+    "design_color": "",
+    "print_method": [
+      "DTG",
+      "Embroidery"
+    ],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold with like colours",
+      "Do not bleach",
+      "Dry inside out in shade",
+      "Warm iron inside out; do not iron on print"
+    ],
+    "size_quantities": {},
+    "tag_metadata": {
+      "season": "All season",
+      "style": "Half Sleeve T-Shirt",
+      "material": "100% Cotton",
+      "model_size": "Model wears M",
+      "factory": "TridentWear India"
+    }
   }
 ]

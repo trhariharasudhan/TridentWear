@@ -20,6 +20,11 @@ function fields() {
     tag: document.querySelector("#admin-tag"),
     sizes: document.querySelector("#admin-sizes"),
     stock: document.querySelector("#admin-stock"),
+    fabric: document.querySelector("#admin-fabric"),
+    gsm: document.querySelector("#admin-gsm"),
+    fitType: document.querySelector("#admin-fit-type"),
+    neckType: document.querySelector("#admin-neck-type"),
+    printMethod: document.querySelector("#admin-print-method"),
     featured: document.querySelector("#admin-featured"),
     image: document.querySelector("#admin-image"),
   };
@@ -44,6 +49,11 @@ function setFormState(product = null) {
     f.tag.value = "";
     f.sizes.value = "S, M, L, XL";
     f.stock.value = "100";
+    f.fabric.value = "100% Cotton";
+    f.gsm.value = "150";
+    f.fitType.value = "Unisex";
+    f.neckType.value = "Round Neck";
+    f.printMethod.value = "DTG, Embroidery";
     f.featured.checked = false;
     f.image.value = "";
     preview.hidden = true;
@@ -62,6 +72,11 @@ function setFormState(product = null) {
   f.tag.value = product.tag || "";
   f.sizes.value = product.sizes.join(", ");
   f.stock.value = product.stock;
+  f.fabric.value = product.fabric || product.material || "100% Cotton";
+  f.gsm.value = product.gsm || 150;
+  f.fitType.value = product.fit_type || "Unisex";
+  f.neckType.value = product.neck_type || "Round Neck";
+  f.printMethod.value = (product.print_method || ["DTG", "Embroidery"]).join(", ");
   f.featured.checked = Boolean(product.featured);
   f.image.value = "";
   preview.hidden = false;
@@ -360,6 +375,12 @@ function buildFormData() {
   formData.append("tag", f.tag.value.trim());
   formData.append("sizes", f.sizes.value.trim());
   formData.append("stock", f.stock.value.trim());
+  formData.append("fabric", f.fabric.value.trim());
+  formData.append("gsm", f.gsm.value.trim());
+  formData.append("fit_type", f.fitType.value.trim());
+  formData.append("neck_type", f.neckType.value.trim());
+  formData.append("print_method", f.printMethod.value.trim());
+  formData.append("wash_care_label", "true");
   formData.append("featured", f.featured.checked ? "true" : "false");
   if (f.image.files?.[0]) {
     formData.append("image", f.image.files[0]);
