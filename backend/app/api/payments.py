@@ -43,7 +43,9 @@ def create_razorpay_order(payload: RazorpayCreatePayload) -> Dict[str, Any]:
 @router.post("/verify")
 def verify_razorpay_payment(payload: RazorpayVerifyPayload, request: Request) -> Dict[str, Any]:
     return process_razorpay_verify(
+        razorpay_order_id=payload.razorpay_order_id,
         razorpay_payment_id=payload.razorpay_payment_id,
+        razorpay_signature=payload.razorpay_signature,
         order_data_payload=payload.order_data,
         request=request,
     )

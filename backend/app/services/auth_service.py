@@ -16,30 +16,32 @@ from typing import Any, Dict, List, Optional
 from fastapi import Request, HTTPException, status
 
 from app.db.json_manager import read_json, update_json, write_json
+from app.core.config import get_jwt_secret, JWT_ALGORITHM, JWT_EXPIRATION_DAYS, ENVIRONMENT, ADMIN_EMAIL, ADMIN_PASSWORD_HASH
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 DB_DIR = BASE_DIR / "db"
 USERS_PATH = str(DB_DIR / "users.json")
 OTP_SESSIONS_PATH = str(DB_DIR / "otp_sessions.json")
 
-JWT_SECRET = os.getenv("TRIDENT_JWT_SECRET", os.getenv("JWT_SECRET", "trident-super-secret-key-12345"))
-JWT_ALGORITHM = "HS256"
-JWT_EXPIRATION_DAYS = int(os.getenv("TRIDENT_JWT_EXPIRATION_DAYS", "7"))
+# JWT_SECRET resolved at call-time via get_jwt_secret() from config.py
 OTP_EXPIRY_MINUTES = int(os.getenv("TRIDENT_OTP_EXPIRY_MINUTES", "5"))
 OTP_RESEND_SECONDS = int(os.getenv("TRIDENT_OTP_RESEND_SECONDS", "45"))
 OTP_MAX_ATTEMPTS = int(os.getenv("TRIDENT_OTP_MAX_ATTEMPTS", "5"))
 OTP_MAX_SENDS_PER_HOUR = int(os.getenv("TRIDENT_OTP_MAX_SENDS_PER_HOUR", "5"))
 OTP_BLOCK_MINUTES = int(os.getenv("TRIDENT_OTP_BLOCK_MINUTES", "15"))
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 PHONE_PATTERN = re.compile(r"^\d{10}$")
 REVOKED_TOKEN_IDS: set[str] = set()
 
+# Default admin credentials loaded from environment variables.
+# ADMIN_EMAIL and ADMIN_PASSWORD_HASH must be set before production deployment.
+# The fallback hash below is for local development only (password: "TridentAdmin@123").
+_DEFAULT_ADMIN_HASH = ADMIN_PASSWORD_HASH or "$2b$12$7Q07pQBBqNur7Rdxq4R7pebAeUdR89zN4T.NQfpcPZ/p4CVB3TRJq"
 DEFAULT_ADMIN = {
     "id": 1,
     "name": "Trident Admin",
-    "email": "admin@trident.local",
-    "password_hash": "$2b$12$7Q07pQBBqNur7Rdxq4R7pebAeUdR89zN4T.NQfpcPZ/p4CVB3TRJq",
+    "email": ADMIN_EMAIL,
+    "password_hash": _DEFAULT_ADMIN_HASH,
     "role": "admin",
     "created_at": "2026-04-12T00:00:00+00:00",
 }
@@ -135,7 +137,7 @@ def issue_auth_token(user: Dict[str, Any]) -> str:
         "exp": now + timedelta(days=JWT_EXPIRATION_DAYS),
         "jti": uuid.uuid4().hex,
     }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
 
 def get_request_token(request: Request) -> Optional[str]:
     auth_header = request.headers.get("authorization", "").strip()
@@ -160,7 +162,7 @@ def get_session_user(request: Request) -> Optional[Dict[str, Any]]:
     user_id = None
     if token:
         try:
-            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            payload = jwt.decode(token, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
             if payload.get("jti") in REVOKED_TOKEN_IDS:
                 raise jwt.InvalidTokenError("Token has been revoked.")
             user_id = payload.get("sub")
@@ -196,7 +198,7 @@ def normalize_phone(phone: str, country_code: str = "+91") -> Dict[str, str]:
     return {"national": digits, "country_code": code, "e164": f"{code}{digits}"}
 
 def hash_otp(phone_e164: str, otp: str) -> str:
-    return hmac.new(JWT_SECRET.encode("utf-8"), f"{phone_e164}:{otp}".encode("utf-8"), hashlib.sha256).hexdigest()
+    return hmac.new(get_jwt_secret().encode("utf-8"), f"{phone_e164}:{otp}".encode("utf-8"), hashlib.sha256).hexdigest()
 
 def load_otp_sessions() -> List[Dict[str, Any]]:
     sessions = read_json(OTP_SESSIONS_PATH)
@@ -489,7 +491,7 @@ def revoke_auth_token(token: Optional[str]) -> None:
     if not token:
         return
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], options={"verify_exp": False})
+        payload = jwt.decode(token, get_jwt_secret(), algorithms=[JWT_ALGORITHM], options={"verify_exp": False})
     except jwt.PyJWTError:
         return
     if payload.get("jti"):

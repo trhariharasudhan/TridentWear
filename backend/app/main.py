@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 import os
 
+from app.core.config import CORS_ORIGINS, get_session_secret, SESSION_MAX_AGE, validate_production_secrets
+
 from app.api.health import router as health_router, root_health_router
 from app.api.auth import router as auth_router
 from app.api.products import router as products_router
@@ -29,12 +31,12 @@ app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
 app.mount("/components", StaticFiles(directory=str(FRONTEND_ROOT / "components")), name="components")
 
-_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
-_cors_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()] if _raw_origins else ["*"]
-
+# CORS — never wildcard when credentials=True.
+# In development, CORS_ORIGINS = explicit localhost list (set in config.py).
+# In production, CORS_ORIGINS = value of ALLOWED_ORIGINS env var.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors_origins,
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
@@ -42,10 +44,10 @@ app.add_middleware(
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=os.getenv("TRIDENT_SESSION_SECRET", "trident-local-session-secret"),
+    secret_key=get_session_secret(),
     same_site="lax",
     https_only=os.getenv("ENVIRONMENT", "development") == "production",
-    max_age=int(os.getenv("TRIDENT_SESSION_MAX_AGE_SECONDS", "604800")),
+    max_age=SESSION_MAX_AGE,
 )
 
 # Mount our extracted routes!
@@ -77,6 +79,8 @@ from app.db.json_manager import recover_db_files
 
 @app.on_event("startup")
 async def startup_event():
+    # Fail fast on missing/insecure secrets in production; warn in development.
+    validate_production_secrets()
     DB_DIR = os.path.join(BASE_DIR, "db")
     recover_db_files(DB_DIR)
 
