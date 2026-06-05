@@ -119,7 +119,17 @@ def serve_shipping_page(): return html_response("shipping.html")
 def serve_track_page(): return html_response("track.html")
 
 @router.get("/chat")
-def serve_chat_page(): return html_response("chat.html")
+def serve_chat_page():
+    # Explicitly serve support chat — NOT admin/chat.html (which shares the filename)
+    support_chat = FRONTEND_ROOT / "pages" / "support" / "chat.html"
+    if support_chat.exists():
+        content = support_chat.read_text(encoding="utf-8")
+        if "{{ component:header }}" in content:
+            content = content.replace("{{ component:header }}", _load_component("header"))
+        if "{{ component:footer }}" in content:
+            content = content.replace("{{ component:footer }}", _load_component("footer"))
+        return HTMLResponse(content=content)
+    return html_response("chat.html")
 
 @router.get("/profile")
 def serve_profile_page(): return html_response("profile.html")
