@@ -57,7 +57,7 @@ export function initChatWidget() {
   async function loadMessages() {
     if (!threadId) return;
     try {
-      const msgs = await get(`/api/chat/messages?thread_id=${threadId}`);
+      const msgs = await get(`/api/v1/chat/messages?thread_id=${threadId}`);
       if (msgs && msgs.length > 0) {
         messagesContainer.innerHTML = "";
         msgs.forEach(m => appendMessage(m.role, m.message));
@@ -101,7 +101,7 @@ export function initChatWidget() {
     scrollToBottom();
 
     try {
-      const res = await post("/api/chat/send", {
+      const res = await post("/api/v1/chat/send", {
         message: text,
         thread_id: threadId
       });

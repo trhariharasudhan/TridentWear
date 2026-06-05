@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
-from app.services.account_service import get_account_profile, update_account_profile
+from app.services.account_service import get_account_profile, update_account_profile, change_account_password
 
 
 router = APIRouter(prefix="/api/v1/account", tags=["account"])
@@ -25,3 +25,13 @@ def profile(request: Request) -> Dict[str, Any]:
 @router.put("/profile")
 def update_profile(payload: AccountProfilePayload, request: Request) -> Dict[str, Any]:
     return update_account_profile(payload, request)
+
+
+class PasswordChangePayload(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@router.post("/password-change")
+def password_change(payload: PasswordChangePayload, request: Request) -> Dict[str, Any]:
+    return change_account_password(payload, request)

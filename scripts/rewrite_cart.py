@@ -1,6 +1,9 @@
-import { post, resolveAssetUrl } from "../shared/api.js?v=20260430-v3";
-import { getCartSubtotal, loadCart, removeCartItem, updateCartItemQuantity } from "../shared/cart.js?v=20260430-v3";
-import { createEmptyMarkup, endGlobalLoader, escapeHtml, formatCurrency, initSite, showToast, startGlobalLoader } from "../shared/site.js?v=20260430-v3";
+#!/usr/bin/env python3
+"""Rewrite cart.js from scratch with all fixes included."""
+
+content = '''import { post, resolveAssetUrl } from "../shared/api.js?v=9";
+import { getCartSubtotal, loadCart, removeCartItem, updateCartItemQuantity } from "../shared/cart.js?v=9";
+import { createEmptyMarkup, endGlobalLoader, escapeHtml, formatCurrency, initSite, showToast, startGlobalLoader } from "../shared/site.js?v=9";
 
 let appliedCartCoupon = null;
 
@@ -53,7 +56,7 @@ function bindCartActions() {
 function renderCart() {
   const items = loadCart();
   const list = document.querySelector("[data-cart-list]");
-  const checkoutBtn = document.querySelector("[data-checkout-link]");
+  const checkoutBtn = document.querySelector("a[href='/checkout']");
 
   if (!items.length) {
     if (list) list.innerHTML = createEmptyMarkup("Your cart is empty", "Add a few premium pieces and come back here.");
@@ -110,15 +113,15 @@ function bindCartCoupon() {
     const code = input.value.trim();
     if (!code) { showToast("Enter a coupon code.", "error"); return; }
     btn.disabled = true;
-    btn.textContent = "Checking…";
+    btn.textContent = "Checking\u2026";
     try {
-      const data = await post("/api/v1/coupons/apply", {
+      const data = await post("/api/coupons/apply", {
         code,
         subtotal: getCartSubtotal(loadCart()),
       });
       appliedCartCoupon = { code: data.code, discount_amount: data.discount_amount, final_total: data.final_total };
       if (msg) {
-        msg.textContent = `${data.discount_pct}% off applied — saving ${formatCurrency(data.discount_amount)}!`;
+        msg.textContent = `${data.discount_pct}% off applied \u2014 saving ${formatCurrency(data.discount_amount)}!`;
         msg.style.color = "var(--success, #22c55e)";
       }
       renderSummary(loadCart());
@@ -156,3 +159,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (list) list.classList.add("fade-in");
   }, 500);
 });
+'''
+
+# Use template literal substitution to avoid Python format string issues
+# The content above uses JavaScript template literals - we need to write it as-is
+with open('frontend/assets/js/pages/cart.js', 'w', encoding='utf-8', newline='\r\n') as f:
+    f.write(content)
+print('cart.js rewritten successfully')

@@ -255,10 +255,19 @@ async function loadProfile() {
         return;
       }
 
-      // Mocking the password change API call functionality
-      showToast("Password successfully changed!", "success");
-      pwdModal.style.display = "none";
-      pwdForm.reset();
+      // Call the password change API
+      try {
+        await request("/api/v1/account/password-change", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ current_password: current, new_password: newPwd }),
+        });
+        showToast("Password successfully changed!", "success");
+        pwdModal.style.display = "none";
+        pwdForm.reset();
+      } catch (err) {
+        showToast(err.message || "Failed to change password. Check your current password.", "error");
+      }
     });
   }
 }

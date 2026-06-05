@@ -267,6 +267,7 @@ function renderReviews(payload = {}) {
 
 function renderProducts() {
   const list = document.querySelector("[data-admin-product-list]");
+  if (!list) return;
   if (!products.length) {
     list.innerHTML = `<div class="helper-note warning">No products found yet. Use the form to add the first drop.</div>`;
     return;

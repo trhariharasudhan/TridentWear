@@ -792,6 +792,24 @@ async function handleStaticRequest(url, method, body, originalPath) {
     };
   }
 
+  if (pathname === "/api/v1/account/password-change" && method === "POST") {
+    const user = requireUser();
+    const current = String(body?.current_password || "").trim();
+    const newPwd = String(body?.new_password || "").trim();
+    if (newPwd.length < 8) {
+      throw createHttpError(400, "New password must be at least 8 characters.");
+    }
+    const users = getUsersDb();
+    const idx = users.findIndex((u) => Number(u.id) === Number(user.id));
+    if (idx === -1) throw createHttpError(404, "User not found.");
+    if (users[idx].password && users[idx].password !== current) {
+      throw createHttpError(400, "Current password is incorrect.");
+    }
+    users[idx].password = newPwd;
+    saveUsersDb(users);
+    return { success: true, message: "Password changed successfully." };
+  }
+
   if (pathname === "/api/auth/google" && method === "POST") {
     const users = getUsersDb();
     const email = validateEmail(body?.email);
@@ -924,7 +942,7 @@ async function handleStaticRequest(url, method, body, originalPath) {
     return { success: true, message: "Removed from wishlist." };
   }
 
-  if (pathname === "/api/coupons/apply" && method === "POST") {
+  if ((pathname === "/api/coupons/apply" || pathname === "/api/v1/coupons/apply") && method === "POST") {
     const coupons = getCouponsDb();
     const code = String(body?.code || "").trim().toUpperCase();
     const subtotal = Number(body?.subtotal || 0);
@@ -1123,7 +1141,7 @@ async function handleStaticRequest(url, method, body, originalPath) {
     return { success: true, message: `${existing.name} deleted.` };
   }
 
-  if (pathname === "/api/chat/send" && method === "POST") {
+  if ((pathname === "/api/chat/send" || pathname === "/api/v1/chat/send") && method === "POST") {
     const chat = getChatDb();
     const user = getAuthUser();
     const threadId = String(body?.thread_id || (user ? `user_${user.id}` : `anon_${Math.random().toString(36).slice(2, 10)}`));
@@ -1158,7 +1176,7 @@ async function handleStaticRequest(url, method, body, originalPath) {
     };
   }
 
-  if (pathname === "/api/chat/messages" && method === "GET") {
+  if ((pathname === "/api/chat/messages" || pathname === "/api/v1/chat/messages") && method === "GET") {
     const threadId = url.searchParams.get("thread_id");
     if (!threadId) {
       return [];

@@ -53,3 +53,23 @@ def get_account_profile_from_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "default_address_id": user.get("default_address_id"),
         "settings": user.get("settings", {"notifications": True, "marketing": False}),
     }
+
+
+def change_account_password(payload: Any, request: Request) -> Dict[str, Any]:
+    user = get_session_user(request)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Please sign in first.")
+
+    current = str(getattr(payload, "current_password", "") or "").strip()
+    new_pwd = str(getattr(payload, "new_password", "") or "").strip()
+
+    if len(new_pwd) < 8:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must be at least 8 characters.")
+
+    stored = user.get("password_hash") or user.get("password") or ""
+    if stored and stored != current:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect.")
+
+    update_user(user["id"], {"password": new_pwd})
+    return {"success": True, "message": "Password changed successfully."}
+

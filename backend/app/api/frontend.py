@@ -1,10 +1,24 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pathlib import Path
+import jwt
+import os
 
 router = APIRouter(tags=["frontend"])
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 FRONTEND_ROOT = BASE_DIR / "frontend"
+
+# ── Minimal server-side admin guard ───────────────────────────────────────────
+def _is_admin(request: Request) -> bool:
+    """Return True if the request carries a valid admin JWT or session marker.
+    This is a defence-in-depth check — JS also guards on the client side.
+    """
+    try:
+        from app.services.auth_service import get_session_user
+        user = get_session_user(request)
+        return bool(user and user.get("role") == "admin")
+    except Exception:
+        return False
 
 def _load_component(name: str) -> str:
     comp_path = FRONTEND_ROOT / "components" / f"{name}.html"
@@ -75,7 +89,16 @@ def serve_about_page(): return html_response("about.html")
 def serve_contact_page(): return html_response("contact.html")
 
 @router.get("/admin")
-def serve_admin_page(request: Request): return html_response("admin.html")
+def serve_admin_page(request: Request):
+    if not _is_admin(request):
+        return RedirectResponse(url="/login?next=%2Fadmin", status_code=302)
+    return html_response("admin.html")
+
+@router.get("/admin/chat")
+def serve_admin_chat_page(request: Request):
+    if not _is_admin(request):
+        return RedirectResponse(url="/login?next=%2Fadmin", status_code=302)
+    return html_response("chat.html")
 
 @router.get("/wishlist")
 def serve_wishlist_page(): return html_response("wishlist.html")
@@ -94,6 +117,9 @@ def serve_shipping_page(): return html_response("shipping.html")
 
 @router.get("/track")
 def serve_track_page(): return html_response("track.html")
+
+@router.get("/chat")
+def serve_chat_page(): return html_response("chat.html")
 
 @router.get("/profile")
 def serve_profile_page(): return html_response("profile.html")
