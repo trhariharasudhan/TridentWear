@@ -46,7 +46,7 @@ function bindCoupon(items) {
     btn.disabled = true;
     btn.textContent = "Checking…";
     try {
-      const data = await post("/api/coupons/apply", {
+      const data = await post("/api/v1/coupons/apply", {
         code,
         subtotal: getCartSubtotal(items),
       });

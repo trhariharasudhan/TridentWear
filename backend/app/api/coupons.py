@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 DB_DIR = BASE_DIR / "db"
 COUPONS_PATH = str(DB_DIR / "coupons.json")
 
-router = APIRouter(prefix="/api", tags=["coupons"])
+router = APIRouter(prefix="/api/v1", tags=["coupons"])
 
 
 DEFAULT_COUPONS = [

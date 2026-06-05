@@ -550,14 +550,14 @@ export async function toggleWishlist(id) {
   if (localWishlist.has(numId)) {
     localWishlist.delete(numId);
     let { request } = await import("./api.js");
-    await request("/api/wishlist/remove", {
+    await request("/api/v1/wishlist/remove", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ product_id: numId }),
     }).catch(() => null);
   } else {
     localWishlist.add(numId);
-    await post("/api/wishlist/add", { product_id: numId }).catch(() => null);
+    await post("/api/v1/wishlist/add", { product_id: numId }).catch(() => null);
   }
 }
 
@@ -1003,7 +1003,7 @@ export async function initSite() {
   const user = getCurrentUser();
   if (user) {
     try {
-      const items = await get("/api/wishlist");
+      const items = await get("/api/v1/wishlist");
       if (items && Array.isArray(items)) {
         items.forEach(w => localWishlist.add(Number(w.product_id)));
       }

@@ -4,7 +4,7 @@ import { formatCurrency, getCurrentUser, initSite, pageUrl, showToast } from "..
 
 // DELETE helper with JSON body for wishlist removal
 async function removeFromWishlist(productId) {
-  return request("/api/wishlist/remove", {
+  return request("/api/v1/wishlist/remove", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ product_id: productId }),
@@ -22,7 +22,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   // Re-bind remove buttons with correct method
   const container = document.querySelector("[data-wishlist-grid]");
   try {
-    const items = await get("/api/wishlist");
+    const items = await get("/api/v1/wishlist");
     const empty = document.querySelector("[data-wishlist-empty]");
     if (!items || !items.length) {
       empty.hidden = false;

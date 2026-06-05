@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 DB_DIR = BASE_DIR / "db"
 WISHLIST_PATH = str(DB_DIR / "wishlist.json")
 
-router = APIRouter(prefix="/api/wishlist", tags=["wishlist"])
+router = APIRouter(prefix="/api/v1/wishlist", tags=["wishlist"])
 
 
 class WishlistPayload(BaseModel):
