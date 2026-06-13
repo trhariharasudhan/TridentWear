@@ -23,19 +23,23 @@ IS_PRODUCTION: bool = ENVIRONMENT == "production"
 _DEV_JWT_SECRET = "trident-dev-jwt-secret-NOT-FOR-PRODUCTION"
 _DEV_SESSION_SECRET = "trident-dev-session-secret-NOT-FOR-PRODUCTION"
 
+# ── Database ──────────────────────────────────────────────────────────────────
+# Default to SQLite/JSON in local development if not specified
+DATABASE_URL: str = os.getenv("DATABASE_URL", os.getenv("PG_DSN", "")).strip()
+
 # ── JWT ────────────────────────────────────────────────────────────────────────
 JWT_SECRET: str = os.getenv("TRIDENT_JWT_SECRET", os.getenv("JWT_SECRET", "")).strip()
 JWT_ALGORITHM: str = "HS256"
 JWT_EXPIRATION_DAYS: int = int(os.getenv("TRIDENT_JWT_EXPIRATION_DAYS", "7"))
 
 # ── Session ────────────────────────────────────────────────────────────────────
-SESSION_SECRET: str = os.getenv("TRIDENT_SESSION_SECRET", "").strip()
+SESSION_SECRET: str = os.getenv("TRIDENT_SESSION_SECRET", os.getenv("SESSION_SECRET", "")).strip()
 SESSION_MAX_AGE: int = int(os.getenv("TRIDENT_SESSION_MAX_AGE_SECONDS", "604800"))
 
 # ── Razorpay ───────────────────────────────────────────────────────────────────
-# Supports both old name (RAZORPAY_KEY/RAZORPAY_SECRET) and new canonical names.
 RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", os.getenv("RAZORPAY_KEY", "")).strip()
 RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", os.getenv("RAZORPAY_SECRET", "")).strip()
+RAZORPAY_WEBHOOK_SECRET: str = os.getenv("RAZORPAY_WEBHOOK_SECRET", "").strip()
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "").strip()
@@ -43,11 +47,8 @@ _raw_origins = os.getenv("ALLOWED_ORIGINS", "").strip()
 if _raw_origins:
     CORS_ORIGINS: list = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 elif IS_PRODUCTION:
-    # Production: no ALLOWED_ORIGINS set — CORS will block everything (safe default).
-    # This will trigger the startup guard below.
     CORS_ORIGINS = []
 else:
-    # Development: allow common local origins explicitly. Never wildcard with credentials.
     CORS_ORIGINS = [
         "http://127.0.0.1:8000",
         "http://127.0.0.1:8010",
@@ -66,49 +67,51 @@ else:
     ]
 
 # ── Admin seed ────────────────────────────────────────────────────────────────
-# Read from env; fall back to dev-only defaults in development.
 ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@trident.local").strip()
-# Raw password used only if no hash is provided (dev mode; will be hashed at first use).
 ADMIN_PASSWORD_RAW: str = os.getenv("ADMIN_PASSWORD", "").strip()
-# Pre-computed bcrypt hash preferred over raw password for production.
 ADMIN_PASSWORD_HASH: str = os.getenv("ADMIN_PASSWORD_HASH", "").strip()
 
+# ── SMTP Mail Configuration ────────────────────────────────────────────────────
+SMTP_HOST: str = os.getenv("SMTP_HOST", "").strip()
+SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "").strip()
+SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "").strip()
+SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "noreply@tridentwear.in").strip()
+SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "true").strip().lower() == "true"
 
-def _check_secret(name: str, value: str, known_bad: list | None = None) -> None:
-    """Raise RuntimeError if a required secret is missing or insecure in production."""
-    if not value:
-        raise RuntimeError(
-            f"[SECURITY] Required secret '{name}' is not set. "
-            f"Set it in the environment before starting in production."
-        )
-    if known_bad and value in known_bad:
-        raise RuntimeError(
-            f"[SECURITY] '{name}' is still set to a known-insecure default. "
-            f"Generate a secure value: python -c \"import secrets; print(secrets.token_hex(32))\""
-        )
+# ── OTP Abstraction ───────────────────────────────────────────────────────────
+OTP_PROVIDER: str = os.getenv("OTP_PROVIDER", "mock").strip().lower()
+OTP_EXPIRY_SECONDS: int = int(os.getenv("OTP_EXPIRY_SECONDS", "300"))
+OTP_MAX_ATTEMPTS: int = int(os.getenv("OTP_MAX_ATTEMPTS", "5"))
+OTP_RESEND_COOLDOWN_SECONDS: int = int(os.getenv("OTP_RESEND_COOLDOWN_SECONDS", "60"))
+
+# ── Google OAuth ──────────────────────────────────────────────────────────────
+GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+
+# ── Base URLs & Logging ────────────────────────────────────────────────────────
+APP_BASE_URL: str = os.getenv("APP_BASE_URL", "http://127.0.0.1:8020").strip()
+LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").strip().upper()
 
 
 def validate_production_secrets() -> None:
     """
     Called at startup. In production mode, fail fast if any required secret is
     missing or still set to a known-weak placeholder.
-    In development, log warnings instead of crashing.
     """
     issues: list[str] = []
 
     checks = [
-        ("TRIDENT_JWT_SECRET", JWT_SECRET, [_DEV_JWT_SECRET, "trident-super-secret-key-12345"]),
-        ("TRIDENT_SESSION_SECRET", SESSION_SECRET, [_DEV_SESSION_SECRET, "trident-local-session-secret"]),
-        ("ALLOWED_ORIGINS", _raw_origins, []),
-        ("RAZORPAY_KEY_ID", RAZORPAY_KEY_ID, []),
-        ("RAZORPAY_KEY_SECRET", RAZORPAY_KEY_SECRET, []),
+        ("TRIDENT_JWT_SECRET", JWT_SECRET, [_DEV_JWT_SECRET, "trident-super-secret-key-12345", ""]),
+        ("TRIDENT_SESSION_SECRET", SESSION_SECRET, [_DEV_SESSION_SECRET, "trident-local-session-secret", ""]),
+        ("ALLOWED_ORIGINS", _raw_origins, [""]),
+        ("DATABASE_URL", DATABASE_URL, [""]),
     ]
 
     for name, value, known_bad in checks:
         if not value:
             issues.append(f"  - {name} is not set")
         elif known_bad and value in known_bad:
-            issues.append(f"  - {name} is set to a known-insecure placeholder")
+            issues.append(f"  - {name} is set to a missing or known-insecure placeholder")
 
     if issues:
         message = "Security configuration problems detected:\n" + "\n".join(issues)

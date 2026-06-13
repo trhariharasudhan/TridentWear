@@ -181,6 +181,77 @@ async def api_response_wrapper(request: Request, call_next):
                 
     return response
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    is_prod = os.getenv("ENVIRONMENT", "development") == "production"
+    if is_prod:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        
+    csp_directives = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://checkout.razorpay.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: https://*.razorpay.com; "
+        "connect-src 'self' https://*.razorpay.com; "
+        "frame-src 'self' https://accounts.google.com https://api.razorpay.com;"
+    )
+    response.headers["Content-Security-Policy"] = csp_directives
+    return response
+
+# In-memory rate limiting dictionary
+rate_limit_records = {}
+
+@app.middleware("http")
+async def rate_limiter(request: Request, call_next):
+    sensitive_prefixes = (
+        "/api/v1/auth/login",
+        "/api/v1/auth/register",
+        "/api/v1/auth/otp/send",
+        "/api/v1/auth/otp/verify",
+        "/api/v1/account/password-change",
+        "/api/v1/payments/cod",
+        "/api/v1/payments/verify",
+        "/api/v1/contact",
+        "/api/v1/reviews",
+    )
+    
+    if request.url.path.startswith(sensitive_prefixes) and request.method != "OPTIONS":
+        client_ip = request.client.host if request.client else "unknown"
+        now = time.time()
+        
+        if client_ip not in rate_limit_records:
+            rate_limit_records[client_ip] = []
+            
+        timestamps = rate_limit_records[client_ip]
+        rate_limit_records[client_ip] = [t for t in timestamps if now - t < 60]
+        
+        if len(rate_limit_records[client_ip]) >= 15:
+            request_id = getattr(request.state, "request_id", None)
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "success": False,
+                    "request_id": request_id,
+                    "data": None,
+                    "error": {
+                        "message": "Too many requests. Please try again in a minute.",
+                        "code": 429
+                    }
+                },
+                headers={"Retry-After": "60"}
+            )
+            
+        rate_limit_records[client_ip].append(now)
+        
+    return await call_next(request)
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     request_id = getattr(request.state, "request_id", None)

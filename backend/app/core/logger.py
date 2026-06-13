@@ -35,7 +35,9 @@ class JSONFormatter(logging.Formatter):
 
 def get_logger():
     logger = logging.getLogger("trident_app_logger")
-    logger.setLevel(logging.INFO)
+    log_level = os.getenv("LOG_LEVEL", "INFO").strip().upper()
+    numeric_level = getattr(logging, log_level, logging.INFO)
+    logger.setLevel(numeric_level)
     
     # Avoid duplicate handlers in dev mode
     if not logger.handlers:
