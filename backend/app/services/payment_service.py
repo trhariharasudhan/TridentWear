@@ -7,7 +7,8 @@ from typing import Dict, Any
 from fastapi import Request, HTTPException
 from app.services.order_service import create_payment_order_record
 from app.services.auth_service import get_session_user
-from app.core.config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, IS_PRODUCTION
+from app.core.config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, IS_PRODUCTION
+from app.core.db_switch import db
 
 log = logging.getLogger(__name__)
 
@@ -146,3 +147,97 @@ def process_razorpay_verify(
 
     new_order = create_payment_order_record(order_data)
     return {"success": True, "order_id": new_order["order_id"], "message": "Payment verified and order placed"}
+
+
+def verify_webhook_signature(body: bytes, signature: str) -> None:
+    """Verifies Razorpay webhook HMAC signature."""
+    if not signature or not signature.strip():
+        raise HTTPException(status_code=400, detail="Webhook signature is missing.")
+
+    if not RAZORPAY_WEBHOOK_SECRET:
+        if IS_PRODUCTION:
+            raise HTTPException(status_code=503, detail="Webhook secret not configured.")
+        log.warning("[DEV] RAZORPAY_WEBHOOK_SECRET not set — skipping webhook verification.")
+        return
+
+    expected = hmac.new(
+        RAZORPAY_WEBHOOK_SECRET.encode("utf-8"),
+        body,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected, signature.strip()):
+        log.warning("Webhook signature mismatch.")
+        raise HTTPException(status_code=400, detail="Invalid webhook signature.")
+
+
+def process_webhook(raw_body: bytes, signature: str) -> Dict[str, Any]:
+    """Processes verified Razorpay webhook events idempotently."""
+    verify_webhook_signature(raw_body, signature)
+
+    import json
+    try:
+        event = json.loads(raw_body)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+
+    event_id = event.get("id")
+    if not event_id:
+        raise HTTPException(status_code=400, detail="Missing event ID.")
+
+    event_name = event.get("event")
+
+    # 1. Idempotency Check: check if event already processed
+    existing = db.read("payment_events", {"event_id": event_id})
+    if existing:
+        return {"success": True, "message": "Event already processed"}
+
+    # 2. Extract key fields
+    payload = event.get("payload", {})
+    payment = payload.get("payment", {}).get("entity", {})
+    payment_id = payment.get("id")
+    razorpay_order_id = payment.get("order_id")
+
+    # 3. Duplicate payment prevention: check if this payment already succeeded
+    if payment_id:
+        duplicate = db.read("payment_events", {"payment_id": payment_id, "status": "payment.captured"})
+        if duplicate:
+            db.insert("payment_events", {
+                "event_id": event_id,
+                "payment_id": payment_id,
+                "order_id": razorpay_order_id,
+                "status": event_name,
+                "payload": event
+            })
+            return {"success": True, "message": "Payment already processed"}
+
+    # 4. Save event record
+    db.insert("payment_events", {
+        "event_id": event_id,
+        "payment_id": payment_id,
+        "order_id": razorpay_order_id,
+        "status": event_name,
+        "payload": event
+    })
+
+    # 5. Handle success/failure transitions
+    if event_name == "payment.captured":
+        if razorpay_order_id:
+            orders_list = db.read("orders", {"razorpay_order_id": razorpay_order_id})
+            if orders_list:
+                for order in orders_list:
+                    db.update("orders", {"id": order["id"]}, {
+                        "payment_status": "paid",
+                        "status": "placed",
+                        "razorpay_payment_id": payment_id
+                    })
+    elif event_name == "payment.failed":
+        if razorpay_order_id:
+            orders_list = db.read("orders", {"razorpay_order_id": razorpay_order_id})
+            if orders_list:
+                for order in orders_list:
+                    db.update("orders", {"id": order["id"]}, {
+                        "payment_status": "failed"
+                    })
+
+    return {"success": True, "message": f"Webhook processed: {event_name}"}

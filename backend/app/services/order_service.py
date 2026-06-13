@@ -78,7 +78,7 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
     subtotal = 0
     
     for item in payload.items:
-        pid = int(item.get("id", 0))
+        pid = int(item.get("id") or item.get("product_id") or 0)
         qty = max(int(item.get("qty", 1)), 1)
         if pid not in prod_map:
             raise HTTPException(status_code=400, detail=f"Product with ID {pid} not found.")
@@ -307,13 +307,18 @@ def update_order_status_logic(order_id: str, payload: Any) -> Dict[str, Any]:
     return {"success": True, "message": "Order status updated.", "order": updated_list[0]}
 
 def create_payment_order_record(order_data: Dict[str, Any]) -> Dict[str, Any]:
+    if order_data.get("razorpay_order_id"):
+        existing = db.read("orders", {"razorpay_order_id": order_data["razorpay_order_id"]})
+        if existing:
+            return existing[0]
+
     products = load_products()
     prod_map = {p["id"]: p for p in products}
     
     items = []
     subtotal = 0
     for item in order_data.get("items", []):
-        pid = int(item.get("id", 0))
+        pid = int(item.get("id") or item.get("product_id") or 0)
         qty = max(int(item.get("qty", 1)), 1)
         if pid not in prod_map:
             raise HTTPException(status_code=400, detail=f"Product with ID {pid} not found.")

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
-from app.services.payment_service import process_cod_order, process_razorpay_create, process_razorpay_verify
+from app.services.payment_service import process_cod_order, process_razorpay_create, process_razorpay_verify, process_webhook
 
 router = APIRouter(prefix="/api/v1/payments", tags=["payments"])
 
@@ -49,3 +49,9 @@ def verify_razorpay_payment(payload: RazorpayVerifyPayload, request: Request) ->
         order_data_payload=payload.order_data,
         request=request,
     )
+
+@router.post("/webhook")
+async def razorpay_webhook(request: Request) -> Dict[str, Any]:
+    signature = request.headers.get("x-razorpay-signature", "")
+    raw_body = await request.body()
+    return process_webhook(raw_body, signature)

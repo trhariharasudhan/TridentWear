@@ -226,4 +226,16 @@ coupons = Table(
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
 )
 
+payment_events = Table(
+    "payment_events",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("event_id", String, unique=True, index=True),
+    Column("payment_id", String, index=True, nullable=True),
+    Column("order_id", String, index=True, nullable=True),
+    Column("status", String, nullable=False),
+    Column("payload", JSON, nullable=False),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+)
+
 

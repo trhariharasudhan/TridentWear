@@ -70,6 +70,9 @@ db/*.tmp.json
 db/users.json
 db/orders.json
 db/otp_sessions.json
+db/payment_events.json
+db/contacts.json
+db/coupons.json
 
 # Test scripts (ephemeral — not for production repo)
 test_*.js
