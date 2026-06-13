@@ -1,3 +1,4 @@
+import os
 import json
 import sys
 import argparse
@@ -10,10 +11,10 @@ BASE_DIR = BACKEND_DIR.parent
 DB_DIR = BASE_DIR / "db"
 sys.path.append(str(BACKEND_DIR))
 
-from app.db.models import users, products, orders, chat_messages, reviews, otp_sessions
+from app.db.models import users, products, orders, chat_messages, reviews, otp_sessions, contacts
 from app.core.logger import app_logger
 
-PG_DSN = os.getenv("PG_DSN", "postgresql://user:password@localhost/tridentwear")
+PG_DSN = os.getenv("DATABASE_URL") or os.getenv("PG_DSN", "postgresql://user:password@localhost/tridentwear")
 
 def load_json(filename):
     path = DB_DIR / filename
@@ -38,9 +39,8 @@ def verify(archive_json=False):
     orders_data = load_json("orders.json")
     reviews_data = load_json("reviews.json")
     otp_data = load_json("otp_sessions.json")
-    chat_data = load_json("contacts.json")
-    if not chat_data:
-        chat_data = load_json("chat.json")
+    chat_data = load_json("chat.json")
+    contacts_data = load_json("contacts.json")
     
     engine = create_engine(PG_DSN)
     
@@ -69,7 +69,13 @@ def verify(archive_json=False):
             pg_chat_count = conn.execute(select(func.count()).select_from(chat_messages)).scalar()
             print(f"Chat Messages: JSON={len(chat_data)} | PG={pg_chat_count}")
             if len(chat_data) != pg_chat_count:
-                print("❌ Mismatch in Chat")
+                print("❌ Mismatch in Chat Messages")
+                parity = False
+
+            pg_contacts_count = conn.execute(select(func.count()).select_from(contacts)).scalar()
+            print(f"Contacts: JSON={len(contacts_data)} | PG={pg_contacts_count}")
+            if len(contacts_data) != pg_contacts_count:
+                print("❌ Mismatch in Contacts")
                 parity = False
 
             pg_reviews_count = conn.execute(select(func.count()).select_from(reviews)).scalar()
@@ -86,7 +92,7 @@ def verify(archive_json=False):
     except Exception as e:
         print(f"❌ Verification failed due to database connection error: {e}")
         parity = False
-
+ 
     if parity:
         print("\nAll records migrated successfully.")
         if not archive_json:
@@ -95,7 +101,7 @@ def verify(archive_json=False):
             return
         print("Archiving JSON files...")
         
-        # Archiving logic - strictly renaming, never deleting
+        # Archiving logic - renaming, never deleting
         for fname in ["users.json", "products.json", "orders.json", "contacts.json", "chat.json", "reviews.json", "otp_sessions.json"]:
             fpath = DB_DIR / fname
             if fpath.exists():

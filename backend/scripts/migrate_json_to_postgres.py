@@ -29,6 +29,8 @@ from app.db.models import (
     reviews,
     users,
     wishlist,
+    contacts,
+    chat_messages,
 )
 
 PG_DSN = os.getenv("DATABASE_URL") or os.getenv("PG_DSN", "postgresql://user:password@localhost/tridentwear")
@@ -199,6 +201,37 @@ def map_reviews(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     ]
 
 
+def map_contacts(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": row.get("id"),
+            "name": row.get("name"),
+            "email": row.get("email"),
+            "message": row.get("message"),
+            "created_at": row.get("created_at"),
+        }
+        for row in rows
+        if not row.get("__migration_error__")
+    ]
+
+
+def map_chat_messages(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": row.get("id"),
+            "thread_id": row.get("thread_id"),
+            "author": row.get("author"),
+            "message": row.get("message"),
+            "role": row.get("role"),
+            "timestamp": row.get("timestamp"),
+            "read": bool(row.get("read", False)),
+            "created_at": row.get("created_at") or row.get("timestamp"),
+        }
+        for row in rows
+        if not row.get("__migration_error__")
+    ]
+
+
 def build_migration_payload() -> Dict[str, List[Dict[str, Any]]]:
     users_data = load_json("users.json")
     products_data = load_json("products.json")
@@ -206,6 +239,8 @@ def build_migration_payload() -> Dict[str, List[Dict[str, Any]]]:
     reviews_data = load_json("reviews.json")
     otp_data = load_json("otp_sessions.json")
     wishlist_data = load_json("wishlist.json")
+    contacts_data = load_json("contacts.json")
+    chat_data = load_json("chat.json")
 
     normalized_users, notes = normalize_user_ids(users_data)
     mapped_orders = map_orders(orders_data)
@@ -221,6 +256,8 @@ def build_migration_payload() -> Dict[str, List[Dict[str, Any]]]:
         "recently_viewed": [],
         "notifications": [],
         "otp_sessions": otp_data,
+        "contacts": map_contacts(contacts_data),
+        "chat_messages": map_chat_messages(chat_data),
     }
 
 
@@ -235,6 +272,8 @@ TABLES = {
     "recently_viewed": recently_viewed,
     "notifications": notifications,
     "otp_sessions": otp_sessions,
+    "contacts": contacts,
+    "chat_messages": chat_messages,
 }
 
 
@@ -242,7 +281,7 @@ def validate_payload(payload: Dict[str, List[Dict[str, Any]]]) -> List[str]:
     errors = []
     product_ids = {row.get("id") for row in payload["products"]}
     user_ids = {row.get("id") for row in payload["users"]}
-    for table_name in ("users", "products", "orders", "reviews"):
+    for table_name in ("users", "products", "orders", "reviews", "contacts", "chat_messages"):
         ids = [row.get("id") for row in payload.get(table_name, []) if row.get("id") is not None]
         duplicate_ids = sorted({item_id for item_id in ids if ids.count(item_id) > 1})
         for item_id in duplicate_ids:
@@ -282,6 +321,7 @@ def migrate(dry_run: bool = False) -> None:
         (LOG_DIR / "migration_dry_run_report.json").write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
         return
 
+    print("--- WARNING: Starting database migration. Ensure backups of your JSON database are secured. ---")
     engine = create_engine(PG_DSN)
     metadata.create_all(engine)
     try:
