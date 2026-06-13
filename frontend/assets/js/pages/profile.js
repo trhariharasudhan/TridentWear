@@ -250,8 +250,8 @@ async function loadProfile() {
         showToast("New passwords do not match!", "error");
         return;
       }
-      if (newPwd.length < 6) {
-        showToast("Password must be at least 6 characters.", "warning");
+      if (newPwd.length < 8) {
+        showToast("Password must be at least 8 characters.", "warning");
         return;
       }
 

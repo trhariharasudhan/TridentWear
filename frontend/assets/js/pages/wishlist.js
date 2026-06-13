@@ -1,5 +1,5 @@
-import { get, post, request, resolveAssetUrl } from "../shared/api.js?v=20260430-v3";
-import { formatCurrency, getCurrentUser, initSite, pageUrl, showToast } from "../shared/site.js?v=20260430-v3";
+import { get, request, resolveAssetUrl } from "../shared/api.js?v=20260430-v3";
+import { escapeHtml, formatCurrency, getCurrentUser, initSite, pageUrl, showToast } from "../shared/site.js?v=20260430-v3";
 
 
 // DELETE helper with JSON body for wishlist removal
@@ -19,28 +19,32 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Re-bind remove buttons with correct method
   const container = document.querySelector("[data-wishlist-grid]");
+  const empty = document.querySelector("[data-wishlist-empty]");
+
+  if (!container || !empty) return;
+
   try {
     const items = await get("/api/v1/wishlist");
-    const empty = document.querySelector("[data-wishlist-empty]");
     if (!items || !items.length) {
       empty.hidden = false;
       return;
     }
     empty.hidden = true;
+
+    // Use escapeHtml for all user/API-supplied text to prevent XSS
     container.innerHTML = items.map(({ product }) => `
       <article class="product-card reveal">
         <a class="product-media" href="${pageUrl(`/product?id=${product.id}`)}">
-          <img src="${resolveAssetUrl(product.image)}" alt="${product.name}" loading="lazy">
+          <img src="${resolveAssetUrl(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy">
         </a>
         <div class="product-body">
           <div class="product-topline">
-            <span class="product-label">${product.category}</span>
-            ${product.tag ? `<span class="product-tag">${product.tag}</span>` : ""}
+            <span class="product-label">${escapeHtml(product.category)}</span>
+            ${product.tag ? `<span class="product-tag">${escapeHtml(product.tag)}</span>` : ""}
           </div>
-          <h3 class="product-name">${product.name}</h3>
-          <p class="product-description">${product.description}</p>
+          <h3 class="product-name">${escapeHtml(product.name)}</h3>
+          <p class="product-description">${escapeHtml(product.description)}</p>
           <div class="product-footer">
             <strong class="product-price">${formatCurrency(product.price)}</strong>
             <div class="cart-row-actions">
@@ -59,7 +63,8 @@ window.addEventListener("DOMContentLoaded", async () => {
           showToast("Removed from wishlist.");
           btn.closest("article").remove();
           if (!container.querySelectorAll("article").length) {
-            document.querySelector("[data-wishlist-empty]").hidden = false;
+            const emptyEl = document.querySelector("[data-wishlist-empty]");
+            if (emptyEl) emptyEl.hidden = false;
           }
         } catch (err) {
           showToast(err.message, "error");
@@ -67,6 +72,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
     });
   } catch (err) {
-    container.innerHTML = `<div class="helper-note danger">${err.message}</div>`;
+    if (container) {
+      container.innerHTML = `<div class="helper-note danger">${escapeHtml(err.message || "Failed to load wishlist.")}</div>`;
+    }
   }
 });

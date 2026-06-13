@@ -345,7 +345,7 @@ async function loadReviews(productId) {
   const box = document.querySelector(".detail-review-preview");
   if (!box) return;
   try {
-    const data = await getWithFallback([`/api/v1/reviews/${productId}`, `/api/reviews/${productId}`]);
+    const data = await getWithFallback([`/api/v1/reviews/${productId}`]);
     const reviews = data.reviews || data || [];
     const count = data.count ?? reviews.length;
     const average = data.average || (reviews.length ? (reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / reviews.length).toFixed(1) : "4.8");

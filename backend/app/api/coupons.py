@@ -41,9 +41,16 @@ def apply_coupon(payload: ApplyCouponPayload) -> Dict[str, Any]:
     coupons = load_coupons()
     code = payload.code.strip().upper()
     subtotal = float(payload.subtotal)
+
+    # Basic subtotal validation — prevent obviously manipulated values
+    if subtotal <= 0:
+        raise HTTPException(status_code=400, detail="Invalid order subtotal.")
+    if subtotal > 1_000_000:
+        raise HTTPException(status_code=400, detail="Subtotal exceeds maximum allowed value.")
+
     now = datetime.now(timezone.utc).date()
 
-    for coupon in coupons:
+    for i, coupon in enumerate(coupons):
         if coupon.get("code", "").upper() == code:
             # Check expiry
             try:
@@ -52,11 +59,19 @@ def apply_coupon(payload: ApplyCouponPayload) -> Dict[str, Any]:
                 expiry_date = now
             if expiry_date < now:
                 raise HTTPException(status_code=400, detail="Coupon has expired.")
-            if coupon.get("usage_count", 0) >= coupon.get("usage_limit", 9999):
+
+            usage_count = coupon.get("usage_count", 0)
+            usage_limit = coupon.get("usage_limit", 9999)
+            if usage_count >= usage_limit:
                 raise HTTPException(status_code=400, detail="Coupon usage limit reached.")
 
             discount_pct = float(coupon.get("discount", 0))
             discount_amount = round_currency(subtotal * discount_pct / 100)
+
+            # ── Increment usage_count atomically ──────────────────────────────
+            coupons[i]["usage_count"] = usage_count + 1
+            write_json(COUPONS_PATH, coupons)
+
             return {
                 "success": True,
                 "code": coupon["code"],

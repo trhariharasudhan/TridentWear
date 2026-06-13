@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /product
+Allow: /about
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /shipping
+Allow: /returns
+Allow: /track
+
+# Block admin and auth pages from crawlers
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /verify
+Disallow: /profile
+Disallow: /profile-setup
+Disallow: /checkout
+Disallow: /cart
+Disallow: /api/
+
+# Block API docs in case they're ever served
+Disallow: /docs
+Disallow: /redoc
+Disallow: /openapi.json
+
+Sitemap: https://tridentwear.in/sitemap.xml

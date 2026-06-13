@@ -96,13 +96,14 @@ python backend/app.py
 ## 🔐 Authentication
 
 ### Admin Account
-- **Email:** `admin@trident.local`
-- **Password:** `admin@12345`
+- **Email:** Set via `ADMIN_EMAIL` environment variable (default: `admin@trident.local` in dev)
+- **Password:** Set via `ADMIN_PASSWORD_HASH` environment variable (bcrypt hash)
+  - For local dev: see `db/users.json` (bcrypt hashed — do not share in public)
 - **Access:** Full admin panel & product management
 
 ### Test Customer Account
-- **Email:** `customer@trident.local`
-- **Password:** `customer@12345`
+- **Email:** See `db/users.json` for seeded test accounts
+- **Password:** Stored as bcrypt hash in `db/users.json` — use your local `.env` or ask the team
 - **Access:** Browse, cart, checkout, order tracking
 
 ### Login Methods
@@ -205,10 +206,10 @@ python backend/app.py --reload
 
 ### Testing Authentication
 ```bash
-# Test email login
-curl -X POST http://localhost:8000/api/auth/login \
+# Test email login (replace with your local dev credentials)
+curl -X POST http://localhost:8010/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@trident.local","password":"admin@12345"}'
+  -d '{"email":"YOUR_DEV_EMAIL","password":"YOUR_DEV_PASSWORD"}'
 
 # Test OTP send
 curl -X POST http://localhost:8000/api/auth/otp/send \

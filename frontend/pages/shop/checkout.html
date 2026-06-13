@@ -193,13 +193,13 @@
                   placeholder="Any delivery notes or fit preferences?"
                 ></textarea>
               </div>
-              <div class="form-group full">
+              <!-- Test mode: hidden from customers, available via DevTools for staging -->
+              <div class="form-group full" style="display:none;" aria-hidden="true">
                 <label class="checkbox-row" for="checkout-test-mode"
                   ><input id="checkout-test-mode" type="checkbox" /><span
                     >Create as staging test order</span
                   ></label
                 >
-                <p class="field-help">Test orders are clearly marked in admin and do not reduce live stock.</p>
               </div>
               <div class="form-group full">
                 <button

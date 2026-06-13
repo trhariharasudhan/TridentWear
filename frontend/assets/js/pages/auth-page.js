@@ -372,7 +372,7 @@ window.handleGoogleCredentialResponse = async (response) => {
   
   showToast("Verifying with Google...", "info");
   try {
-    const data = await post("/api/auth/google", { credential: response.credential });
+    const data = await post("/api/v1/auth/google", { credential: response.credential });
     saveAuthSession({ token: data.token, user: data.user });
     await refreshAuthState();
     showToast("Signed in with Google!", "success");
@@ -385,37 +385,15 @@ window.handleGoogleCredentialResponse = async (response) => {
 function bindGoogleLogin() {
   const btns = document.querySelectorAll("#google-login-btn, .btn-social");
   btns.forEach(btn => {
-    // Check if it's the Google button
     if (!btn.textContent.toLowerCase().includes("google")) return;
-    
-    // Prevent multiple bindings
     if (btn.dataset.boundGoogle) return;
     btn.dataset.boundGoogle = "true";
 
     btn.addEventListener("click", () => {
-      showToast("Connecting to Google...", "info");
-      
-      // Simulate Google OAuth delay & prompt
-      setTimeout(async () => {
-        const mockEmail = prompt("Google Sign-In Simulation\n\nEnter your Google email address:", "user@gmail.com");
-        if (!mockEmail) {
-            showToast("Google sign-in cancelled.", "info");
-            return;
-        }
-
-        try {
-           const data = await post("/api/auth/google", { 
-               email: mockEmail,
-               name: mockEmail.split("@")[0]
-           });
-           saveAuthSession({ token: data.token, user: data.user });
-           await refreshAuthState();
-           showToast("Signed in with Google!", "success");
-           redirectAfterAuth(data.user);
-        } catch (err) {
-           showToast(err.message, "error");
-        }
-      }, 600);
+      // Google OAuth is handled by the GIS library on the login page via
+      // handleGoogleCredentialResponse. On the register page, redirect to login.
+      showToast("Please use the Google button on the login page for Google sign-in.", "info");
+      setTimeout(() => { window.location.href = "/login"; }, 1200);
     });
   });
 }
@@ -425,35 +403,9 @@ function bindForgotPassword() {
   if (!link) return;
   link.addEventListener("click", async (e) => {
     e.preventDefault();
-    const email = prompt("Enter your email address to reset password:");
-    if (!email) return;
-
-    try {
-      showToast("Requesting password reset...", "info");
-      const res = await post("/api/auth/password/forgot", { email });
-      if (res.dev_otp) {
-         showToast(res.message, "success");
-         const otp = prompt(`Dev Mode: We displayed the OTP in the message.\nEnter the 6-digit OTP you received:\n(Hint: It's ${res.dev_otp})`);
-         if (!otp) return;
-         const newPass = prompt("Enter your new password (min 8 chars):");
-         if (!newPass) return;
-         
-         const resetRes = await post("/api/auth/password/reset", { email, otp, new_password: newPass });
-         showToast(resetRes.message, "success");
-      } else {
-         // In dev mode, if dev_otp is missing, it means the email was not found.
-         showToast("Dev Mode: No dev_otp received. The email might not be registered or you made a typo. Check db/users.json.", "warning");
-         const otp = prompt("Dev Mode Error: No OTP returned.\nEnter the 6-digit OTP sent to your email:");
-         if (!otp) return;
-         const newPass = prompt("Enter your new password (min 8 chars):");
-         if (!newPass) return;
-         
-         const resetRes = await post("/api/auth/password/reset", { email, otp, new_password: newPass });
-         showToast(resetRes.message, "success");
-      }
-    } catch (err) {
-      showToast(err.message, "error");
-    }
+    // Password reset via email/OTP is not yet available.
+    // Show a helpful message directing the user to contact support.
+    showToast("Password reset is not yet available. Please contact support via the chat or contact page.", "info");
   });
 }
 

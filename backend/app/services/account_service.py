@@ -1,5 +1,6 @@
 from typing import Any, Dict
 from fastapi import HTTPException, Request, status
+import bcrypt
 
 from app.services.auth_service import get_session_user, serialize_user, update_user
 
@@ -64,12 +65,40 @@ def change_account_password(payload: Any, request: Request) -> Dict[str, Any]:
     new_pwd = str(getattr(payload, "new_password", "") or "").strip()
 
     if len(new_pwd) < 8:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must be at least 8 characters.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters."
+        )
 
-    stored = user.get("password_hash") or user.get("password") or ""
-    if stored and stored != current:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect.")
+    # ── Verify current password against bcrypt hash ──────────────────────────
+    stored_hash = user.get("password_hash") or user.get("password") or ""
+    if stored_hash:
+        try:
+            stored_bytes = stored_hash.encode("utf-8") if isinstance(stored_hash, str) else stored_hash
+            current_bytes = current.encode("utf-8")
+            # Check if stored value is a bcrypt hash (starts with $2b$ or $2a$)
+            if stored_hash.startswith(("$2b$", "$2a$", "$2y$")):
+                if not bcrypt.checkpw(current_bytes, stored_bytes):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Current password is incorrect."
+                    )
+            else:
+                # Plaintext fallback (legacy or dev-seeded accounts without hash)
+                if stored_hash != current:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Current password is incorrect."
+                    )
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Password verification failed."
+            )
 
-    update_user(user["id"], {"password": new_pwd})
+    # ── Hash new password with bcrypt before saving ───────────────────────────
+    new_hash = bcrypt.hashpw(new_pwd.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    update_user(user["id"], {"password_hash": new_hash, "password": None})
     return {"success": True, "message": "Password changed successfully."}
-

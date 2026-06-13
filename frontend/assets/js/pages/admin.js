@@ -279,17 +279,17 @@ function renderProducts() {
         <article class="admin-product-card">
           <div class="admin-product-top">
             <div>
-              <strong>${product.name}</strong>
+              <strong>${escapeHtml(product.name)}</strong>
               <div class="section-copy">T-Shirt - ${formatCurrency(product.price)}</div>
-              <div class="section-copy">${(product.card_tags || []).join(" / ")}</div>
-              <div class="admin-stock-line ${Number(product.stock || 0) <= 10 ? "is-low" : ""}">
-                <span>${product.stock} stock</span>
+              <div class="section-copy">${(product.card_tags || []).map(t => escapeHtml(t)).join(" / ")}</div>
+              <div class="admin-stock-line ${Number(product.stock || 0) <= 10 ? "is-low" : "}">
+                <span>${escapeHtml(String(product.stock))} stock</span>
                 <span>${product.featured ? "Featured" : "Standard"}</span>
               </div>
             </div>
-            <img class="admin-thumb" src="${resolveAssetUrl(product.image)}" alt="${product.name}">
+            <img class="admin-thumb" src="${resolveAssetUrl(product.image)}" alt="${escapeHtml(product.name)}">
           </div>
-          <p class="section-copy">${product.description}</p>
+          <p class="section-copy">${escapeHtml(product.description)}</p>
           <div class="admin-actions">
             <button class="btn btn-outline" type="button" data-edit-product="${product.id}">Edit</button>
             <button class="btn btn-danger" type="button" data-delete-product="${product.id}">Delete</button>
@@ -438,6 +438,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     await loadAdminMetrics();
     await loadReviews();
   } catch (error) {
-    document.querySelector("[data-admin-product-list]").innerHTML = `<div class="helper-note danger">${error.message}</div>`;
+    const adminList = document.querySelector("[data-admin-product-list]");
+    if (adminList) {
+      adminList.innerHTML = `<div class="helper-note danger">${escapeHtml(error.message || "Failed to load admin data.")}</div>`;
+    }
   }
 });

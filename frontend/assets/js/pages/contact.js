@@ -1,5 +1,5 @@
 import { post } from "../shared/api.js?v=20260430-v3";
-import { initSite, showToast } from "../shared/site.js?v=20260430-v3";
+import { escapeHtml, initSite, showToast } from "../shared/site.js?v=20260430-v3";
 
 window.addEventListener("DOMContentLoaded", async () => {
   await initSite();
@@ -37,7 +37,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       showToast("Message sent successfully.");
     } catch (error) {
       if (status) {
-        status.innerHTML = `<div class="helper-note danger">${error.message || "Failed to send. Please email us directly."}</div>`;
+        status.innerHTML = `<div class="helper-note danger">${escapeHtml(error.message || "Failed to send. Please email us directly.")}</div>`;
       }
       showToast(error.message || "Failed to send message.", "error");
     } finally {

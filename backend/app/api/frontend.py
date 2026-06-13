@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from pathlib import Path
 import jwt
 import os
@@ -143,3 +143,17 @@ def serve_verify_page(): return html_response("verify.html")
 @router.get("/{page_name}.html")
 def legacy_html_routes(page_name: str, request: Request):
     return html_response(f"{page_name}.html")
+
+@router.get("/robots.txt", include_in_schema=False)
+def serve_robots_txt():
+    robots_path = FRONTEND_ROOT / "robots.txt"
+    if robots_path.exists():
+        return PlainTextResponse(robots_path.read_text(encoding="utf-8"))
+    return PlainTextResponse("User-agent: *\nAllow: /\n")
+
+@router.get("/sitemap.xml", include_in_schema=False)
+def serve_sitemap():
+    sitemap_path = FRONTEND_ROOT / "sitemap.xml"
+    if sitemap_path.exists():
+        return Response(content=sitemap_path.read_text(encoding="utf-8"), media_type="application/xml")
+    return Response(content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>", media_type="application/xml")

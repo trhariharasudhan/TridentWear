@@ -20,7 +20,14 @@ from app.api.coupons import router as coupons_router
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-app = FastAPI(title="Trident Premium Store - Modular", docs_url="/docs", redoc_url="/redoc")
+# Disable Swagger UI and ReDoc in production to prevent API schema exposure
+_IS_PRODUCTION = os.getenv("ENVIRONMENT", "development") == "production"
+app = FastAPI(
+    title="TridentWear API",
+    docs_url=None if _IS_PRODUCTION else "/docs",
+    redoc_url=None if _IS_PRODUCTION else "/redoc",
+    openapi_url=None if _IS_PRODUCTION else "/openapi.json",
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 FRONTEND_ROOT = BASE_DIR / "frontend"
@@ -71,7 +78,6 @@ from fastapi.exceptions import RequestValidationError
 import json
 import time
 import logging
-import os
 
 import uuid
 from app.core.logger import app_logger
