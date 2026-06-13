@@ -1,19 +1,14 @@
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, Request, status
 
-from app.db.json_manager import read_json, update_json
+from app.core.db_switch import db
 from app.services.auth_service import get_session_user
 from app.services.product_service import load_products
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-REVIEWS_PATH = str(BASE_DIR / "db" / "reviews.json")
-
 
 def _load_reviews() -> List[Dict[str, Any]]:
-    reviews = read_json(REVIEWS_PATH)
-    return reviews if isinstance(reviews, list) else []
+    return db.read("reviews", {})
 
 
 def _product_exists(product_id: int) -> bool:
@@ -21,10 +16,10 @@ def _product_exists(product_id: int) -> bool:
 
 
 def get_product_reviews(product_id: int) -> Dict[str, Any]:
+    all_reviews = db.read("reviews", {"product_id": product_id})
     reviews = [
-        review for review in _load_reviews()
-        if int(review.get("product_id", 0)) == int(product_id)
-        and review.get("status", "approved") == "approved"
+        review for review in all_reviews
+        if review.get("status", "approved") == "approved"
     ]
     counts = {star: 0 for star in range(1, 6)}
     for review in reviews:
@@ -55,29 +50,22 @@ def create_product_review(payload: Any, request: Request) -> Dict[str, Any]:
     if len(review_text) < 8:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Review must be at least 8 characters.")
 
-    created = None
+    existing_reviews = db.read("reviews", {"user_id": user["id"], "product_id": product_id})
+    if existing_reviews:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="You already reviewed this product.")
 
-    def _insert(reviews: list):
-        nonlocal created
-        reviews = reviews if isinstance(reviews, list) else []
-        if any(int(r.get("user_id", 0)) == int(user["id"]) and int(r.get("product_id", 0)) == product_id for r in reviews):
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="You already reviewed this product.")
-        created = {
-            "id": max([int(r.get("id", 0)) for r in reviews] or [0]) + 1,
-            "product_id": product_id,
-            "user_id": user["id"],
-            "user_name": user.get("name", "Trident member"),
-            "rating": rating,
-            "review": review_text,
-            "verified_purchase": False,
-            "status": "pending_moderation",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-        reviews.append(created)
-        return reviews
-
-    update_json(REVIEWS_PATH, _insert)
-    return {"success": True, "message": "Review submitted for moderation.", "review": created}
+    created = {
+        "product_id": product_id,
+        "user_id": user["id"],
+        "user_name": user.get("name", "Trident member"),
+        "rating": rating,
+        "review": review_text,
+        "verified_purchase": False,
+        "status": "pending_moderation",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    inserted = db.insert("reviews", created)
+    return {"success": True, "message": "Review submitted for moderation.", "review": inserted}
 
 
 def get_admin_reviews(status_filter: Optional[str] = None) -> Dict[str, Any]:
@@ -108,42 +96,25 @@ def normalize_review_status(value: Any) -> str:
 
 def moderate_review(review_id: int, status_value: str, notes: Optional[str], admin: Dict[str, Any]) -> Dict[str, Any]:
     normalized_status = normalize_review_status(status_value)
-    updated_review = None
-
-    def _update(reviews: list):
-        nonlocal updated_review
-        reviews = reviews if isinstance(reviews, list) else []
-        for review in reviews:
-            if int(review.get("id", 0)) == int(review_id):
-                review["status"] = normalized_status
-                review["moderation_notes"] = str(notes or "").strip()
-                review["moderated_by"] = admin.get("id")
-                review["moderated_at"] = datetime.now(timezone.utc).isoformat()
-                updated_review = review
-                break
-        return reviews
-
-    update_json(REVIEWS_PATH, _update)
-    if not updated_review:
+    
+    res = db.read("reviews", {"id": review_id})
+    if not res:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found.")
-    return {"success": True, "message": f"Review {normalized_status}.", "review": updated_review}
+        
+    updates = {
+        "status": normalized_status,
+        "moderation_notes": str(notes or "").strip(),
+        "moderated_by": admin.get("id"),
+        "moderated_at": datetime.now(timezone.utc).isoformat()
+    }
+    updated = db.update("reviews", {"id": review_id}, updates)
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found.")
+    return {"success": True, "message": f"Review {normalized_status}.", "review": updated[0]}
 
 
 def delete_review(review_id: int) -> Dict[str, Any]:
-    deleted = False
-
-    def _delete(reviews: list):
-        nonlocal deleted
-        reviews = reviews if isinstance(reviews, list) else []
-        remaining = []
-        for review in reviews:
-            if int(review.get("id", 0)) == int(review_id):
-                deleted = True
-            else:
-                remaining.append(review)
-        return remaining
-
-    update_json(REVIEWS_PATH, _delete)
-    if not deleted:
+    count = db.delete("reviews", {"id": review_id})
+    if count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found.")
     return {"success": True, "message": "Review deleted."}

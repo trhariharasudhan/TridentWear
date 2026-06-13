@@ -6,7 +6,7 @@ import os
 from app.core.config import CORS_ORIGINS, get_session_secret, SESSION_MAX_AGE, validate_production_secrets
 
 from app.api.health import router as health_router, root_health_router
-from app.api.auth import router as auth_router
+from app.api.auth import router as auth_router, legacy_auth_router
 from app.api.products import router as products_router
 from app.api.orders import router as orders_router
 from app.api.admin import router as admin_router
@@ -61,6 +61,7 @@ app.add_middleware(
 app.include_router(health_router)        # /api/v1/health
 app.include_router(root_health_router)  # /health  (Render/Railway/Docker probe)
 app.include_router(auth_router)
+app.include_router(legacy_auth_router)
 app.include_router(products_router)
 app.include_router(orders_router)
 app.include_router(admin_router)

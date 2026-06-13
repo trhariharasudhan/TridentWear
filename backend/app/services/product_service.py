@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
 
+from app.core.db_switch import db
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-DB_DIR = BASE_DIR / "db"
-PRODUCTS_PATH = DB_DIR / "products.json"
 FRONTEND_ROOT = BASE_DIR / "frontend"
 FRONTEND_PRODUCTS_PATH = FRONTEND_ROOT / "assets" / "data" / "products.json"
 
@@ -83,8 +83,6 @@ DEFAULT_PRODUCTS: List[Dict[str, Any]] = [
         "featured": False,
     },
 ]
-
-from app.db.json_manager import read_json, update_json, write_json as db_write_json
 
 CANVA_TSHIRT_SPEC: Dict[str, Any] = {
     "cloth_type": "Half Sleeve T-Shirt",
@@ -186,22 +184,26 @@ def product_sort_key(product: Dict[str, Any]) -> Any:
     return (product["category"] != "tshirt", not product["featured"], product["id"])
 
 def load_products() -> List[Dict[str, Any]]:
-    raw_products = read_json(str(PRODUCTS_PATH))
+    raw_products = db.read("products", {})
     if not raw_products:
-        raw_products = DEFAULT_PRODUCTS
+        for p in DEFAULT_PRODUCTS:
+            db.insert("products", p)
+        raw_products = db.read("products", {})
     products = [normalize_product(product, index) for index, product in enumerate(raw_products)]
     return sorted(products, key=product_sort_key)
 
 def save_products(products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    normalized = [normalize_product(product, index) for index, product in enumerate(products)]
-    normalized.sort(key=product_sort_key)
-    # Using update_json inside the caller is preferred, but for backward compatibility:
-    db_write_json(str(PRODUCTS_PATH), normalized)
+    # Unused but kept for API stability. Syncs with DB and frontend json.
+    for product in products:
+        db.update("products", {"id": product["id"]}, product)
     
-    # We shouldn't necessarily write to frontend synchronously in high traffic, 
-    # but maintaining compatibility for now without locking the frontend file.
-    db_write_json(str(FRONTEND_PRODUCTS_PATH), normalized)
-    return normalized
+    all_prods = load_products()
+    try:
+        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+            json.dump(all_prods, f, indent=2)
+    except Exception:
+        pass
+    return all_prods
 
 def get_all_products(category: Optional[str] = None, featured: Optional[bool] = None) -> Dict[str, Any]:
     products = load_products()
@@ -220,36 +222,29 @@ def get_single_product(product_id: int) -> Dict[str, Any]:
 
 def deduct_stock(order_items: List[Dict[str, Any]]) -> None:
     """Reduce product stock atomically after an order is saved."""
-    def _deduct(raw_products: list):
-        if not raw_products:
-            raw_products = DEFAULT_PRODUCTS
-        products = [normalize_product(product, index) for index, product in enumerate(raw_products)]
-        product_map = {p["id"]: p for p in products}
-        
-        for item in order_items:
-            pid = int(item.get("id", 0))
-            qty = int(item.get("qty", 1))
-            if pid in product_map:
-                product_map[pid]["stock"] = max(0, product_map[pid]["stock"] - qty)
-        
-        normalized = list(product_map.values())
-        normalized.sort(key=product_sort_key)
-        db_write_json(str(FRONTEND_PRODUCTS_PATH), normalized)
-        return normalized
-
-    update_json(str(PRODUCTS_PATH), _deduct)
+    for item in order_items:
+        pid = int(item.get("id", 0))
+        qty = int(item.get("qty", 1))
+        res = db.read("products", {"id": pid})
+        if res:
+            p = res[0]
+            new_stock = max(0, int(p.get("stock", 0)) - qty)
+            db.update("products", {"id": pid}, {"stock": new_stock})
+            
+    # Sync with frontend json
+    try:
+        all_prods = load_products()
+        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+            json.dump(all_prods, f, indent=2)
+    except Exception:
+        pass
 
 # Admin Product Management Logic
 IMAGES_DIR = FRONTEND_ROOT / "assets" / "images"
 UPLOADS_DIR = IMAGES_DIR / "uploads"
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 
-def next_id(items: List[Dict[str, Any]]) -> int:
-    if not items:
-        return 1
-    return max(int(item.get("id", 0)) for item in items) + 1
-
-def save_uploaded_image(upload: Any) -> str: # using Any for UploadFile to avoid importing it if not there
+def save_uploaded_image(upload: Any) -> str:
     import shutil
     import uuid
     extension = Path(upload.filename or "").suffix.lower()
@@ -340,79 +335,69 @@ async def process_create_product(name, category, price, description, tag, sizes,
         image_path = save_uploaded_image(image)
         await image.close()
 
-    returned_product = None
-    def _create(products: list):
-        nonlocal returned_product
-        if not products:
-            products = DEFAULT_PRODUCTS
-        
-        new_product = {
-            "id": next_id(products),
-            **product_data,
-            "image": image_path,
-        }
-        products.append(new_product)
-        normalized = [normalize_product(product, index) for index, product in enumerate(products)]
-        normalized.sort(key=product_sort_key)
-        db_write_json(str(FRONTEND_PRODUCTS_PATH), normalized)
-        
-        returned_product = next(product for product in normalized if product["id"] == new_product["id"])
-        return normalized
+    new_product = {
+        **product_data,
+        "image": image_path,
+    }
+    inserted = db.insert("products", new_product)
+    
+    # Sync with frontend json
+    try:
+        all_prods = load_products()
+        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+            json.dump(all_prods, f, indent=2)
+    except Exception:
+        pass
 
-    update_json(str(PRODUCTS_PATH), _create)
-    return {"success": True, "message": "Product added successfully.", "product": returned_product}
+    return {"success": True, "message": "Product added successfully.", "product": inserted}
 
 async def process_update_product(product_id: int, name, category, price, description, tag, sizes, stock, featured, image, fabric="", gsm="", fit_type="", neck_type="", print_method="", wash_care_label="true") -> Dict[str, Any]:
     product_data = validate_product_fields(name, category, price, description, tag, sizes, stock, featured, fabric, gsm, fit_type, neck_type, print_method, wash_care_label)
     
-    # Pre-flight check to fail early if product not found
-    products = load_products()
-    existing = next((product for product in products if product["id"] == product_id), None)
-    if not existing:
+    res = db.read("products", {"id": product_id})
+    if not res:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
+    existing = res[0]
 
-    image_path = existing["image"]
+    image_path = existing.get("image", "/images/hero-banner.png")
     if image and getattr(image, "filename", None):
         new_image_path = save_uploaded_image(image)
         await image.close()
-        delete_uploaded_image(existing["image"])
+        delete_uploaded_image(existing.get("image", ""))
         image_path = new_image_path
 
-    returned_product = None
-    def _update(products: list):
-        nonlocal returned_product
-        updated_product = {
-            **existing,
-            "id": product_id,
-            **product_data,
-            "image": image_path,
-        }
-        updated_products = [updated_product if product["id"] == product_id else product for product in products]
-        normalized = [normalize_product(product, index) for index, product in enumerate(updated_products)]
-        normalized.sort(key=product_sort_key)
-        db_write_json(str(FRONTEND_PRODUCTS_PATH), normalized)
-        
-        returned_product = next(product for product in normalized if product["id"] == product_id)
-        return normalized
+    updated_fields = {
+        **product_data,
+        "image": image_path,
+    }
+    updated = db.update("products", {"id": product_id}, updated_fields)
+    returned_product = updated[0] if updated else existing
 
-    update_json(str(PRODUCTS_PATH), _update)
+    # Sync with frontend json
+    try:
+        all_prods = load_products()
+        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+            json.dump(all_prods, f, indent=2)
+    except Exception:
+        pass
+
     return {"success": True, "message": "Product updated successfully.", "product": returned_product}
 
 def process_delete_product(product_id: int) -> Dict[str, Any]:
-    # Pre-flight check
-    products = load_products()
-    existing = next((product for product in products if product["id"] == product_id), None)
-    if not existing:
+    res = db.read("products", {"id": product_id})
+    if not res:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
+    existing = res[0]
 
-    delete_uploaded_image(existing["image"])
+    delete_uploaded_image(existing.get("image", ""))
+    db.delete("products", {"id": product_id})
 
-    def _delete(products: list):
-        remaining_products = [product for product in products if product["id"] != product_id]
-        normalized = [normalize_product(product, index) for index, product in enumerate(remaining_products)]
-        normalized.sort(key=product_sort_key)
-        db_write_json(str(FRONTEND_PRODUCTS_PATH), normalized)
-        return normalized
+    # Sync with frontend json
+    try:
+        all_prods = load_products()
+        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+            json.dump(all_prods, f, indent=2)
+    except Exception:
+        pass
 
-    update_json(str(PRODUCTS_PATH), _delete)
     return {"success": True, "message": f'{existing["name"]} deleted.'}

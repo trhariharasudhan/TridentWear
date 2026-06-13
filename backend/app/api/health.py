@@ -1,15 +1,25 @@
 from fastapi import APIRouter
+from app.core.db_switch import db
 
-# /api/v1/health — versioned route (existing, unchanged)
 router = APIRouter(prefix="/api/v1/health", tags=["health"])
 
 @router.get("")
 def health_check():
-    return {"status": "healthy", "service": "TridentWear API"}
+    db_status = "healthy"
+    try:
+        # Check storage/database health by performing a lightweight read
+        db.read("products", {"id": 1})
+    except Exception as e:
+        db_status = f"unhealthy: {e}"
+        
+    return {
+        "status": "healthy" if db_status == "healthy" else "unhealthy",
+        "service": "TridentWear API",
+        "storage": db_status
+    }
 
-# /health — bare root route for Render/Railway/Docker health check probes
 root_health_router = APIRouter(tags=["health"])
 
 @root_health_router.get("/health")
 def root_health_check():
-    return {"status": "healthy", "service": "TridentWear API"}
+    return health_check()

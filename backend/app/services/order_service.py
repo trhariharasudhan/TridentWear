@@ -9,14 +9,10 @@ from pathlib import Path
 from typing import Any, Dict, List
 from fastapi import HTTPException, status, Request
 
+from app.core.db_switch import db
 from app.services.product_service import load_products, deduct_stock, normalize_image_path
 from app.services.auth_service import get_session_user, validate_email
 
-from app.db.json_manager import read_json, update_json
-
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-DB_DIR = BASE_DIR / "db"
-ORDERS_PATH = str(DB_DIR / "orders.json")
 ORDER_STATUSES = {"placed", "confirmed", "packed", "shipped", "delivered", "cancelled"}
 PAYMENT_STATUSES = {"pending", "paid", "failed", "refunded", "cod_pending"}
 
@@ -24,21 +20,23 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 def load_orders() -> List[Dict[str, Any]]:
-    return read_json(ORDERS_PATH) or []
+    return db.read("orders", {})
 
 def send_order_email(order: Dict[str, Any]) -> None:
     """Non-blocking email; silently skips if SMTP not configured."""
     host = os.getenv("SMTP_HOST", "")
     port = int(os.getenv("SMTP_PORT", "587"))
-    user = os.getenv("SMTP_USER", "")
-    password = os.getenv("SMTP_PASS", "")
+    user = os.getenv("SMTP_USERNAME", os.getenv("SMTP_USER", ""))
+    password = os.getenv("SMTP_PASSWORD", os.getenv("SMTP_PASS", ""))
+    from_email = os.getenv("SMTP_FROM_EMAIL", "noreply@tridentwear.in")
+    
     if not (host and user and password):
         return
     to_email = order.get("customer", {}).get("email", "")
     if not to_email:
         return
     items_text = ", ".join(
-        f"{i['name']} x{i['qty']}" for i in order.get("items", [])
+        f"{i.get('name', 'Product')} x{i.get('qty', 1)}" for i in order.get("items", [])
     )
     body = (
         f"Hi {order['customer'].get('name', 'Customer')},\n\n"
@@ -50,7 +48,7 @@ def send_order_email(order: Dict[str, Any]) -> None:
     )
     msg = MIMEText(body)
     msg["Subject"] = f"Order Confirmed - {order['order_id']}"
-    msg["From"] = user
+    msg["From"] = from_email
     msg["To"] = to_email
     try:
         ctx = ssl.create_default_context()
@@ -58,7 +56,7 @@ def send_order_email(order: Dict[str, Any]) -> None:
             smtp.ehlo()
             smtp.starttls(context=ctx)
             smtp.login(user, password)
-            smtp.sendmail(user, [to_email], msg.as_string())
+            smtp.sendmail(from_email, [to_email], msg.as_string())
     except Exception:
         pass
 
@@ -110,56 +108,56 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
     subtotal = sum(i["price"] * i["qty"] for i in items)
     session_user = get_session_user(request)
     
-    new_order = None
-    def _create_order(orders: list):
-        nonlocal new_order
-        if not orders:
-            orders = []
-        
-        order_id = f"TRD-{uuid.uuid4().hex[:8].upper()}"
-        new_order = {
-            "id": next_id(orders),
-            "order_id": order_id,
-            "customer": {
-                "user_id": session_user["id"] if session_user else None,
-                "name": customer_name,
-                "email": customer_email,
-                "phone": shipping_phone
-            },
-            "shipping": {
-                "address": shipping_address,
-                "city": shipping_city,
-                "pincode": str(payload.shipping.get("pincode", "")).strip()
-            },
-            "items": payload.items,
-            "subtotal": subtotal,
-            "payment_method": getattr(payload, "payment_method", "cod"),
-            "status": "placed",
-            "payment_status": "cod_pending" if getattr(payload, "payment_method", "cod") == "cod" else "pending",
-            "test_mode": bool(getattr(payload, "test_mode", False)),
-            "created_at": now_iso(),
-        }
-        orders.append(new_order)
-        return orders
-
-    update_json(ORDERS_PATH, _create_order)
+    order_id = f"TRD-{uuid.uuid4().hex[:8].upper()}"
+    new_order = {
+        "order_id": order_id,
+        "customer": {
+            "user_id": session_user["id"] if session_user else None,
+            "name": customer_name,
+            "email": customer_email,
+            "phone": shipping_phone
+        },
+        "shipping": {
+            "address": shipping_address,
+            "city": shipping_city,
+            "pincode": str(payload.shipping.get("pincode", "")).strip()
+        },
+        "items": payload.items,
+        "subtotal": subtotal,
+        "total": subtotal,
+        "payment_method": getattr(payload, "payment_method", "cod"),
+        "status": "placed",
+        "payment_status": "cod_pending" if getattr(payload, "payment_method", "cod") == "cod" else "pending",
+        "test_mode": bool(getattr(payload, "test_mode", False)),
+        "created_at": now_iso(),
+    }
     
-    if not new_order.get("test_mode"):
+    inserted = db.insert("orders", new_order)
+    
+    if not inserted.get("test_mode"):
         deduct_stock(payload.items)
 
     try:
-        send_order_email(new_order)
+        send_order_email(inserted)
     except Exception:
         pass
         
-    return {"success": True, "message": "Order placed successfully.", "order_id": new_order["order_id"]}
+    return {"success": True, "message": "Order placed successfully.", "order_id": inserted["order_id"]}
 
 def get_user_orders_data(request: Request) -> Dict[str, Any]:
     user = get_session_user(request)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in to view orders.")
     orders = load_orders()
-    user_orders = [o for o in orders if o.get("customer", {}).get("user_id") == user["id"]]
+    user_orders = []
+    for o in orders:
+        cust = o.get("customer") or {}
+        uid = cust.get("user_id") if isinstance(cust, dict) else None
+        if uid is None:
+            uid = o.get("user_id")
+        if uid is not None and int(uid) == int(user["id"]):
+            user_orders.append(o)
+            
     user_orders.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     return {"success": True, "orders": user_orders}
 
@@ -168,22 +166,24 @@ def cancel_order_logic(order_id: str, request: Request) -> Dict[str, Any]:
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in.")
     
-    cancelled = False
-    def _cancel(orders: list):
-        nonlocal cancelled
-        for o in orders:
-            if o.get("order_id") == order_id and o.get("customer", {}).get("user_id") == user["id"]:
-                if o.get("status") in ("shipped", "delivered"):
-                    raise HTTPException(status_code=400, detail="Cannot cancel a shipped order.")
-                o["status"] = "cancelled"
-                cancelled = True
-                break
-        return orders
-
-    update_json(ORDERS_PATH, _cancel)
-    if cancelled:
-        return {"success": True, "message": "Order cancelled."}
-    raise HTTPException(status_code=404, detail="Order not found.")
+    res = db.read("orders", {"order_id": order_id})
+    if not res:
+        raise HTTPException(status_code=404, detail="Order not found.")
+    order = res[0]
+    
+    cust = order.get("customer") or {}
+    uid = cust.get("user_id") if isinstance(cust, dict) else None
+    if uid is None:
+        uid = order.get("user_id")
+        
+    if int(uid or 0) != int(user["id"]):
+        raise HTTPException(status_code=403, detail="Forbidden.")
+        
+    if order.get("status") in ("shipped", "delivered"):
+        raise HTTPException(status_code=400, detail="Cannot cancel a shipped order.")
+        
+    db.update("orders", {"order_id": order_id}, {"status": "cancelled"})
+    return {"success": True, "message": "Order cancelled."}
 
 def track_order_logic(order_id: str) -> Dict[str, Any]:
     orders = load_orders()
@@ -230,70 +230,56 @@ def normalize_payment_status(value: str) -> str:
 def update_order_status_logic(order_id: str, payload: Any) -> Dict[str, Any]:
     changes = payload if isinstance(payload, dict) else {"status": payload}
     payload_status = normalize_order_status(changes.get("status"))
-    updated_order = None
-    def _update_status(orders: list):
-        nonlocal updated_order
-        for o in orders:
-            if o.get("order_id") == order_id:
-                o["status"] = payload_status
-                if changes.get("payment_status"):
-                    o["payment_status"] = normalize_payment_status(changes["payment_status"])
-                for field in ("tracking_id", "courier", "estimated_delivery", "shipment_notes"):
-                    if changes.get(field) is not None:
-                        o[field] = str(changes[field]).strip()
-                if payload_status == "shipped" and not o.get("tracking_id"):
-                    try:
-                        shipment = create_shiprocket_shipment(o)
-                        o["tracking_id"] = shipment["tracking_id"]
-                        o["courier"] = shipment["courier"]
-                        o["estimated_delivery"] = shipment["estimated_delivery"]
-                    except Exception:
-                        pass
-                o["updated_at"] = now_iso()
-                updated_order = o
-                break
-        return orders
-
-    update_json(ORDERS_PATH, _update_status)
-    if updated_order:
-        return {"success": True, "message": "Order status updated.", "order": updated_order}
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
-
-def next_id(items: List[Dict[str, Any]]) -> int:
-    if not items:
-        return 1
-    return max(int(item.get("id", 0)) for item in items) + 1
+    
+    res = db.read("orders", {"order_id": order_id})
+    if not res:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
+    order = res[0]
+    
+    updates = {
+        "status": payload_status,
+        "updated_at": now_iso()
+    }
+    if changes.get("payment_status"):
+        updates["payment_status"] = normalize_payment_status(changes["payment_status"])
+    for field in ("tracking_id", "courier", "estimated_delivery", "shipment_notes"):
+        if changes.get(field) is not None:
+            updates[field] = str(changes[field]).strip()
+            
+    if payload_status == "shipped" and not order.get("tracking_id") and not updates.get("tracking_id"):
+        try:
+            shipment = create_shiprocket_shipment(order)
+            updates["tracking_id"] = shipment["tracking_id"]
+            updates["courier"] = shipment["courier"]
+            updates["estimated_delivery"] = shipment["estimated_delivery"]
+        except Exception:
+            pass
+            
+    updated_list = db.update("orders", {"order_id": order_id}, updates)
+    if not updated_list:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found.")
+    return {"success": True, "message": "Order status updated.", "order": updated_list[0]}
 
 def create_payment_order_record(order_data: Dict[str, Any]) -> Dict[str, Any]:
-    new_order = None
-    def _create_record(orders: list):
-        nonlocal new_order
-        if not orders:
-            orders = []
-        order_id = f"TRD-{uuid.uuid4().hex[:8].upper()}"
-        
-        new_order = {
-            "id": next_id(orders),
-            "order_id": order_id,
-            "created_at": now_iso(),
-            "updated_at": now_iso(),
-            "payment_status": order_data.get("payment_status", "pending"),
-            "tracking_id": order_data.get("tracking_id"),
-            "courier": order_data.get("courier"),
-            "estimated_delivery": order_data.get("estimated_delivery"),
-            "test_mode": bool(order_data.get("test_mode", False)),
-            **order_data
-        }
-        orders.append(new_order)
-        return orders
-
-    update_json(ORDERS_PATH, _create_record)
-    if new_order and not new_order.get("test_mode"):
-        deduct_stock(new_order.get("items", []))
+    order_id = f"TRD-{uuid.uuid4().hex[:8].upper()}"
+    new_order = {
+        "order_id": order_id,
+        "created_at": now_iso(),
+        "updated_at": now_iso(),
+        "payment_status": order_data.get("payment_status", "pending"),
+        "tracking_id": order_data.get("tracking_id"),
+        "courier": order_data.get("courier"),
+        "estimated_delivery": order_data.get("estimated_delivery"),
+        "test_mode": bool(order_data.get("test_mode", False)),
+        **order_data
+    }
+    inserted = db.insert("orders", new_order)
+    if inserted and not inserted.get("test_mode"):
+        deduct_stock(inserted.get("items", []))
     
     try:
-        send_order_email(new_order)
+        send_order_email(inserted)
     except Exception:
         pass
         
-    return new_order
+    return inserted

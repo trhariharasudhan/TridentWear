@@ -194,8 +194,21 @@ chat_messages = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("thread_id", String, index=True),
+    Column("author", String),
     Column("message", String),
     Column("role", String),
+    Column("timestamp", String),
     Column("read", Boolean, default=False),
     Column("created_at", DateTime(timezone=True), server_default=func.now())
 )
+
+contacts = Table(
+    "contacts",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("name", String, nullable=False),
+    Column("email", String, nullable=False),
+    Column("message", Text, nullable=False),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+)
+
