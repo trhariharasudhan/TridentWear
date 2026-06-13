@@ -29,68 +29,59 @@ A complete, production-ready e-commerce platform built with **FastAPI** backend 
 
 ```
 TridentWear/
-├── backend/                    # FastAPI server
-│   ├── app.py                 # Main application entry point
-│   ├── database.py            # JSON file operations
-│   ├── models.py              # Pydantic schemas
-│   ├── schemas.py             # API request/response models
-│   ├── routes/                # API endpoints
-│   └── requirements.txt        # Python dependencies
+├── backend/                    # Backend API layer
+│   ├── app/
+│   │   ├── api/                # API router modules (auth, account, payments, etc.)
+│   │   ├── core/               # Configuration, logging, security logic
+│   │   ├── db/                 # JSON file manager (database layer)
+│   │   ├── services/           # Business logic (order processing, coupon count, etc.)
+│   │   └── main.py             # Uvicorn FastAPI application entry point
+│   ├── requirements.txt        # Python package dependencies (pinned)
+│   └── .env                    # Production & Dev Environment secrets (git ignored)
 │
-├── frontend/                   # Web application
-│   ├── html/                  # 19 HTML pages
-│   │   ├── index.html         # Homepage with statistics
-│   │   ├── login.html         # 3-method auth page
-│   │   ├── register.html      # User registration
-│   │   ├── products.html      # Product catalog
-│   │   ├── cart.html          # Shopping cart
-│   │   ├── checkout.html      # Order checkout
-│   │   ├── admin.html         # Admin panel
-│   │   ├── wishlist.html      # Saved items
-│   │   ├── track.html         # Order tracking
-│   │   ├── contact.html       # Contact form
-│   │   ├── about.html         # About page
-│   │   ├── privacy.html       # Privacy policy
-│   │   ├── terms.html         # Terms of service
-│   │   ├── returns.html       # Returns policy
-│   │   ├── shipping.html      # Shipping info
-│   │   └── 404.html           # Error page
-│   │
-│   ├── css/
-│   │   └── styles.css         # Global dark luxury theme
-│   │
-│   ├── js/
-│   │   ├── pages/             # Page-specific logic (14 files)
-│   │   ├── shared/            # Shared utilities (6 modules)
-│   │   ├── script.js          # Global initialization
-│   │   └── products.json      # Product data cache
-│   │
-│   └── images/
-│       └── uploads/           # Admin uploaded images
+├── frontend/                   # Frontend assets & templates
+│   ├── components/            # Reusable header and footer HTML partials
+│   ├── pages/                 # Website page structures
+│   │   ├── shop/              # cart, checkout, products, product pages
+│   │   ├── account/           # profile, login, register, verify pages
+│   │   ├── info/              # about, contact pages
+│   │   ├── admin/             # admin dashboard, admin chat panels
+│   │   ├── legal/             # privacy, terms, shipping, returns pages
+│   │   ├── support/           # tracking, support chat pages
+│   │   └── error/             # 404 page
+│   ├── assets/                # Static assets loaded by the browser
+│   │   ├── css/               # styles.css, premium.css (luxurious golden/dark theme)
+│   │   ├── js/                # Modular scripts split by pages/ and shared/
+│   │   └── images/            # Product cards, banners, logo, and uploads
+│   ├── robots.txt             # Search engine crawler permissions
+│   └── sitemap.xml            # XML sitemap for SEO discovery
 │
-├── db/                         # JSON Databases
-│   ├── users.json             # User accounts & authentication
-│   ├── products.json          # Product catalog
-│   ├── orders.json            # Order history
-│   ├── contacts.json          # Contact form submissions
-│   └── chat.json              # Customer chat messages
+├── db/                         # File-Based JSON Databases (atomic writes)
+│   ├── users.json             # Hashed credentials & profiles
+│   ├── products.json          # Live product catalog
+│   ├── orders.json            # Order data & shipping status
+│   └── coupons.json           # Available discount codes & usage counts
 │
-├── README.md                   # This file
-└── requirements.txt            # Python dependencies
+├── README.md                   # Project documentation
+├── start.bat                   # Windows local development shortcut launcher
+├── package.json               # Node dev tools validation script definitions
+└── requirements.txt            # Root python environment dependencies (pinned)
 ```
 
 ## 🚀 Quick Start
 
 ```bash
-# 1. Install dependencies
+# 1. Install dependencies (recommended using a virtual environment)
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 
-# 2. Start the server
-python backend/app.py
+# 2. Start the local server
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8010 --reload
 
 # 3. Open in browser
-# Storefront: http://localhost:8000/index.html
-# Admin Panel: http://localhost:8000/admin.html
+# Storefront: http://127.0.0.1:8010/
+# Admin Panel: http://127.0.0.1:8010/admin
 ```
 
 ## 🔐 Authentication

@@ -1024,7 +1024,17 @@ export async function initSite() {
     if (event.detail.openDrawer) openCartDrawer(event.detail.items || loadCart());
   });
   syncCart();
+  bindAppComingSoon();
   observeReveals();
+}
+
+function bindAppComingSoon() {
+  document.querySelectorAll("[data-app-coming-soon]").forEach(el => {
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      showToast("TridentWear Mobile App is coming soon! Stay tuned.", "info");
+    });
+  });
 }
 
 /* ───────── Global scroll reveal (runs on every page) ───────── */

@@ -77,7 +77,7 @@ function renderGallery(product) {
       data-image="${escapeHtml(image)}"
       aria-label="View product image ${index + 1}"
     >
-      <img src="${escapeHtml(resolveAssetUrl(image))}" alt="">
+      <img src="${escapeHtml(resolveAssetUrl(image))}" alt="" loading="lazy" decoding="async">
     </button>
   `).join("");
 
