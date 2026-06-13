@@ -43,7 +43,7 @@ def send_order_email(order: Dict[str, Any]) -> None:
         f"Your TridentWear order {order['order_id']} has been placed!\n"
         f"Status: {order.get('status','confirmed')}\n"
         f"Items: {items_text}\n"
-        f"Total: \u20b9{order.get('subtotal', 0)}\n\n"
+        f"Total: \u20b9{order.get('total', 0)}\n\n"
         f"Thank you for shopping with us!\n\nTeam TridentWear"
     )
     msg = MIMEText(body)
@@ -70,14 +70,64 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
     if not payload.items:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Your cart is empty.")
     
+    # 1. Server-side price lookup and stock validation
     products = load_products()
     prod_map = {p["id"]: p for p in products}
+    
+    items = []
+    subtotal = 0
+    
     for item in payload.items:
         pid = int(item.get("id", 0))
         qty = max(int(item.get("qty", 1)), 1)
-        if pid in prod_map and prod_map[pid]["stock"] < qty:
-            raise HTTPException(status_code=400, detail=f'Insufficient stock for {prod_map[pid]["name"]}')
+        if pid not in prod_map:
+            raise HTTPException(status_code=400, detail=f"Product with ID {pid} not found.")
+            
+        db_product = prod_map[pid]
+        
+        # Stock check
+        if db_product["stock"] < qty:
+            raise HTTPException(status_code=400, detail=f"Insufficient stock for {db_product['name']}.")
+            
+        items.append({
+            "id": pid,
+            "name": db_product["name"],
+            "price": db_product["price"],
+            "image": normalize_image_path(db_product.get("image", "")),
+            "qty": qty,
+            "size": str(item.get("size", "")).strip().upper(),
+        })
+        subtotal += db_product["price"] * qty
 
+    # 2. Coupon Validation
+    discount_amount = 0
+    coupon_code = str(getattr(payload, "coupon_code", "") or "").strip().upper()
+    if coupon_code:
+        coupon_res = db.read("coupons", {"code": coupon_code})
+        if not coupon_res:
+            raise HTTPException(status_code=400, detail="Invalid coupon code.")
+        coupon = coupon_res[0]
+        
+        # Check expiry
+        now = datetime.now(timezone.utc).date()
+        try:
+            expiry_date = datetime.fromisoformat(coupon.get("expiry", "2099-01-01")).date()
+        except Exception:
+            expiry_date = now
+        if expiry_date < now:
+            raise HTTPException(status_code=400, detail="Coupon has expired.")
+            
+        usage_count = int(coupon.get("usage_count", 0))
+        usage_limit = int(coupon.get("usage_limit", 9999))
+        if usage_count >= usage_limit:
+            raise HTTPException(status_code=400, detail="Coupon usage limit reached.")
+            
+        discount_pct = float(coupon.get("discount", 0))
+        discount_amount = round(subtotal * discount_pct / 100, 2)
+        
+    total = round(subtotal - discount_amount, 2)
+    session_user = get_session_user(request)
+    
     customer_name = str(payload.customer.get("name", "")).strip()
     customer_email = validate_email(str(payload.customer.get("email", "") or "guest@trident.local"))
     shipping_address = str(payload.shipping.get("address", "")).strip()
@@ -91,23 +141,6 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
     if len(shipping_phone) < 8:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A valid phone number is required.")
 
-    items = []
-    for item in payload.items:
-        qty = max(int(item.get("qty", 1)), 1)
-        items.append(
-            {
-                "id": int(item.get("id", 0)),
-                "name": str(item.get("name", "")).strip(),
-                "price": int(float(item.get("price", 0) or 0)),
-                "image": normalize_image_path(str(item.get("image", ""))),
-                "qty": qty,
-                "size": str(item.get("size", "")).strip().upper(),
-            }
-        )
-    
-    subtotal = sum(i["price"] * i["qty"] for i in items)
-    session_user = get_session_user(request)
-    
     order_id = f"TRD-{uuid.uuid4().hex[:8].upper()}"
     new_order = {
         "order_id": order_id,
@@ -122,9 +155,11 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
             "city": shipping_city,
             "pincode": str(payload.shipping.get("pincode", "")).strip()
         },
-        "items": payload.items,
+        "items": items,
         "subtotal": subtotal,
-        "total": subtotal,
+        "discount_amount": discount_amount,
+        "coupon_code": coupon_code or None,
+        "total": total,
         "payment_method": getattr(payload, "payment_method", "cod"),
         "status": "placed",
         "payment_status": "cod_pending" if getattr(payload, "payment_method", "cod") == "cod" else "pending",
@@ -132,10 +167,21 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
         "created_at": now_iso(),
     }
     
-    inserted = db.insert("orders", new_order)
-    
-    if not inserted.get("test_mode"):
-        deduct_stock(payload.items)
+    # 3. Atomically update coupon usage, save order, and deduct stock
+    try:
+        if coupon_code:
+            db.update("coupons", {"code": coupon_code}, {"usage_count": int(coupon.get("usage_count", 0)) + 1})
+            
+        inserted = db.insert("orders", new_order)
+        
+        if not inserted.get("test_mode"):
+            deduct_stock(items)
+            
+    except Exception as e:
+        # Rollback coupon count on failure
+        if coupon_code:
+            db.update("coupons", {"code": coupon_code}, {"usage_count": int(coupon.get("usage_count", 0))})
+        raise HTTPException(status_code=500, detail=f"Failed to place order: {e}")
 
     try:
         send_order_email(inserted)
@@ -261,6 +307,39 @@ def update_order_status_logic(order_id: str, payload: Any) -> Dict[str, Any]:
     return {"success": True, "message": "Order status updated.", "order": updated_list[0]}
 
 def create_payment_order_record(order_data: Dict[str, Any]) -> Dict[str, Any]:
+    products = load_products()
+    prod_map = {p["id"]: p for p in products}
+    
+    items = []
+    subtotal = 0
+    for item in order_data.get("items", []):
+        pid = int(item.get("id", 0))
+        qty = max(int(item.get("qty", 1)), 1)
+        if pid not in prod_map:
+            raise HTTPException(status_code=400, detail=f"Product with ID {pid} not found.")
+        db_product = prod_map[pid]
+        items.append({
+            "id": pid,
+            "name": db_product["name"],
+            "price": db_product["price"],
+            "image": normalize_image_path(db_product.get("image", "")),
+            "qty": qty,
+            "size": str(item.get("size", "")).strip().upper(),
+        })
+        subtotal += db_product["price"] * qty
+
+    discount_amount = 0
+    coupon_code = str(order_data.get("coupon_code", "") or "").strip().upper()
+    if coupon_code:
+        coupon_res = db.read("coupons", {"code": coupon_code})
+        if coupon_res:
+            coupon = coupon_res[0]
+            discount_pct = float(coupon.get("discount", 0))
+            discount_amount = round(subtotal * discount_pct / 100, 2)
+            db.update("coupons", {"code": coupon_code}, {"usage_count": int(coupon.get("usage_count", 0)) + 1})
+
+    total = round(subtotal - discount_amount, 2)
+
     order_id = f"TRD-{uuid.uuid4().hex[:8].upper()}"
     new_order = {
         "order_id": order_id,
@@ -271,12 +350,16 @@ def create_payment_order_record(order_data: Dict[str, Any]) -> Dict[str, Any]:
         "courier": order_data.get("courier"),
         "estimated_delivery": order_data.get("estimated_delivery"),
         "test_mode": bool(order_data.get("test_mode", False)),
-        **order_data
+        **order_data,
+        "items": items,
+        "subtotal": subtotal,
+        "discount_amount": discount_amount,
+        "total": total,
     }
     inserted = db.insert("orders", new_order)
     if inserted and not inserted.get("test_mode"):
-        deduct_stock(inserted.get("items", []))
-    
+        deduct_stock(items)
+        
     try:
         send_order_email(inserted)
     except Exception:

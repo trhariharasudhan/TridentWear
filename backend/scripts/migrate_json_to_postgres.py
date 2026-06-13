@@ -31,6 +31,7 @@ from app.db.models import (
     wishlist,
     contacts,
     chat_messages,
+    coupons,
 )
 
 PG_DSN = os.getenv("DATABASE_URL") or os.getenv("PG_DSN", "postgresql://user:password@localhost/tridentwear")
@@ -232,6 +233,21 @@ def map_chat_messages(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     ]
 
 
+def map_coupons(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": row.get("id") or (i + 1),
+            "code": str(row.get("code", "")).strip().upper(),
+            "discount": float(row.get("discount", 0)),
+            "expiry": str(row.get("expiry", "2027-12-31")).strip(),
+            "usage_limit": int(row.get("usage_limit", 1000)),
+            "usage_count": int(row.get("usage_count", 0)),
+        }
+        for i, row in enumerate(rows)
+        if not row.get("__migration_error__")
+    ]
+
+
 def build_migration_payload() -> Dict[str, List[Dict[str, Any]]]:
     users_data = load_json("users.json")
     products_data = load_json("products.json")
@@ -241,6 +257,7 @@ def build_migration_payload() -> Dict[str, List[Dict[str, Any]]]:
     wishlist_data = load_json("wishlist.json")
     contacts_data = load_json("contacts.json")
     chat_data = load_json("chat.json")
+    coupons_data = load_json("coupons.json")
 
     normalized_users, notes = normalize_user_ids(users_data)
     mapped_orders = map_orders(orders_data)
@@ -258,6 +275,7 @@ def build_migration_payload() -> Dict[str, List[Dict[str, Any]]]:
         "otp_sessions": otp_data,
         "contacts": map_contacts(contacts_data),
         "chat_messages": map_chat_messages(chat_data),
+        "coupons": map_coupons(coupons_data),
     }
 
 
@@ -274,6 +292,7 @@ TABLES = {
     "otp_sessions": otp_sessions,
     "contacts": contacts,
     "chat_messages": chat_messages,
+    "coupons": coupons,
 }
 
 
@@ -281,7 +300,7 @@ def validate_payload(payload: Dict[str, List[Dict[str, Any]]]) -> List[str]:
     errors = []
     product_ids = {row.get("id") for row in payload["products"]}
     user_ids = {row.get("id") for row in payload["users"]}
-    for table_name in ("users", "products", "orders", "reviews", "contacts", "chat_messages"):
+    for table_name in ("users", "products", "orders", "reviews", "contacts", "chat_messages", "coupons"):
         ids = [row.get("id") for row in payload.get(table_name, []) if row.get("id") is not None]
         duplicate_ids = sorted({item_id for item_id in ids if ids.count(item_id) > 1})
         for item_id in duplicate_ids:

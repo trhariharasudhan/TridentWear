@@ -11,7 +11,7 @@ BASE_DIR = BACKEND_DIR.parent
 DB_DIR = BASE_DIR / "db"
 sys.path.append(str(BACKEND_DIR))
 
-from app.db.models import users, products, orders, chat_messages, reviews, otp_sessions, contacts
+from app.db.models import users, products, orders, chat_messages, reviews, otp_sessions, contacts, coupons
 from app.core.logger import app_logger
 
 PG_DSN = os.getenv("DATABASE_URL") or os.getenv("PG_DSN", "postgresql://user:password@localhost/tridentwear")
@@ -41,6 +41,7 @@ def verify(archive_json=False):
     otp_data = load_json("otp_sessions.json")
     chat_data = load_json("chat.json")
     contacts_data = load_json("contacts.json")
+    coupons_data = load_json("coupons.json")
     
     engine = create_engine(PG_DSN)
     
@@ -89,6 +90,12 @@ def verify(archive_json=False):
             if len(otp_data) != pg_otp_count:
                 print("❌ Mismatch in OTP Sessions")
                 parity = False
+
+            pg_coupons_count = conn.execute(select(func.count()).select_from(coupons)).scalar()
+            print(f"Coupons: JSON={len(coupons_data)} | PG={pg_coupons_count}")
+            if len(coupons_data) != pg_coupons_count:
+                print("❌ Mismatch in Coupons")
+                parity = False
     except Exception as e:
         print(f"❌ Verification failed due to database connection error: {e}")
         parity = False
@@ -102,7 +109,7 @@ def verify(archive_json=False):
         print("Archiving JSON files...")
         
         # Archiving logic - renaming, never deleting
-        for fname in ["users.json", "products.json", "orders.json", "contacts.json", "chat.json", "reviews.json", "otp_sessions.json"]:
+        for fname in ["users.json", "products.json", "orders.json", "contacts.json", "chat.json", "reviews.json", "otp_sessions.json", "coupons.json"]:
             fpath = DB_DIR / fname
             if fpath.exists():
                 fpath.rename(DB_DIR / f"{fname}.archive")

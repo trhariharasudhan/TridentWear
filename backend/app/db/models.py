@@ -214,3 +214,16 @@ contacts = Table(
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
 )
 
+coupons = Table(
+    "coupons",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("code", String, unique=True, index=True),
+    Column("discount", Float, nullable=False),
+    Column("expiry", String, nullable=False),
+    Column("usage_limit", Integer, default=1000),
+    Column("usage_count", Integer, default=0),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+)
+
+
