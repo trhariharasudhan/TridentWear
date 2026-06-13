@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import Request, HTTPException, status
 
 from app.core.db_switch import db
-from app.core.config import get_jwt_secret, JWT_ALGORITHM, JWT_EXPIRATION_DAYS, ENVIRONMENT, ADMIN_EMAIL, ADMIN_PASSWORD_HASH
+from app.core.config import get_jwt_secret, JWT_ALGORITHM, JWT_EXPIRATION_DAYS, ENVIRONMENT, ADMIN_EMAIL, ADMIN_PASSWORD_HASH, APP_BASE_URL
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -565,3 +565,95 @@ def setup_user_profile(payload: Any, request: Request) -> Dict[str, Any]:
     updated = update_user(user["id"], changes) or user
     store_session_user(request, updated)
     return {"success": True, "message": "Profile setup complete", "user": serialize_user(updated)}
+
+def request_password_reset(payload: Any) -> Dict[str, Any]:
+    email = str(payload.email).strip().lower()
+    
+    success_response = {
+        "success": True,
+        "message": "If that email exists in our system, we have sent a password reset link to it."
+    }
+    
+    user = find_user_by_email(email)
+    if not user:
+        return success_response
+        
+    token = uuid.uuid4().hex
+    expiry = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    
+    update_user(user["id"], {
+        "password_reset_token": token,
+        "password_reset_expires_at": expiry
+    })
+    
+    smtp_host = os.getenv("SMTP_HOST", "")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USERNAME", os.getenv("SMTP_USER", ""))
+    smtp_pass = os.getenv("SMTP_PASSWORD", os.getenv("SMTP_PASS", ""))
+    from_email = os.getenv("SMTP_FROM_EMAIL", "noreply@tridentwear.in")
+    
+    reset_url = f"{APP_BASE_URL}/reset-password?token={token}&email={email}"
+    
+    if smtp_host and smtp_user:
+        body = (
+            f"Hello {user.get('name', 'User')},\n\n"
+            f"We received a request to reset the password for your TridentWear account.\n"
+            f"Click the link below to set a new password. This link will expire in 1 hour:\n\n"
+            f"{reset_url}\n\n"
+            f"If you did not request this, you can safely ignore this email.\n\n"
+            f"Thank you,\nTridentWear Team"
+        )
+        msg = MIMEText(body)
+        msg["Subject"] = "TridentWear - Password Reset Link"
+        msg["From"] = from_email
+        msg["To"] = email
+        try:
+            ctx = ssl.create_default_context()
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls(context=ctx)
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(from_email, [email], msg.as_string())
+        except Exception:
+            pass
+            
+    if not smtp_host:
+        print(f"[TRIDENT_DEV_RESET] Password reset link for {email}: {reset_url}")
+        success_response["dev_reset_link"] = reset_url
+        
+    return success_response
+
+def confirm_password_reset(payload: Any) -> Dict[str, Any]:
+    email = str(payload.email).strip().lower()
+    token = str(payload.token).strip()
+    new_password = str(payload.new_password).strip()
+    
+    if len(new_password) < 8:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password must be at least 8 characters.")
+        
+    user = find_user_by_email(email)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request or expired token.")
+        
+    stored_token = user.get("password_reset_token")
+    expires_str = user.get("password_reset_expires_at")
+    
+    if not stored_token or stored_token != token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request or expired token.")
+        
+    if expires_str:
+        try:
+            expires = datetime.fromisoformat(expires_str)
+            if expires <= datetime.now(timezone.utc):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password reset link has expired.")
+        except Exception:
+            pass
+            
+    new_hash = hash_password(new_password)
+    update_user(user["id"], {
+        "password_hash": new_hash,
+        "password": None,
+        "password_reset_token": None,
+        "password_reset_expires_at": None
+    })
+    
+    return {"success": True, "message": "Password has been reset successfully. Please login with your new password."}

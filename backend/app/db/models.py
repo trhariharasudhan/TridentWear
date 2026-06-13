@@ -31,6 +31,8 @@ users = Table(
     Column("profile_completed_status", Boolean, default=False),
     Column("is_active", Boolean, default=True),
     Column("last_login_at", DateTime(timezone=True)),
+    Column("password_reset_token", String, nullable=True),
+    Column("password_reset_expires_at", DateTime(timezone=True), nullable=True),
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
     Column("updated_at", DateTime(timezone=True), onupdate=func.now()),
 )

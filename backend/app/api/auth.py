@@ -13,6 +13,8 @@ from app.services.auth_service import (
     verify_mobile_otp,
     verify_email_otp,
     setup_user_profile,
+    request_password_reset,
+    confirm_password_reset,
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -46,6 +48,14 @@ class ProfileSetupPayload(BaseModel):
     gender: str
     phone: Optional[str] = None
 
+class PasswordResetRequestPayload(BaseModel):
+    email: str
+
+class PasswordResetConfirmPayload(BaseModel):
+    email: str
+    token: str
+    new_password: str
+
 @router.get("/me")
 def get_auth_state(request: Request) -> Dict[str, Any]:
     return get_current_user_state(request)
@@ -77,6 +87,14 @@ def logout_all(request: Request) -> Dict[str, Any]:
 @router.post("/deactivate")
 def deactivate_account(request: Request) -> Dict[str, Any]:
     return deactivate_account_placeholder(request)
+
+@router.post("/password-reset/request")
+def password_reset_request(payload: PasswordResetRequestPayload) -> Dict[str, Any]:
+    return request_password_reset(payload)
+
+@router.post("/password-reset/confirm")
+def password_reset_confirm(payload: PasswordResetConfirmPayload) -> Dict[str, Any]:
+    return confirm_password_reset(payload)
 
 @legacy_auth_router.post("/otp/verify-email")
 def verify_email(payload: VerifyEmailPayload) -> Dict[str, Any]:
