@@ -77,11 +77,16 @@ python -m venv .venv
 pip install -r requirements.txt
 
 # 2. Start the local server
-python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8010 --reload
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8020 --reload
 
 # 3. Open in browser
-# Storefront: http://127.0.0.1:8010/
-# Admin Panel: http://127.0.0.1:8010/admin
+# Storefront: http://127.0.0.1:8020/
+# Admin Panel: http://127.0.0.1:8020/admin
+
+> [!IMPORTANT]
+> **Do not use VS Code Live Server.**
+> Do not open frontend HTML files directly.
+> Run the FastAPI server and open the backend-served URL (http://127.0.0.1:8020/).
 ```
 
 ## 🔐 Authentication
@@ -198,7 +203,7 @@ python backend/app.py --reload
 ### Testing Authentication
 ```bash
 # Test email login (replace with your local dev credentials)
-curl -X POST http://localhost:8010/api/v1/auth/login \
+curl -X POST http://localhost:8020/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"YOUR_DEV_EMAIL","password":"YOUR_DEV_PASSWORD"}'
 

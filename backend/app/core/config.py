@@ -51,8 +51,18 @@ else:
     CORS_ORIGINS = [
         "http://127.0.0.1:8000",
         "http://127.0.0.1:8010",
+        "http://127.0.0.1:8020",
+        "http://127.0.0.1:8021",
+        "http://127.0.0.1:8022",
+        "http://127.0.0.1:8023",
+        "http://127.0.0.1:8030",
         "http://localhost:8000",
         "http://localhost:8010",
+        "http://localhost:8020",
+        "http://localhost:8021",
+        "http://localhost:8022",
+        "http://localhost:8023",
+        "http://localhost:8030",
     ]
 
 # ── Admin seed ────────────────────────────────────────────────────────────────
