@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000",
+    "dev": "python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8010",
     "validate:css": "node scripts/validators/validate-css.js",
     "deploy": "bash scripts/deployment/deploy.sh"
   },
