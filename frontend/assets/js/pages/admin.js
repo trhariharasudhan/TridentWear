@@ -326,11 +326,70 @@ function renderProducts() {
   });
 }
 
+function populateCategoryDropdown() {
+  const select = document.getElementById("admin-category");
+  if (!select) return;
+
+  const uniqueCategories = new Set(["tshirt", "shirt"]);
+  products.forEach((p) => {
+    if (p.category) uniqueCategories.add(p.category);
+  });
+
+  const currentValue = select.value || "tshirt";
+
+  select.innerHTML = Array.from(uniqueCategories)
+    .map((cat) => {
+      const label = cat === "tshirt" ? "T-Shirt" : cat === "shirt" ? "Shirt" : cat.charAt(0).toUpperCase() + cat.slice(1);
+      return `<option value="${escapeHtml(cat)}">${escapeHtml(label)}</option>`;
+    })
+    .join("");
+
+  if (Array.from(uniqueCategories).includes(currentValue)) {
+    select.value = currentValue;
+  }
+}
+
+async function updateSupportBadge() {
+  const badge = document.querySelector("[data-admin-chat-badge]");
+  if (!badge) return;
+  try {
+    const threads = await get("/api/v1/admin/chat");
+    let pendingCount = 0;
+    Object.keys(threads).forEach((tid) => {
+      const messages = threads[tid];
+      if (messages && messages.length) {
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg.role === "user" && !lastMsg.read) {
+          pendingCount++;
+        }
+      }
+    });
+
+    if (pendingCount > 0) {
+      badge.textContent = String(pendingCount);
+      badge.style.display = "inline-block";
+      badge.style.background = "var(--primary, #6244c5)";
+    } else {
+      const totalThreads = Object.keys(threads).length;
+      if (totalThreads > 0) {
+        badge.textContent = String(totalThreads);
+        badge.style.display = "inline-block";
+        badge.style.background = "var(--gray, #6c757d)";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+  } catch (err) {
+    console.error("Failed to load chat stats for badge:", err);
+  }
+}
+
 async function loadProducts() {
   const list = document.querySelector("[data-admin-product-list]");
   list.innerHTML = createLoaderMarkup("Loading product manager...");
   const data = await get("/api/v1/products");
   products = (Array.isArray(data) ? data : data.products || []).map(normalizeProduct);
+  populateCategoryDropdown();
   renderSummary();
   renderProducts();
 }
@@ -437,6 +496,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await loadProducts();
     await loadAdminMetrics();
     await loadReviews();
+    await updateSupportBadge();
   } catch (error) {
     const adminList = document.querySelector("[data-admin-product-list]");
     if (adminList) {
