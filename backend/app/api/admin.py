@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, Request, Form, File, UploadFile
+from fastapi import APIRouter, Depends, Request, Form, File, UploadFile, HTTPException
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 
-from app.services.auth_service import require_admin
+from app.core.db_switch import db
+from app.services.auth_service import require_admin, serialize_user, find_user_by_id, update_user
 from app.services.product_service import process_create_product, process_update_product, process_delete_product
 from app.services.order_service import get_all_orders_data, update_order_status_logic
 from app.services.admin_service import get_analytics_data
@@ -100,3 +101,45 @@ def remove_review(review_id: int, _: Dict[str, Any] = Depends(require_admin)) ->
 @router.get("/analytics")
 def get_analytics(_: Dict[str, Any] = Depends(require_admin)) -> Dict[str, Any]:
     return get_analytics_data()
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
+class UserRoleUpdate(BaseModel):
+    role: str
+
+@router.get("/users")
+def list_users(admin: Dict[str, Any] = Depends(require_admin)) -> List[Dict[str, Any]]:
+    all_users = db.read("users", {})
+    return [serialize_user(u) for u in all_users]
+
+@router.put("/users/{id}/status")
+def update_user_status(id: int, payload: UserStatusUpdate, admin: Dict[str, Any] = Depends(require_admin)) -> Dict[str, Any]:
+    if admin.get("id") == id:
+        raise HTTPException(status_code=400, detail="Admins cannot block themselves.")
+    user = find_user_by_id(id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    updated = update_user(id, {"is_active": payload.is_active})
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to update user status.")
+    return {"success": True, "user": serialize_user(updated)}
+
+@router.put("/users/{id}/role")
+def update_user_role(id: int, payload: UserRoleUpdate, admin: Dict[str, Any] = Depends(require_admin)) -> Dict[str, Any]:
+    if payload.role not in ["admin", "customer"]:
+        raise HTTPException(status_code=400, detail="Invalid role. Must be 'admin' or 'customer'.")
+    if admin.get("id") == id and payload.role != "admin":
+        raise HTTPException(status_code=400, detail="Admins cannot remove their own admin role.")
+    user = find_user_by_id(id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    updated = update_user(id, {"role": payload.role})
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to update user role.")
+    return {"success": True, "user": serialize_user(updated)}
+
+@router.get("/users/{id}/orders")
+def get_user_orders(id: int, _: Dict[str, Any] = Depends(require_admin)) -> List[Dict[str, Any]]:
+    user_orders = db.read("orders", {"user_id": id})
+    return user_orders

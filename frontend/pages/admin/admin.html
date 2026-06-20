@@ -307,9 +307,70 @@
             </section>
           </div>
 
+          <!-- User Directory Grid -->
+          <div class="admin-grid reveal-scale" style="margin-top: 3rem; border-top: 1px solid rgba(255,255,255,.1); padding-top: 3rem; grid-template-columns: 1fr;">
+            <section class="admin-list-panel" style="width: 100%;">
+              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                  <span class="eyebrow">User Directory</span>
+                  <h2 class="section-title">User Management</h2>
+                  <p class="section-copy">Manage customer accounts, roles, access statuses, and view purchase histories.</p>
+                </div>
+                <div class="admin-filter-bar" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                  <input class="field" id="user-search-field" type="text" placeholder="Search name/email..." style="max-width: 200px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" />
+                  
+                  <select class="select" id="user-filter-role" style="max-width: 130px; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                    <option value="">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="customer">Customer</option>
+                  </select>
+
+                  <select class="select" id="user-filter-status" style="max-width: 130px; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active Only</option>
+                    <option value="blocked">Blocked Only</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- User Table Container -->
+              <div style="margin-top: 1.5rem; overflow-x: auto; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; min-width: 800px;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);">
+                      <th style="padding: 0.75rem 1rem;">Name</th>
+                      <th style="padding: 0.75rem 1rem;">Email</th>
+                      <th style="padding: 0.75rem 1rem;">Phone</th>
+                      <th style="padding: 0.75rem 1rem;">Role</th>
+                      <th style="padding: 0.75rem 1rem;">Status</th>
+                      <th style="padding: 0.75rem 1rem;">Last Login</th>
+                      <th style="padding: 0.75rem 1rem; text-align: right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-user-table-body">
+                    <!-- populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
         </div>
       </section>
     </main>
+
+    <!-- User Orders Modal -->
+    <div id="user-orders-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+      <div style="background: #111; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; width: 90%; max-width: 700px; max-height: 80%; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <div style="padding: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-family: 'Poppins', sans-serif; font-size: 1.1rem; color: #fff;" id="user-orders-modal-title">User Orders</h3>
+          <button type="button" id="close-user-orders-modal" style="background: none; border: none; color: #aaa; font-size: 1.25rem; cursor: pointer; line-height: 1;"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div style="padding: 1.5rem; overflow-y: auto; flex-grow: 1; color: #ccc; font-size: 0.85rem;" id="user-orders-modal-body">
+          <!-- populated dynamically -->
+        </div>
+      </div>
+    </div>
 
     <div class="footer-top-strip">
       <div class="container">

@@ -675,6 +675,235 @@ function bindCouponForm() {
   });
 }
 
+// ─── USER DIRECTORY & MANAGEMENT ───────────────────────────────────────
+let users = [];
+
+async function loadUsers() {
+  const tbody = document.querySelector("#admin-user-table-body");
+  if (!tbody) return;
+  try {
+    const data = await get("/api/v1/admin/users");
+    users = Array.isArray(data) ? data : [];
+    renderUsers();
+  } catch (err) {
+    console.error("Failed to load users:", err);
+    tbody.innerHTML = `<tr><td colspan="7" style="padding: 1rem; text-align: center; color: #ff4757;" class="helper-note danger">Failed to load users.</td></tr>`;
+  }
+}
+
+function renderUsers() {
+  const tbody = document.querySelector("#admin-user-table-body");
+  if (!tbody) return;
+
+  const searchVal = document.querySelector("#user-search-field")?.value.trim().toLowerCase() || "";
+  const roleVal = document.querySelector("#user-filter-role")?.value || "";
+  const statusVal = document.querySelector("#user-filter-status")?.value || "";
+
+  const filtered = users.filter(u => {
+    const matchesSearch = !searchVal || 
+      (u.name && u.name.toLowerCase().includes(searchVal)) || 
+      (u.email && u.email.toLowerCase().includes(searchVal));
+    
+    const matchesRole = !roleVal || u.role === roleVal;
+
+    let matchesStatus = true;
+    if (statusVal === "active") {
+      matchesStatus = u.is_active === true;
+    } else if (statusVal === "blocked") {
+      matchesStatus = u.is_active === false;
+    }
+
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding: 1.5rem; text-align: center; color: #888;">No users found matching filters.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(u => {
+    const isCurrentUser = u.id === getCurrentUser()?.id;
+    const statusText = u.is_active ? "Active" : "Blocked";
+    const statusBadgeStyle = u.is_active 
+      ? "background: rgba(46, 213, 115, 0.15); color: #2ed573; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;" 
+      : "background: rgba(255, 71, 87, 0.15); color: #ff4757; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;";
+    
+    const blockBtnLabel = u.is_active ? "Block" : "Unblock";
+    const blockBtnClass = u.is_active ? "btn btn-outline danger" : "btn btn-primary";
+    
+    let lastLogin = "Never";
+    if (u.last_login_at) {
+      try {
+        lastLogin = new Date(u.last_login_at).toLocaleString();
+      } catch (e) {
+        lastLogin = u.last_login_at;
+      }
+    }
+
+    return `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 1rem; color: #fff; font-weight: 500;">
+          ${escapeHtml(u.name)} ${isCurrentUser ? '<span style="font-size:0.7rem; opacity:0.6; margin-left:0.25rem;">(You)</span>' : ''}
+        </td>
+        <td style="padding: 1rem;">${escapeHtml(u.email)}</td>
+        <td style="padding: 1rem;">${escapeHtml(u.phone || "N/A")}</td>
+        <td style="padding: 1rem;">
+          <select class="select" data-user-role-select="${u.id}" ${isCurrentUser ? "disabled" : ""} style="padding: 0.2rem 0.5rem; font-size: 0.8rem; background: rgba(0,0,0,0.5); width: auto;">
+            <option value="customer" ${u.role === "customer" ? "selected" : ""}>Customer</option>
+            <option value="admin" ${u.role === "admin" ? "selected" : ""}>Admin</option>
+          </select>
+        </td>
+        <td style="padding: 1rem;">
+          <span style="${statusBadgeStyle}">${statusText}</span>
+        </td>
+        <td style="padding: 1rem; color: #888; font-size: 0.8rem;">${lastLogin}</td>
+        <td style="padding: 1rem; text-align: right;">
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+            <button class="btn btn-outline" type="button" data-user-orders-btn="${u.id}" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; border-radius: 4px;">
+              <i class="fa-solid fa-shopping-bag"></i> Orders
+            </button>
+            <button class="${blockBtnClass}" type="button" data-user-toggle-status-btn="${u.id}" ${isCurrentUser ? "disabled" : ""} style="padding: 0.3rem 0.6rem; font-size: 0.75rem; border-radius: 4px;">
+              ${blockBtnLabel}
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  bindUserEvents();
+}
+
+function bindUserEvents() {
+  document.querySelectorAll("[data-user-toggle-status-btn]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const userId = Number(btn.dataset.userToggleStatusBtn);
+      const userObj = users.find(u => u.id === userId);
+      if (!userObj) return;
+
+      const newStatus = !userObj.is_active;
+      const actionText = newStatus ? "unblock" : "block";
+      if (!window.confirm(`Are you sure you want to ${actionText} user "${userObj.name}"?`)) {
+        return;
+      }
+
+      btn.disabled = true;
+      try {
+        await put(`/api/v1/admin/users/${userId}/status`, { is_active: newStatus });
+        showToast(`User status updated.`);
+        await loadUsers();
+      } catch (err) {
+        showToast(err.message, "error");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-user-role-select]").forEach(select => {
+    select.addEventListener("change", async () => {
+      const userId = Number(select.dataset.userRoleSelect);
+      const userObj = users.find(u => u.id === userId);
+      if (!userObj) return;
+
+      const newRole = select.value;
+      if (!window.confirm(`Change role of user "${userObj.name}" to "${newRole}"?`)) {
+        select.value = userObj.role;
+        return;
+      }
+
+      select.disabled = true;
+      try {
+        await put(`/api/v1/admin/users/${userId}/role`, { role: newRole });
+        showToast(`User role updated to ${newRole}.`);
+        await loadUsers();
+      } catch (err) {
+        showToast(err.message, "error");
+        select.value = userObj.role;
+        select.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-user-orders-btn]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const userId = Number(btn.dataset.userOrdersBtn);
+      viewUserOrders(userId);
+    });
+  });
+}
+
+async function viewUserOrders(userId) {
+  const userObj = users.find(u => u.id === userId);
+  if (!userObj) return;
+
+  const modal = document.querySelector("#user-orders-modal");
+  const modalTitle = document.querySelector("#user-orders-modal-title");
+  const modalBody = document.querySelector("#user-orders-modal-body");
+  if (!modal || !modalBody) return;
+
+  modalTitle.textContent = `Order History for ${userObj.name}`;
+  modalBody.innerHTML = `<div style="text-align: center; padding: 2rem;">Loading orders...</div>`;
+  modal.style.display = "flex";
+
+  try {
+    const data = await get(`/api/v1/admin/users/${userId}/orders`);
+    const ordersList = Array.isArray(data) ? data : [];
+    if (ordersList.length === 0) {
+      modalBody.innerHTML = `<div style="text-align: center; padding: 2rem; color: #888;">No orders found for this user.</div>`;
+      return;
+    }
+
+    modalBody.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        ${ordersList.map(o => {
+          const date = new Date(o.created_at).toLocaleDateString();
+          return `
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                <strong>Order ID: ${escapeHtml(o.order_id)}</strong>
+                <span style="color: var(--primary, #6244c5); font-weight: 500;">${formatCurrency(o.total)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; color: #888; font-size: 0.8rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                <span>Placed on ${date}</span>
+                <span>Payment: <strong style="color: #ccc;">${o.payment_method.toUpperCase()} (${o.payment_status})</strong></span>
+              </div>
+              <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.5rem; margin-top: 0.5rem;">
+                <span style="font-size: 0.8rem; color: #aaa;">Status: <strong style="color:#fff;">${o.status.toUpperCase()}</strong></span>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  } catch (err) {
+    console.error(err);
+    modalBody.innerHTML = `<div style="text-align: center; padding: 2rem; color: #ff4757;">Failed to load user orders.</div>`;
+  }
+}
+
+function bindUserFilters() {
+  const searchInput = document.querySelector("#user-search-field");
+  const roleSelect = document.querySelector("#user-filter-role");
+  const statusSelect = document.querySelector("#user-filter-status");
+
+  searchInput?.addEventListener("input", () => renderUsers());
+  roleSelect?.addEventListener("change", () => renderUsers());
+  statusSelect?.addEventListener("change", () => renderUsers());
+
+  const modal = document.querySelector("#user-orders-modal");
+  const closeBtn = document.querySelector("#close-user-orders-modal");
+
+  closeBtn?.addEventListener("click", () => {
+    if (modal) modal.style.display = "none";
+  });
+
+  window.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   await initSite();
   const user = getCurrentUser();
@@ -691,12 +920,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   bindCouponForm();
   setCouponFormState();
 
+  bindUserFilters();
+
   try {
     await loadProducts();
     await loadAdminMetrics();
     await loadReviews();
     await updateSupportBadge();
     await loadCoupons();
+    await loadUsers();
   } catch (error) {
     const adminList = document.querySelector("[data-admin-product-list]");
     if (adminList) {

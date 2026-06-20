@@ -153,13 +153,19 @@ def get_session_user(request: Request) -> Optional[Dict[str, Any]]:
             if payload.get("jti") in REVOKED_TOKEN_IDS:
                 return None
             user_id = int(payload["sub"])
-            return find_user_by_id(user_id)
+            user = find_user_by_id(user_id)
+            if user and user.get("is_active", True) is False:
+                return None
+            return user
         except (jwt.PyJWTError, ValueError, KeyError):
             pass
 
     session_user_id = request.session.get("user_id")
     if session_user_id:
-        return find_user_by_id(int(session_user_id))
+        user = find_user_by_id(int(session_user_id))
+        if user and user.get("is_active", True) is False:
+            return None
+        return user
     return None
 
 def validate_email(email: str) -> str:
@@ -326,8 +332,14 @@ def verify_mobile_otp(payload: Any, request: Request) -> Dict[str, Any]:
     db.delete("otp_sessions", {"phone": phone["e164"]})
 
     user = find_user_by_phone(phone["national"], phone["country_code"])
+    if user and user.get("is_active", True) is False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This account is deactivated.")
     if not user:
         user = create_mobile_user(phone)
+
+    now_str = datetime.now(timezone.utc).isoformat()
+    db.update("users", {"id": user["id"]}, {"last_login_at": now_str})
+    user["last_login_at"] = now_str
 
     store_session_user(request, user)
     token = issue_auth_token(user)
@@ -380,6 +392,8 @@ def serialize_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "phone": user.get("phone"),
         "user_id": user.get("user_id"),
         "profile_completed_status": user.get("profile_completed_status", True),
+        "is_active": user.get("is_active", True),
+        "last_login_at": user.get("last_login_at"),
     }
 
 def get_current_user_state(request: Request) -> Dict[str, Any]:
@@ -472,6 +486,12 @@ def login_user(payload: Any, request: Request) -> Dict[str, Any]:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email OTP before logging in.")
 
     user = upgrade_password_hash_if_needed(user, password)
+    
+    from datetime import datetime, timezone
+    now_str = datetime.now(timezone.utc).isoformat()
+    db.update("users", {"id": user["id"]}, {"last_login_at": now_str})
+    user["last_login_at"] = now_str
+
     store_session_user(request, user)
     token = issue_auth_token(user)
 
