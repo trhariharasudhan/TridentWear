@@ -1,3 +1,10 @@
 {
-  "liveServer.settings.port": 5510
+  "liveServer.settings.port": 5510,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.venv": true,
+    "**/node_modules": true,
+    "**/logs": true
+  }
 }

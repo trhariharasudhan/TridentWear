@@ -94,3 +94,8 @@ frontend/assets/data/*.backup.json
 # Python virtual environments
 .venv/
 venv/
+
+# Caches and logs
+.pytest_cache/
+logs/
+backend/logs/
