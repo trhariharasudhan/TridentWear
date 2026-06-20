@@ -219,10 +219,11 @@ coupons = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("code", String, unique=True, index=True),
-    Column("discount", Float, nullable=False),
-    Column("expiry", String, nullable=False),
+    Column("discount_pct", Float, nullable=False),
+    Column("expires_at", String, nullable=False),
     Column("usage_limit", Integer, default=1000),
     Column("usage_count", Integer, default=0),
+    Column("is_active", Boolean, default=True),
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
 )
 

@@ -1,16 +1,16 @@
 [
-  {
-    "code": "TRIDENTFIRST",
-    "discount": 20,
-    "expiry": "2027-12-31",
-    "usage_limit": 1000,
-    "usage_count": 0
-  },
-  {
-    "code": "TRIDENT10",
-    "discount": 10,
-    "expiry": "2027-12-31",
-    "usage_limit": 5000,
-    "usage_count": 0
-  }
+    {
+        "code": "TRIDENTFIRST",
+        "discount": 20,
+        "expiry": "2027-12-31",
+        "usage_limit": 1000,
+        "usage_count": 0
+    },
+    {
+        "code": "TRIDENT10",
+        "discount": 10,
+        "expiry": "2027-12-31",
+        "usage_limit": 5000,
+        "usage_count": 0
+    }
 ]

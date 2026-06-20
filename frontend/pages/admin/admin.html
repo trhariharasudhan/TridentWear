@@ -251,6 +251,62 @@
               <div class="admin-product-list" data-admin-product-list></div>
             </section>
           </div>
+
+          <div class="admin-grid reveal-scale" style="margin-top: 3rem; border-top: 1px solid rgba(255,255,255,.1); padding-top: 3rem;">
+            <!-- Coupon Form -->
+            <section class="admin-form-panel">
+              <div class="section-header">
+                <span class="eyebrow">Promo System</span>
+                <h2 class="section-title" data-admin-coupon-form-title>Add Promo Coupon</h2>
+                <p class="section-copy">
+                  Manage percentages, active dates, and limits. Updates apply instantly on checkout.
+                </p>
+              </div>
+              <form class="admin-form-grid" data-admin-coupon-form>
+                <input type="hidden" id="coupon-original-code" />
+                <div class="form-group">
+                  <label class="label" for="coupon-code-field">Coupon Code</label>
+                  <input class="field" id="coupon-code-field" type="text" placeholder="e.g. EXTRA20" required style="text-transform: uppercase;" />
+                </div>
+                <div class="form-group">
+                  <label class="label" for="coupon-discount-field">Discount (%)</label>
+                  <input class="field" id="coupon-discount-field" type="number" min="1" max="100" required />
+                </div>
+                <div class="form-group">
+                  <label class="label" for="coupon-expiry-field">Expiry Date</label>
+                  <input class="field" id="coupon-expiry-field" type="date" required />
+                </div>
+                <div class="form-group">
+                  <label class="label" for="coupon-limit-field">Usage Limit</label>
+                  <input class="field" id="coupon-limit-field" type="number" min="1" value="1000" required />
+                </div>
+                <div class="form-group full">
+                  <label class="checkbox-row" for="coupon-active-field">
+                    <input id="coupon-active-field" type="checkbox" checked />
+                    <span>Coupon is active and redeemable</span>
+                  </label>
+                </div>
+                <div class="form-group full">
+                  <div class="admin-actions">
+                    <button class="btn btn-primary" type="submit" data-admin-coupon-submit>Save Coupon</button>
+                    <button class="btn btn-outline" type="button" data-admin-coupon-cancel hidden>Cancel Edit</button>
+                  </div>
+                </div>
+              </form>
+            </section>
+
+            <!-- Coupon List -->
+            <section class="admin-list-panel">
+              <div class="section-header">
+                <span class="eyebrow">Active Promos</span>
+                <h2 class="section-title">Current Coupons</h2>
+              </div>
+              <div class="admin-product-list" data-admin-coupon-list>
+                <!-- populated dynamically -->
+              </div>
+            </section>
+          </div>
+
         </div>
       </section>
     </main>

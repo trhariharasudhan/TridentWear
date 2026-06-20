@@ -108,10 +108,16 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
             raise HTTPException(status_code=400, detail="Invalid coupon code.")
         coupon = coupon_res[0]
         
+        # Check active status
+        is_active = coupon.get("is_active")
+        if is_active is False or str(is_active).lower() == "false":
+            raise HTTPException(status_code=400, detail="Coupon is disabled.")
+
         # Check expiry
         now = datetime.now(timezone.utc).date()
         try:
-            expiry_date = datetime.fromisoformat(coupon.get("expiry", "2099-01-01")).date()
+            expiry_str = coupon.get("expires_at") or coupon.get("expiry") or "2099-01-01"
+            expiry_date = datetime.fromisoformat(expiry_str).date()
         except Exception:
             expiry_date = now
         if expiry_date < now:
@@ -122,7 +128,7 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
         if usage_count >= usage_limit:
             raise HTTPException(status_code=400, detail="Coupon usage limit reached.")
             
-        discount_pct = float(coupon.get("discount", 0))
+        discount_pct = float(coupon.get("discount_pct") if coupon.get("discount_pct") is not None else coupon.get("discount", 0))
         discount_amount = round(subtotal * discount_pct / 100, 2)
         
     total = round(subtotal - discount_amount, 2)

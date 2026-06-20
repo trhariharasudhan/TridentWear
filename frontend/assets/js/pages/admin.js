@@ -1,4 +1,4 @@
-import { del, get, postForm, put, putForm, resolveAssetUrl } from "../shared/api.js?v=20260430-v3";
+import { del, get, post, postForm, put, putForm, resolveAssetUrl } from "../shared/api.js?v=20260430-v3";
 import { normalizeProduct } from "../shared/catalog.js?v=20260430-v3";
 import { createLoaderMarkup, escapeHtml, formatCurrency, getCurrentUser, initSite, pageUrl, showToast } from "../shared/site.js?v=20260430-v3";
 
@@ -479,6 +479,202 @@ function bindForm() {
   cancel.addEventListener("click", () => setFormState());
 }
 
+// ─── COUPON MANAGER STATE & CRUD ───────────────────────────────────────
+let coupons = [];
+let editingCouponCode = null;
+
+function couponFields() {
+  return {
+    originalCode: document.querySelector("#coupon-original-code"),
+    code: document.querySelector("#coupon-code-field"),
+    discount: document.querySelector("#coupon-discount-field"),
+    expiry: document.querySelector("#coupon-expiry-field"),
+    limit: document.querySelector("#coupon-limit-field"),
+    active: document.querySelector("#coupon-active-field"),
+  };
+}
+
+function setCouponFormState(coupon = null) {
+  const f = couponFields();
+  const title = document.querySelector("[data-admin-coupon-form-title]");
+  const submit = document.querySelector("[data-admin-coupon-submit]");
+  const cancel = document.querySelector("[data-admin-coupon-cancel]");
+  
+  if (!coupon) {
+    editingCouponCode = null;
+    if (title) title.textContent = "Add Promo Coupon";
+    if (submit) submit.textContent = "Save Coupon";
+    if (cancel) cancel.hidden = true;
+    if (f.originalCode) f.originalCode.value = "";
+    if (f.code) { f.code.value = ""; f.code.disabled = false; }
+    if (f.discount) f.discount.value = "";
+    if (f.expiry) f.expiry.value = "";
+    if (f.limit) f.limit.value = "1000";
+    if (f.active) f.active.checked = true;
+    return;
+  }
+  
+  editingCouponCode = coupon.code;
+  if (title) title.textContent = `Edit Coupon ${coupon.code}`;
+  if (submit) submit.textContent = "Update Coupon";
+  if (cancel) cancel.hidden = false;
+  if (f.originalCode) f.originalCode.value = coupon.code;
+  if (f.code) { f.code.value = coupon.code; f.code.disabled = true; }
+  if (f.discount) f.discount.value = coupon.discount_pct;
+  if (f.expiry) {
+    try {
+      f.expiry.value = coupon.expires_at.split("T")[0];
+    } catch (_) {
+      f.expiry.value = coupon.expires_at || "";
+    }
+  }
+  if (f.limit) f.limit.value = coupon.usage_limit;
+  if (f.active) f.active.checked = Boolean(coupon.is_active);
+}
+
+function renderCoupons() {
+  const list = document.querySelector("[data-admin-coupon-list]");
+  if (!list) return;
+  if (!coupons.length) {
+    list.innerHTML = `<div class="helper-note info">No coupons found. Add one above.</div>`;
+    return;
+  }
+  
+  list.innerHTML = coupons.map(c => {
+    const limit = c.usage_limit;
+    const count = c.usage_count;
+    const discount = c.discount_pct;
+    const activeStr = c.is_active ? "Active" : "Disabled";
+    const statusClass = c.is_active ? "payment-paid" : "payment-failed";
+    
+    return `
+      <article class="admin-product-card" data-coupon-code="${escapeHtml(c.code)}">
+        <div class="admin-product-top">
+          <div>
+            <strong>${escapeHtml(c.code)}</strong>
+            <div class="section-copy" style="margin-top:0.25rem;">Discount: <strong>${escapeHtml(String(discount))}%</strong></div>
+            <div class="section-copy">Expires: <strong>${escapeHtml(String(c.expires_at))}</strong></div>
+            <div class="admin-stock-line ${count >= limit ? 'is-low' : ''}" style="margin-top:0.5rem;">
+              <span>Usage: ${escapeHtml(String(count))} / ${escapeHtml(String(limit))}</span>
+              <span class="admin-status-badge ${statusClass}">${activeStr}</span>
+            </div>
+          </div>
+        </div>
+        <div class="admin-actions" style="margin-top: 1rem;">
+          <button class="btn btn-outline" type="button" data-edit-coupon="${escapeHtml(c.code)}">Edit</button>
+          <button class="btn btn-outline" type="button" data-toggle-coupon="${escapeHtml(c.code)}" data-active="${c.is_active}">${c.is_active ? 'Disable' : 'Enable'}</button>
+          <button class="btn btn-danger" type="button" data-delete-coupon="${escapeHtml(c.code)}">Delete</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+  
+  list.querySelectorAll("[data-edit-coupon]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const code = btn.dataset.editCoupon;
+      const coupon = coupons.find(c => c.code === code);
+      if (coupon) setCouponFormState(coupon);
+    });
+  });
+  
+  list.querySelectorAll("[data-toggle-coupon]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const code = btn.dataset.toggleCoupon;
+      const isCurrentlyActive = btn.dataset.active === "true";
+      btn.disabled = true;
+      try {
+        const payload = { is_active: !isCurrentlyActive };
+        await put(`/api/v1/admin/coupons/${code}`, payload);
+        showToast(`Coupon "${code}" ${!isCurrentlyActive ? 'enabled' : 'disabled'}.`);
+        await loadCoupons();
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+  
+  list.querySelectorAll("[data-delete-coupon]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const code = btn.dataset.deleteCoupon;
+      if (!window.confirm(`Delete coupon "${code}"?`)) return;
+      btn.disabled = true;
+      try {
+        await del(`/api/v1/admin/coupons/${code}`);
+        showToast(`Coupon "${code}" deleted.`);
+        setCouponFormState();
+        await loadCoupons();
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+async function loadCoupons() {
+  const list = document.querySelector("[data-admin-coupon-list]");
+  if (!list) return;
+  try {
+    const data = await get("/api/v1/admin/coupons");
+    coupons = Array.isArray(data) ? data : [];
+    renderCoupons();
+  } catch (err) {
+    console.error("Failed to load coupons:", err);
+    list.innerHTML = `<div class="helper-note danger">Failed to load coupons.</div>`;
+  }
+}
+
+function bindCouponForm() {
+  const form = document.querySelector("[data-admin-coupon-form]");
+  if (!form) return;
+  const cancel = document.querySelector("[data-admin-coupon-cancel]");
+  
+  cancel?.addEventListener("click", () => setCouponFormState());
+  
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submit = document.querySelector("[data-admin-coupon-submit]");
+    if (!submit) return;
+    
+    submit.disabled = true;
+    submit.textContent = editingCouponCode ? "Updating..." : "Saving...";
+    
+    const f = couponFields();
+    const payload = {
+      code: f.code.value.trim().toUpperCase(),
+      discount_pct: Number(f.discount.value),
+      expires_at: f.expiry.value,
+      usage_limit: Number(f.limit.value),
+      is_active: f.active.checked,
+    };
+    
+    try {
+      if (editingCouponCode) {
+        await put(`/api/v1/admin/coupons/${editingCouponCode}`, {
+          discount_pct: payload.discount_pct,
+          expires_at: payload.expires_at,
+          usage_limit: payload.usage_limit,
+          is_active: payload.is_active,
+        });
+        showToast(`Coupon "${editingCouponCode}" updated.`);
+      } else {
+        await post("/api/v1/admin/coupons", payload);
+        showToast(`Coupon "${payload.code}" created.`);
+      }
+      setCouponFormState();
+      await loadCoupons();
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      submit.disabled = false;
+      submit.textContent = editingCouponCode ? "Update Coupon" : "Save Coupon";
+    }
+  });
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   await initSite();
   const user = getCurrentUser();
@@ -491,12 +687,16 @@ window.addEventListener("DOMContentLoaded", async () => {
   bindPreview();
   bindReviewTabs();
   setFormState();
+  
+  bindCouponForm();
+  setCouponFormState();
 
   try {
     await loadProducts();
     await loadAdminMetrics();
     await loadReviews();
     await updateSupportBadge();
+    await loadCoupons();
   } catch (error) {
     const adminList = document.querySelector("[data-admin-product-list]");
     if (adminList) {
