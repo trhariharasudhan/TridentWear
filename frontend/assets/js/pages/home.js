@@ -205,7 +205,7 @@ function initScrollReveal() {
 
 /* ─── Hero Parallax ─── */
 function initHeroParallax() {
-  const bg = document.querySelector(".hero-cinema-bg");
+  const bg = document.querySelector(".hero-bg-gradient");
   if (!bg || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const scrollManager = createGlobalScrollManager();
   scrollManager.onScroll((scrollY) => {
@@ -264,7 +264,7 @@ function loadRecentlyViewed() {
 function initStickyCTA() {
   const cta = document.getElementById("sticky-mob-cta");
   if (!cta) return;
-  const hero = document.querySelector(".hero-cinematic");
+  const hero = document.querySelector(".hero-premium");
   const threshold = hero ? hero.offsetHeight * 0.8 : 400;
   window.addEventListener("scroll", () => {
     cta.style.transform = window.scrollY > threshold ? "translateY(0)" : "translateY(100%)";
@@ -277,7 +277,7 @@ function initStickyCTA() {
 window.addEventListener("DOMContentLoaded", async () => {
   document.body.classList.add("js-loaded");
   await initSite();
-  initHeroSlider();
+  // initHeroSlider(); // Disabled: No slider element exists on active homepage
   initNewsletter();
   initScrollReveal();
   initStickyCTA();

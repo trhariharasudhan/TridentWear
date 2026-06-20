@@ -79,6 +79,11 @@ test_*.js
 test_*.py
 test.py
 
+# Allow tracking of structured test files
+!backend/tests/test_*.py
+!tests/e2e/test_*.js
+!tests/integration/test_*.js
+
 # Cache
 .cache/
 *.pyc

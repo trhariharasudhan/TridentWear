@@ -5,7 +5,7 @@ TridentWear serves the FastAPI API and static storefront from one origin. Keep f
 ## Local
 
 ```powershell
-python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8020
 ```
 
 Open `http://127.0.0.1:8000`.
@@ -23,7 +23,7 @@ pip install -r requirements.txt
 Start command:
 
 ```bash
-python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
 Set environment variables from `.env.example`. Use strong production values for `TRIDENT_JWT_SECRET` and `TRIDENT_SESSION_SECRET`.
@@ -33,7 +33,7 @@ Set environment variables from `.env.example`. Use strong production values for 
 `railway.json` uses:
 
 ```bash
-python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
 Deploy with `DB_MODE=json` for the current file-backed setup, or configure `DB_MODE=postgres` and `PG_DSN` when the database migration is complete.
@@ -43,7 +43,7 @@ Deploy with `DB_MODE=json` for the current file-backed setup, or configure `DB_M
 Install Python dependencies, copy the repo, set environment variables, then run the same command behind a reverse proxy:
 
 ```bash
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 Terminate HTTPS at Nginx/Caddy and proxy to `127.0.0.1:8000`.

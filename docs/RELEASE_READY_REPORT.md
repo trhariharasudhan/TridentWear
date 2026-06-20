@@ -1,4 +1,4 @@
-﻿# TridentWear — RELEASE READY REPORT
+# TridentWear — RELEASE READY REPORT
 
 **Generated:** 2026-05-17
 **Phase:** 5 — Final Deployment Readiness & Release Cleanup
@@ -13,7 +13,7 @@ Start server:
   uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 Run test suite (from project root):
-  python test_phase5.py
+  python backend/tests/test_phase5.py
 
 Credentials:
   Customer : customer@trident.local  / password
