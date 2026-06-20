@@ -21,7 +21,7 @@ let activeFits = new Set();
 let activeSizes = new Set();
 
 const categoryLabels = {
-  all:     "All T-Shirts",
+  all:     "All Products",
   tshirt:  "T-Shirts",
 };
 

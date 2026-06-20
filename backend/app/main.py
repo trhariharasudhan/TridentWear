@@ -200,10 +200,10 @@ async def add_security_headers(request: Request, call_next):
         
     csp_directives = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://checkout.razorpay.com; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://checkout.razorpay.com https://cdn.razorpay.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://accounts.google.com; "
         "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-        "img-src 'self' data: https://*.razorpay.com; "
+        "img-src 'self' data: https://*.razorpay.com https://images.unsplash.com; "
         "connect-src 'self' https://*.razorpay.com; "
         "frame-src 'self' https://accounts.google.com https://api.razorpay.com;"
     )

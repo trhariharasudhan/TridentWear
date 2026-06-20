@@ -171,9 +171,9 @@ const playwright = require('playwright');
   console.log('\n═══ 8. ADMIN FLOW (regular user) ═══');
   await page.goto(`${BASE_URL}/admin`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2000);
-  const adminText = await page.evaluate(() => document.body.innerText);
-  const isBlocked = adminText.includes('Unauthorized') || adminText.includes('Access Denied') || adminText.includes('403');
-  isBlocked ? ok('Admin page blocked for regular user') : ok('Admin page reachable (check if auth guard active)');
+  const currentUrl = page.url();
+  const isBlocked = currentUrl.includes('/login') && currentUrl.includes('next=%2Fadmin');
+  isBlocked ? ok('Admin page blocked for regular user (redirected to login)') : fail('Admin page not blocked / no redirect', currentUrl);
 
   // ── 9. LOGOUT ─────────────────────────────────────────────────────────────
   console.log('\n═══ 9. LOGOUT ═══');
