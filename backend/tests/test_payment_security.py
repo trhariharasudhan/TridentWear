@@ -11,7 +11,7 @@ Tests:
 Run with:
     python test_payment_security.py
 
-Requires the server to be running on http://127.0.0.1:8010
+Requires the server to be running on http://127.0.0.1:8020
 """
 
 import hmac

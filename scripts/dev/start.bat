@@ -52,6 +52,10 @@ echo.
 rem Start a background process to open browser once the server is ready (health check returns 200)
 start "" /b powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 1; 1..15 | ForEach-Object { try { $r = Invoke-WebRequest -Uri 'http://127.0.0.1:%SELECTED_PORT%/health' -UseBasicParsing -TimeoutSec 1; if ($r.StatusCode -eq 200) { Start-Process 'http://127.0.0.1:%SELECTED_PORT%/'; exit } } catch {} ; Start-Sleep -Seconds 1 }"
 
+rem Set allowed origins and base URLs dynamically to prevent security warnings and sync config
+set ALLOWED_ORIGINS=http://127.0.0.1:%SELECTED_PORT%,http://localhost:%SELECTED_PORT%
+set APP_BASE_URL=http://127.0.0.1:%SELECTED_PORT%
+
 rem Run Uvicorn attached to terminal
 set PYTHONPATH=backend
 .venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port %SELECTED_PORT% --reload
