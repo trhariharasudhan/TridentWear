@@ -47,11 +47,11 @@ Mark each item as done before going live.
 
 ## 🗃️ Database
 
-- [ ] `db/` directory has write permissions for the app user
-- [ ] `db/products.json` exists with all 24 products
-- [ ] `db/users.json` exists with admin account
-- [ ] `db/orders.json` exists (can be empty `[]`)
-- [ ] DB backup cron job configured (daily recommended)
+- [ ] `DATABASE_URL` configured to point to production PostgreSQL database
+- [ ] `DB_MODE=postgres` set in environment variables
+- [ ] Database migrations applied via `alembic upgrade head`
+- [ ] Seeding or data migration completed (`python backend/scripts/migrate_json_to_postgres.py` run and verified)
+- [ ] Database backup job configured (daily `pg_dump` recommended)
 
 ---
 
@@ -122,6 +122,7 @@ After deployment, test the full buyer flow once manually:
 | `docs/DEPLOYMENT_GUIDE.md` | Step-by-step for all platforms |
 | `docs/ENV_SETUP.md` | Environment variable reference |
 | `docs/PRODUCTION_CHECKLIST.md` | This file |
+| `docs/OPERATIONS_RUNBOOK.md` | Operations runbook |
 
 ---
 

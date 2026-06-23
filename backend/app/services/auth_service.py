@@ -478,6 +478,25 @@ def login_user(payload: Any, request: Request) -> Dict[str, Any]:
     user = find_user_by_email(email)
 
     if not user or not verify_password(password, user.get("password_hash", "")):
+        is_admin_attempt = False
+        admin_id_log = None
+        if user and user.get("role") == "admin":
+            is_admin_attempt = True
+            admin_id_log = user.get("id")
+        elif email.strip().lower() == ADMIN_EMAIL.lower() or "admin" in email.strip().lower():
+            is_admin_attempt = True
+            
+        if is_admin_attempt:
+            from app.services.audit_service import log_action
+            log_action(
+                admin_id=admin_id_log,
+                action_type="admin_login_failed",
+                target_entity="users",
+                target_id=None,
+                before_state=None,
+                after_state={"email": email},
+                request=request
+            )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password.")
     if user.get("is_active", True) is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This account is deactivated.")
@@ -495,7 +514,20 @@ def login_user(payload: Any, request: Request) -> Dict[str, Any]:
     store_session_user(request, user)
     token = issue_auth_token(user)
 
+    if user.get("role") == "admin":
+        from app.services.audit_service import log_action
+        log_action(
+            admin_id=user["id"],
+            action_type="admin_login_success",
+            target_entity="users",
+            target_id=str(user["id"]),
+            before_state=None,
+            after_state=None,
+            request=request
+        )
+
     return {"success": True, "message": "Signed in successfully.", "token": token, "user": serialize_user(user)}
+
 
 def logout_user(request: Request) -> Dict[str, Any]:
     revoke_auth_token(get_request_token(request))

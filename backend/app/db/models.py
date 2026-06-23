@@ -239,4 +239,20 @@ payment_events = Table(
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
 )
 
+admin_audit_logs = Table(
+    "admin_audit_logs",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("admin_id", Integer, ForeignKey("users.id"), index=True, nullable=True),
+    Column("action_type", String, index=True, nullable=False),
+    Column("target_entity", String, index=True, nullable=False),
+    Column("target_id", String, nullable=True),
+    Column("before_state", JSON, nullable=True),
+    Column("after_state", JSON, nullable=True),
+    Column("ip_address", String, nullable=True),
+    Column("user_agent", String, nullable=True),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+)
+
+
 

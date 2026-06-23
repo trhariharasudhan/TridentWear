@@ -1,10 +1,11 @@
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from datetime import datetime, timezone
 
 from app.core.db_switch import db
 from app.services.auth_service import require_admin
+from app.services.audit_service import log_action
 
 router = APIRouter(prefix="/api/v1", tags=["coupons"])
 
@@ -113,7 +114,11 @@ def list_coupons(_: Dict[str, Any] = Depends(require_admin)) -> List[Dict[str, A
     return normalized
 
 @router.post("/admin/coupons")
-def create_coupon(payload: CouponCreatePayload, _: Dict[str, Any] = Depends(require_admin)) -> Dict[str, Any]:
+def create_coupon(
+    payload: CouponCreatePayload,
+    request: Request,
+    admin: Dict[str, Any] = Depends(require_admin)
+) -> Dict[str, Any]:
     code = payload.code.strip().upper()
     existing = db.read("coupons", {"code": code})
     if existing:
@@ -132,16 +137,31 @@ def create_coupon(payload: CouponCreatePayload, _: Dict[str, Any] = Depends(requ
     }
     
     inserted = db.insert("coupons", coupon_data)
+    log_action(
+        admin_id=admin.get("id"),
+        action_type="coupon_create",
+        target_entity="coupons",
+        target_id=inserted.get("id"),
+        before_state=None,
+        after_state=inserted,
+        request=request
+    )
     return {"success": True, "coupon": inserted}
 
 @router.put("/admin/coupons/{code}")
-def update_coupon(code: str, payload: CouponUpdatePayload, _: Dict[str, Any] = Depends(require_admin)) -> Dict[str, Any]:
+def update_coupon(
+    code: str,
+    payload: CouponUpdatePayload,
+    request: Request,
+    admin: Dict[str, Any] = Depends(require_admin)
+) -> Dict[str, Any]:
     code = code.strip().upper()
     existing = db.read("coupons", {"code": code})
     if not existing:
         raise HTTPException(status_code=404, detail="Coupon not found.")
         
     coupon = existing[0]
+    before_coupon = dict(coupon)
     update_data = {}
     if payload.discount_pct is not None:
         update_data["discount_pct"] = float(payload.discount_pct)
@@ -157,12 +177,41 @@ def update_coupon(code: str, payload: CouponUpdatePayload, _: Dict[str, Any] = D
     updated = db.update("coupons", {"code": code}, update_data)
     if not updated:
         raise HTTPException(status_code=500, detail="Failed to update coupon.")
+    
+    log_action(
+        admin_id=admin.get("id"),
+        action_type="coupon_update",
+        target_entity="coupons",
+        target_id=updated[0].get("id"),
+        before_state=before_coupon,
+        after_state=updated[0],
+        request=request
+    )
     return {"success": True, "coupon": updated[0]}
 
 @router.delete("/admin/coupons/{code}")
-def delete_coupon(code: str, _: Dict[str, Any] = Depends(require_admin)) -> Dict[str, Any]:
+def delete_coupon(
+    code: str,
+    request: Request,
+    admin: Dict[str, Any] = Depends(require_admin)
+) -> Dict[str, Any]:
     code = code.strip().upper()
+    existing = db.read("coupons", {"code": code})
+    before_coupon = None
+    if existing:
+        before_coupon = dict(existing[0])
+        
     deleted = db.delete("coupons", {"code": code})
     if not deleted:
         raise HTTPException(status_code=404, detail="Coupon not found.")
+        
+    log_action(
+        admin_id=admin.get("id"),
+        action_type="coupon_delete",
+        target_entity="coupons",
+        target_id=before_coupon.get("id") if before_coupon else None,
+        before_state=before_coupon,
+        after_state=None,
+        request=request
+    )
     return {"success": True}
