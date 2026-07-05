@@ -28,10 +28,13 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload frontend folder
+      - name: Build static site
+        run: npm run build
+
+      - name: Upload frontend/dist folder
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './frontend'
+          path: './frontend/dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
