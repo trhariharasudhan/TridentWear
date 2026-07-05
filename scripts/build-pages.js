@@ -28,8 +28,17 @@ function copyAndProcess(src, dest) {
     ensureDir(dest);
     const entries = fs.readdirSync(src);
     for (const entry of entries) {
-      copyAndProcess(path.join(src, entry), path.join(dest, entry));
+
+    // Skip generated output folder
+    if (entry === 'dist') {
+      continue;
     }
+
+    copyAndProcess(
+      path.join(src, entry),
+      path.join(dest, entry)
+    );
+  }
   } else if (stat.isFile()) {
     ensureDir(path.dirname(dest));
     if (src.endsWith('.html')) {
