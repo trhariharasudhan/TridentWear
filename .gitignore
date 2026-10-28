@@ -64,15 +64,9 @@ tmp/
 db/*.backup.json
 db/*.tmp.json
 
-# SECURITY: Local database files contain customer PII — do NOT commit to production repos
-# db/users.json and db/orders.json contain password hashes and customer personal data.
-# Only commit these for development seed data if the project is PRIVATE.
-db/users.json
-db/orders.json
-db/otp_sessions.json
-db/payment_events.json
-db/contacts.json
-db/coupons.json
+# Database persistence files (exclude all runtime data, track only catalog product seeds)
+db/*.json
+!db/products.json
 
 # Test scripts (ephemeral — not for production repo)
 test_*.js
