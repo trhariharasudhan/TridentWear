@@ -3,146 +3,135 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>TridentWear — Premium T-Shirts & Shirts · Made in India</title>
-  <meta name="description" content="TridentWear makes heavyweight T-shirts and premium shirts in India. Try them on with AI Fit Check before you buy.">
-  <meta name="theme-color" content="#12141d">
-  <meta property="og:title" content="TridentWear — Wear the Standard">
-  <meta property="og:description" content="Premium T-shirts & shirts, made in India. Try them on with AI Fit Check.">
+  <title>TridentWear — Heavyweight T-shirts & shirts, made in India</title>
+  <meta name="description" content="TridentWear makes 240 GSM T-shirts and cotton shirts in India, each with the gold Trident mark. Try any piece on with AI Fit Check before you buy.">
+  <meta name="theme-color" content="#f3f4f2">
+  <meta property="og:title" content="TridentWear — Heavyweight T-shirts & shirts">
+  <meta property="og:description" content="240 GSM tees and cotton shirts, made in India. Try them on with AI Fit Check.">
   <meta property="og:image" content="assets/brand/og-image.jpg">
   <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" href="assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" as="image" href="assets/images/products/essential-oversized-tee-bone-white-front-480.webp" fetchpriority="high">
   <link rel="stylesheet" href="assets/css/tw.css">
-  <link rel="preload" as="image" href="assets/images/products/violet-signal-tee-front.webp">
 </head>
 <body data-page="home">
 <main id="main">
 
-  <!-- HERO: studio rail -->
-  <section class="hero" aria-label="New drop">
-    <p class="hero__tagline">We produce T-shirts // shirts // heavyweight essentials // and more soon.</p>
-    <div class="hero__bigword" aria-hidden="true">Standard</div>
-    <div class="rail-scene">
-      <div class="rail"></div>
-      <div class="rail-track" data-rail></div>
-    </div>
-    <div class="hero__shadow" aria-hidden="true"></div>
-    <div class="hero__bottom">
-      <div class="hero__lockup" data-lockup>TRIDENTWEAR<sup style="font-size:10px">®</sup></div>
-      <h1 class="sr-only">TridentWear — premium T-shirts and shirts made in India</h1>
-      <div class="hero__cta">
-        <a class="btn" href="shop.html">Shop the drop</a>
-        <a class="btn btn--ghost" href="tryon.html"><span>Try it on</span><span class="tag tag--violet" style="height:20px">AI</span></a>
+  <!-- The rail: real pieces on hangers. They drop in once, then stay still; you browse by dragging. -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap hero__top">
+      <h1 class="hero__title" id="hero-title">Tees and shirts with weight to them.</h1>
+      <div class="hero__aside">
+        <p>240 GSM cotton, a gold Trident on every piece, free shipping across India. Try anything on with your camera before you buy.</p>
+        <div class="hero__cta">
+          <a class="btn" href="shop.html">Shop the drop</a>
+          <a class="btn btn--ghost" href="tryon.html">Try it on <span class="tag tag--violet" style="height:22px">AI</span></a>
+        </div>
       </div>
     </div>
-    <span class="scroll-cue" aria-hidden="true">SCROLL</span>
+
+    <div class="rail-scene">
+      <div class="rail" aria-hidden="true"></div>
+      <div class="rail-track" data-rail tabindex="0" aria-label="Featured pieces. Drag or use arrow keys to browse."></div>
+    </div>
+
+    <div class="wrap hero__foot">
+      <div class="rail-nav">
+        <button type="button" data-rail-step="-1" aria-label="Previous piece"></button>
+        <button type="button" data-rail-step="1" aria-label="Next piece"></button>
+        <span class="rail-hint">Drag the rail to browse</span>
+      </div>
+      <div class="hero__facts" data-facts></div>
+    </div>
   </section>
 
-  <div class="band" aria-hidden="true"><div class="band__track" data-band></div></div>
-
-  <!-- THE DROP -->
-  <section class="section">
+  <!-- New drop -->
+  <section class="section cv">
     <div class="wrap">
-      <div class="section-head reveal">
-        <div><span class="eyebrow">Drop 01 · Now live</span><h2 class="h2">The essentials,<br>re-engineered</h2></div>
-        <a class="btn btn--ghost btn--sm" href="shop.html">View all</a>
+      <div class="section-head">
+        <div><h2 class="h2">Drop 01 is live</h2><p class="muted">Oversized tees, classic tees and Oxford shirts.</p></div>
+        <a class="btn btn--ghost btn--sm" href="shop.html">Shop all</a>
       </div>
-      <div class="rail-scroll reveal" data-featured>
+      <div class="grid" data-featured>
         <div class="skeleton" style="aspect-ratio:4/5"></div><div class="skeleton" style="aspect-ratio:4/5"></div><div class="skeleton" style="aspect-ratio:4/5"></div><div class="skeleton" style="aspect-ratio:4/5"></div>
       </div>
     </div>
   </section>
 
-  <!-- CATEGORIES -->
-  <section class="section" style="padding-top:0">
+  <!-- Categories -->
+  <section class="section section--tight cv">
     <div class="wrap cats">
-      <a class="cat reveal" href="shop.html?cat=tshirt">
-        <div class="cat__imgs"><img src="assets/images/products/essential-oversized-tee-olive-front.webp" alt="" loading="lazy"><img src="assets/images/products/essential-oversized-tee-bone-white-front.webp" alt="" loading="lazy"><img src="assets/images/products/trident-wordmark-tee-black-back.webp" alt="" loading="lazy"></div>
-        <span class="eyebrow">240 GSM heavyweight</span>
-        <div class="cat__foot"><span class="display">T-Shirts</span><span class="btn btn--sm">Shop tees</span></div>
+      <a class="cat" href="shop.html?cat=tshirt">
+        <img class="cat__img" src="assets/images/products/trident-wordmark-tee-black-back-480.webp" srcset="assets/images/products/trident-wordmark-tee-black-back-480.webp 480w, assets/images/products/trident-wordmark-tee-black-back.webp 900w" sizes="(max-width: 900px) 62vw, 420px" alt="" loading="lazy" width="900" height="1080">
+        <div class="cat__foot"><div><span class="display">T-shirts</span><p>240 GSM, oversized and classic fits</p></div><span class="btn btn--sm">Shop tees</span></div>
       </a>
-      <a class="cat cat--dark reveal reveal-delay-1" href="shop.html?cat=shirt">
-        <div class="cat__imgs"><img src="assets/images/products/linen-camp-shirt-stone-front.webp" alt="" loading="lazy"><img src="assets/images/products/formal-slim-shirt-navy-front.webp" alt="" loading="lazy"><img src="assets/images/products/oxford-button-down-sky-front.webp" alt="" loading="lazy"></div>
-        <span class="eyebrow" style="color:#aab">Oxford · Linen · Twill</span>
-        <div class="cat__foot"><span class="display">Shirts</span><span class="btn btn--light btn--sm">Shop shirts</span></div>
+      <a class="cat cat--dark" href="shop.html?cat=shirt">
+        <img class="cat__img" src="assets/images/products/oxford-button-down-sky-front-480.webp" srcset="assets/images/products/oxford-button-down-sky-front-480.webp 480w, assets/images/products/oxford-button-down-sky-front.webp 900w" sizes="(max-width: 900px) 62vw, 420px" alt="" loading="lazy" width="900" height="1080">
+        <div class="cat__foot"><div><span class="display">Shirts</span><p>Oxford, linen and twill</p></div><span class="btn btn--light btn--sm">Shop shirts</span></div>
       </a>
     </div>
   </section>
 
-  <!-- AI FIT CHECK -->
-  <section class="section section--dark" id="fit-check">
+  <!-- AI Fit Check -->
+  <section class="section section--dark cv" id="fit-check">
     <div class="wrap fitcheck">
-      <div class="reveal">
-        <span class="eyebrow" style="color:var(--amber)">New · AI Fit Check</span>
-        <h2 class="h2" style="margin-top:12px">See it on you<br>before you buy</h2>
-        <p class="lead">Point your camera, pick a piece, and our pose-tracking AI drapes it on your body in real time — right in the browser. Nothing is uploaded.</p>
+      <div>
+        <h2 class="h2">See it on you before you buy</h2>
+        <p class="lead" style="margin-top:16px">Fit Check tracks your shoulders and hips through your camera and drapes the piece on you, live. It runs in your browser, so the video never leaves your phone.</p>
         <ol class="steps">
-          <li><div><b>Pick any tee or shirt</b><span class="muted">Every colourway in the store is try-on ready.</span></div></li>
-          <li><div><b>Turn on your camera</b><span class="muted">Or upload a full-length photo instead.</span></div></li>
-          <li><div><b>Snap your fit check</b><span class="muted">Save it, share it, or add to bag in one tap.</span></div></li>
+          <li><div><b>Pick a tee or shirt</b><span class="muted">Every colour in the store works.</span></div></li>
+          <li><div><b>Turn on your camera</b><span class="muted">Or upload a full-length photo.</span></div></li>
+          <li><div><b>Save your fit check</b><span class="muted">Share it, or add the size you tried to your bag.</span></div></li>
         </ol>
-        <a class="btn btn--amber" href="tryon.html">Launch Fit Check</a>
+        <a class="btn btn--amber" href="tryon.html">Open Fit Check</a>
       </div>
-      <div class="reveal reveal-delay-2">
-        <div class="phone" aria-hidden="true">
-          <div class="phone__notch"></div>
-          <div class="phone__screen">
-            <svg class="phone__person" viewBox="0 0 200 300" fill="currentColor"><circle cx="100" cy="52" r="30"/><path d="M40 300V150c0-30 22-52 60-52s60 22 60 52v150Z"/></svg>
-            <img class="phone__garment" src="assets/images/products/violet-signal-tee-front.webp" alt="">
-            <img class="phone__garment" src="assets/images/products/oxford-button-down-sky-front.webp" alt="">
-            <img class="phone__garment" src="assets/images/products/essential-oversized-tee-bone-white-front.webp" alt="">
-            <div class="phone__scan"></div>
-            <div class="phone__dots"><i style="left:28%;top:40%"></i><i style="left:68%;top:40%"></i><i style="left:34%;top:76%"></i><i style="left:62%;top:76%"></i></div>
-            <div class="phone__ui"><span class="chip">● LIVE</span><span class="shutter"></span><span class="chip">Size M</span></div>
-          </div>
-        </div>
+      <div class="fit-demo" data-fit-demo>
+        <span class="fit-demo__live"><i></i>Preview</span>
+        <svg class="fit-demo__body" viewBox="0 0 200 300" fill="currentColor" aria-hidden="true"><circle cx="100" cy="50" r="30"/><path d="M36 300V152c0-32 24-54 64-54s64 22 64 54v148Z"/></svg>
+        <img class="fit-demo__garment" alt="" data-fit-garment>
+        <div class="fit-demo__pts" aria-hidden="true"><i style="left:29%;top:40%"></i><i style="left:71%;top:40%"></i><i style="left:35%;top:80%"></i><i style="left:65%;top:80%"></i></div>
+        <div class="fit-demo__bar" data-fit-swatches role="group" aria-label="Try a colour"></div>
       </div>
     </div>
   </section>
 
-  <!-- 360 / BUILT DIFFERENT (scroll-scrubbed) -->
-  <section class="pin-wrap" data-pin aria-label="Fabric and build quality">
-    <div class="pin">
-      <div class="pin__stage">
-        <div class="pin__title"><span class="eyebrow">Built different</span><h2 class="h2" style="margin-top:10px">Every angle, considered</h2></div>
-        <video class="pin__video" src="assets/images/tee-360.mp4" poster="assets/images/tee-360-poster.jpg" muted playsinline preload="auto" data-scrub></video>
-        <div class="spec" data-spec="0"><b>240 GSM</b>Heavyweight combed cotton that drapes, not clings.</div>
-        <div class="spec" data-spec="1"><b>Bio-washed</b>Enzyme finish for a broken-in softness from day one.</div>
-        <div class="spec" data-spec="2"><b>Pre-shrunk</b>Holds its size and shape wash after wash.</div>
-        <div class="spec" data-spec="3"><b>Gold mark</b>Embroidered Trident logo on every single piece.</div>
-        <div class="pin__progress"><i data-pin-bar></i></div>
+  <!-- Fabric -->
+  <section class="section cv">
+    <div class="wrap fabric">
+      <figure class="fabric__img" style="margin:0">
+        <img src="assets/images/products/essential-oversized-tee-olive-front.webp" alt="Close-up of the olive oversized tee showing the knit and the gold embroidered Trident" loading="lazy" width="900" height="1080">
+        <figcaption>Essential Oversized Tee, olive</figcaption>
+      </figure>
+      <div>
+        <h2 class="h2">What you're paying for</h2>
+        <dl class="facts">
+          <div><dt>240 GSM</dt><dd>Heavy combed cotton. It hangs straight off the shoulder instead of clinging.</dd></div>
+          <div><dt>Bio-washed</dt><dd>An enzyme wash makes it soft on the first wear, not the tenth.</dd></div>
+          <div><dt>Pre-shrunk</dt><dd>Washed before it's cut, so your size stays your size.</dd></div>
+          <div><dt>Gold mark</dt><dd>The Trident is embroidered, not printed, on every piece.</dd></div>
+        </dl>
       </div>
     </div>
   </section>
 
-  <!-- PROMISES -->
-  <section class="section">
+  <!-- Promises -->
+  <section class="section section--tight cv">
+    <div class="wrap promises">
+      <div class="promise" data-icon="truck"><b>Free shipping</b><span class="muted">On every order, anywhere in India.</span></div>
+      <div class="promise" data-icon="swap"><b>7-day exchanges</b><span class="muted">Wrong size? Swap it for free.</span></div>
+      <div class="promise" data-icon="shield"><b>Secure payments</b><span class="muted">UPI, cards and netbanking through Razorpay.</span></div>
+      <div class="promise" data-icon="cash"><b>Cash on delivery</b><span class="muted">Pay when it reaches your door.</span></div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="section section--tight cv">
     <div class="wrap">
-      <div class="promises reveal">
-        <div class="promise" data-icon="truck"><b>Free shipping</b><span class="muted">On every order, anywhere in India.</span></div>
-        <div class="promise" data-icon="swap"><b>7-day exchanges</b><span class="muted">Wrong size? Swap it, no questions.</span></div>
-        <div class="promise" data-icon="shield"><b>Secure payments</b><span class="muted">UPI, cards & netbanking via Razorpay.</span></div>
-        <div class="promise" data-icon="cash"><b>Cash on delivery</b><span class="muted">Pay when it reaches your door.</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- LOOKBOOK -->
-  <section class="section" style="padding-top:0">
-    <div class="wrap">
-      <div class="section-head reveal"><div><span class="eyebrow">Lookbook</span><h2 class="h2">Shop the look</h2></div></div>
-      <div class="look reveal" data-look></div>
-    </div>
-  </section>
-
-  <!-- NEWSLETTER -->
-  <section class="section" style="padding-top:0">
-    <div class="wrap">
-      <div class="news reveal">
-        <div><span class="eyebrow" style="color:var(--amber)">The Trident list</span><h2 class="h2" style="margin-top:10px">First access to every drop</h2><p style="opacity:.85">Early access, restock alerts and members-only codes. No spam.</p></div>
-        <form data-news novalidate><label class="sr-only" for="news-email">Email</label><input class="input" id="news-email" type="email" placeholder="you@example.com" required><button class="btn btn--amber">Join</button></form>
+      <div class="news">
+        <div><h2 class="h2">Get the next drop first</h2><p>Early access, restock alerts and member codes. One email per drop.</p></div>
+        <form data-news novalidate><label class="sr-only" for="news-email">Email</label><input class="input" id="news-email" type="email" placeholder="you@example.com" required><button class="btn btn--amber">Join the list</button></form>
       </div>
     </div>
   </section>

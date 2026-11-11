@@ -34,16 +34,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.747,
+        0.168
       ],
       "rs": [
-        0.285,
-        0.165
+        0.253,
+        0.168
       ],
       "hip": [
         0.5,
-        0.8
+        0.853
       ]
     },
     "print_method": [
@@ -92,16 +92,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.752,
+        0.157
       ],
       "rs": [
-        0.285,
-        0.165
+        0.247,
+        0.157
       ],
       "hip": [
         0.5,
-        0.8
+        0.865
       ]
     },
     "print_method": [
@@ -150,16 +150,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.748,
+        0.155
       ],
       "rs": [
-        0.285,
-        0.165
+        0.251,
+        0.155
       ],
       "hip": [
         0.5,
-        0.8
+        0.867
       ]
     },
     "print_method": [
@@ -208,16 +208,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.746,
+        0.145
       ],
       "rs": [
-        0.285,
-        0.165
+        0.253,
+        0.145
       ],
       "hip": [
         0.5,
-        0.8
+        0.879
       ]
     },
     "print_method": [
@@ -266,16 +266,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.747,
+        0.168
       ],
       "rs": [
-        0.285,
-        0.165
+        0.253,
+        0.168
       ],
       "hip": [
         0.5,
-        0.8
+        0.853
       ]
     },
     "print_method": [
@@ -325,16 +325,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.752,
+        0.157
       ],
       "rs": [
-        0.285,
-        0.165
+        0.247,
+        0.157
       ],
       "hip": [
         0.5,
-        0.8
+        0.865
       ]
     },
     "print_method": [
@@ -384,16 +384,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.762,
+        0.159
       ],
       "rs": [
-        0.285,
-        0.165
+        0.237,
+        0.159
       ],
       "hip": [
         0.5,
-        0.8
+        0.863
       ]
     },
     "print_method": [
@@ -443,16 +443,16 @@
     ],
     "tryon": {
       "ls": [
-        0.69,
-        0.14
+        0.752,
+        0.13
       ],
       "rs": [
-        0.31,
-        0.14
+        0.246,
+        0.13
       ],
       "hip": [
         0.5,
-        0.8
+        0.895
       ]
     },
     "print_method": [
@@ -501,16 +501,16 @@
     ],
     "tryon": {
       "ls": [
-        0.69,
-        0.14
+        0.744,
+        0.12
       ],
       "rs": [
-        0.31,
-        0.14
+        0.254,
+        0.12
       ],
       "hip": [
         0.5,
-        0.8
+        0.905
       ]
     },
     "print_method": [
@@ -559,16 +559,16 @@
     ],
     "tryon": {
       "ls": [
-        0.69,
-        0.14
+        0.737,
+        0.142
       ],
       "rs": [
-        0.31,
-        0.14
+        0.262,
+        0.142
       ],
       "hip": [
         0.5,
-        0.8
+        0.882
       ]
     },
     "print_method": [
@@ -612,21 +612,20 @@
     ],
     "image": "/images/products/oxford-button-down-sky-front.webp",
     "gallery": [
-      "/images/products/oxford-button-down-sky-front.webp",
-      "/images/products/oxford-button-down-sky-back.webp"
+      "/images/products/oxford-button-down-sky-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.7,
-        0.13
+        0.71,
+        0.122
       ],
       "rs": [
-        0.3,
-        0.13
+        0.29,
+        0.122
       ],
       "hip": [
         0.5,
-        0.78
+        0.908
       ]
     },
     "print_method": [
@@ -670,21 +669,20 @@
     ],
     "image": "/images/products/oxford-button-down-white-front.webp",
     "gallery": [
-      "/images/products/oxford-button-down-white-front.webp",
-      "/images/products/oxford-button-down-white-back.webp"
+      "/images/products/oxford-button-down-white-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.7,
-        0.13
+        0.71,
+        0.122
       ],
       "rs": [
-        0.3,
-        0.13
+        0.29,
+        0.122
       ],
       "hip": [
         0.5,
-        0.78
+        0.908
       ]
     },
     "print_method": [

@@ -137,6 +137,29 @@ export const demo = {
     return { success: true, user: pub(u) };
   },
   changePassword: async () => ({ success: true, message: 'Demo mode: password unchanged.' }),
+  addresses: async () => { const me = await requireUser(); const d = await db(); return (d.addresses || []).filter((a) => a.user_id === me.id).sort((a, b) => b.is_default - a.is_default); },
+  addAddress: async (a) => {
+    const me = await requireUser(); const d = await db(); d.addresses ||= [];
+    if (!/^[1-9][0-9]{5}$/.test(String(a.pin || ''))) throw err('Enter a valid 6-digit PIN code.');
+    const mine = d.addresses.filter((x) => x.user_id === me.id);
+    const isDefault = !!a.is_default || !mine.length;
+    if (isDefault) mine.forEach((x) => (x.is_default = false));
+    const row = { address_id: 'ADR-' + Math.random().toString(36).slice(2, 12).toUpperCase(), user_id: me.id, label: a.label || 'Home', street: a.street, area: a.area || '', city: a.city, state: a.state, pin: a.pin, country: 'India', is_default: isDefault };
+    d.addresses.push(row); save(d); return { address: row };
+  },
+  updateAddress: async (id, a) => {
+    const me = await requireUser(); const d = await db(); const row = (d.addresses || []).find((x) => x.address_id === id && x.user_id === me.id);
+    if (!row) throw err('Address not found.', 404);
+    if (a.is_default) d.addresses.filter((x) => x.user_id === me.id).forEach((x) => (x.is_default = false));
+    Object.assign(row, a); save(d); return { address: row };
+  },
+  deleteAddress: async (id) => {
+    const me = await requireUser(); const d = await db(); const row = (d.addresses || []).find((x) => x.address_id === id && x.user_id === me.id);
+    if (!row) throw err('Address not found.', 404);
+    d.addresses = d.addresses.filter((x) => x !== row);
+    if (row.is_default) { const next = d.addresses.find((x) => x.user_id === me.id); if (next) next.is_default = true; }
+    save(d); return { success: true };
+  },
 
   applyCoupon: async (code, subtotal) => {
     const d = await db(); const c = d.coupons.find((x) => x.code === String(code).trim().toUpperCase());

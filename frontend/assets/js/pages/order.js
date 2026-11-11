@@ -36,7 +36,7 @@ async function show(id, fresh) {
       <h1 class="h1">Order confirmed</h1><p class="lead" style="text-align:center">Thank you! We've received your order and will email updates as it moves.</p></div>`
       : `<div class="page-head"><nav class="crumbs"><a href="index.html">Home</a>/<a href="order.html">Track</a>/<span>${esc(id)}</span></nav><h1 class="h1">Order status</h1></div>`}
     <div class="panel">
-      <div class="order-card__head"><div><span class="eyebrow">Order ID</span><h2 class="h3" style="margin-top:6px">${esc(id)}</h2></div>
+      <div class="order-card__head"><div><span class="muted">Order ID</span><h2 class="h3" style="margin-top:4px">${esc(id)}</h2></div>
         <span class="status status--${cancelled ? 'cancelled' : status.replace(/\s/g, '')}">${esc(t.status)}</span></div>
       ${cancelled ? '<p class="muted">This order was cancelled. Any prepaid amount will be refunded to the original payment method.</p>'
         : `<div class="timeline">${['Placed', 'Packed', 'Shipped', 'Delivered'].map((l, i) => `<div class="${i <= idx ? 'is-done' : ''}">${l}</div>`).join('')}</div>`}

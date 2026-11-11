@@ -16,6 +16,13 @@ const user = await session.load();
 const coupon = JSON.parse(sessionStorage.getItem(COUPON_KEY) || 'null');
 const discount = coupon ? Math.round(subtotal * coupon.discount_pct) / 100 : 0;
 const saved = JSON.parse(localStorage.getItem(ADDR_KEY) || 'null') || {};
+// signed-in shoppers: fill from their default saved address when nothing was typed on this device
+if (user && !saved.address) {
+  try {
+    const def = (await api.addresses()).find((a) => a.is_default);
+    if (def) Object.assign(saved, { address: def.street, address2: def.area, pincode: def.pin, city: def.city, state: def.state });
+  } catch { /* fine: form stays empty */ }
+}
 const v = (k, d = '') => esc(saved[k] ?? d);
 
 root.innerHTML = `

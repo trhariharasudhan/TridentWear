@@ -92,6 +92,10 @@ const live = {
   profile: () => request('/api/v1/account/profile'),
   updateProfile: (p) => request('/api/v1/account/profile', { method: 'PUT', body: p }),
   changePassword: (p) => request('/api/v1/account/password-change', { method: 'POST', body: p }),
+  addresses: () => request('/api/v1/account/addresses').then((r) => r?.addresses || []),
+  addAddress: (a) => request('/api/v1/account/addresses', { method: 'POST', body: a }),
+  updateAddress: (id, a) => request(`/api/v1/account/addresses/${encodeURIComponent(id)}`, { method: 'PUT', body: a }),
+  deleteAddress: (id) => request(`/api/v1/account/addresses/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   applyCoupon: (code, subtotal, items) => request('/api/v1/coupons/apply', { method: 'POST', body: { code, subtotal, items } }),
   createPayment: (order_data) => request('/api/v1/payments/create-order', { method: 'POST', body: { currency: 'INR', order_data }, idempotent: true }),

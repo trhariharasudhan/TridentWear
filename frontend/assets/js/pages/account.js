@@ -1,5 +1,5 @@
-import { mountChrome, $, $$, esc, icon, inr, img, toast, busy, params, fmtDate } from '../ui.js';
-import { session } from '../store.js';
+import { mountChrome, $, $$, esc, icon, inr, img, toast, busy, params, fmtDate, modal } from '../ui.js';
+import { session, wishlist } from '../store.js';
 import { api, getMode } from '../api.js';
 
 await mountChrome({ page: 'account' });
@@ -13,9 +13,9 @@ user ? renderAccount(user) : renderAuth(location.hash === '#register' ? 'registe
 // ------------------------------------------------------------------ auth screens
 function shell(inner) {
   root.innerHTML = `<div class="auth">
-    <div class="auth__art"><div><span class="eyebrow" style="color:var(--amber)">Members get more</span>
-      <h1 class="h1" style="margin-top:12px;max-width:12ch">Join the Trident list</h1>
-      <p style="color:#c5c8d3;max-width:36ch">Track orders, save your fits, early access to drops and 20% off your first order with TRIDENTFIRST.</p></div>
+    <div class="auth__art"><div>
+      <h1 class="h1" style="max-width:12ch">Join the Trident list</h1>
+      <p style="color:#c5c8d3;max-width:36ch">Track orders, save addresses and fit checks, get early access to drops, and take 20% off your first order with TRIDENTFIRST.</p></div>
       <img src="assets/images/products/violet-signal-tee-back.webp" alt=""></div>
     <div class="auth__form"><div class="auth__card">${inner}</div></div></div>`;
 }
@@ -185,40 +185,72 @@ function wireOtpBoxes(form) {
 }
 
 // ------------------------------------------------------------------ signed-in account
-function renderAccount(u) {
-  const tabs = [['orders', 'My orders', icon.box], ['profile', 'Profile', icon.user], ['security', 'Security', icon.shield]];
-  root.innerHTML = `<div class="wrap">
-    <div class="page-head"><span class="eyebrow">Account</span><h1 class="h1">Hey ${esc(u.name?.split(' ')[0] || 'there')}</h1></div>
+const LOOKS_KEY = 'tw_looks';
+const SIZE_KEY = 'tw_size';
+const readLS = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const initials = (n) => String(n || '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+const STAGES = ['Placed', 'Confirmed', 'Shipped', 'Delivered'];
+const stageOf = (st) => ({ placed: 0, pending: 0, cod_pending: 0, paid: 1, confirmed: 1, processing: 1, shipped: 2, out_for_delivery: 2, delivered: 3 }[st] ?? 0);
+
+async function renderAccount(u) {
+  const tabs = [
+    ['orders', 'Orders', icon.box], ['addresses', 'Addresses', icon.pin], ['size', 'My size', icon.ruler],
+    ['looks', 'Fit checks', icon.camera], ['profile', 'Details', icon.user], ['security', 'Security', icon.shield],
+  ];
+  const since = u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '';
+  root.innerHTML = `<div class="wrap" style="padding-top:28px">
+    <div class="profile-hero">
+      <div class="avatar" aria-hidden="true">${esc(initials(u.name))}</div>
+      <div><h1 class="sr-only">Your account</h1><h2>Hey ${esc(u.name?.split(' ')[0] || 'there')}</h2><p>${esc(u.email || u.phone || '')}</p></div>
+      <div class="tier">${since ? `Member since<b>${esc(since)}</b>` : `TridentWear<b>Member</b>`}</div>
+    </div>
+    <div class="stat-row" data-stats>
+      <button class="stat" data-go="orders"><b data-stat="orders">–</b><span>Orders</span></button>
+      <button class="stat" data-go="orders"><b data-stat="transit">–</b><span>On the way</span></button>
+      <a class="stat" href="wishlist.html"><b>${wishlist.ids.length}</b><span>Saved pieces</span></a>
+      <button class="stat" data-go="looks"><b>${readLS(LOOKS_KEY, []).length}</b><span>Fit checks</span></button>
+    </div>
     <div class="account">
-      <nav class="side-nav">${tabs.map(([k, l, i]) => `<button data-sec="${k}">${i}${l}</button>`).join('')}
+      <nav class="side-nav" aria-label="Account sections">${tabs.map(([k, l, i]) => `<button data-sec="${k}">${i}${l}</button>`).join('')}
         ${u.role === 'admin' ? `<a class="btn btn--violet btn--sm" href="admin.html" style="margin-top:8px">Open admin</a>` : ''}
         <button data-logout>${icon.logout}Sign out</button></nav>
-      <section data-sec-body></section>
+      <section data-sec-body aria-live="polite"></section>
     </div></div>`;
   $('[data-logout]').addEventListener('click', async () => { await session.logout(); toast('Signed out'); renderAuth('login'); });
   const show = (k) => {
     $$('[data-sec]').forEach((b) => b.classList.toggle('is-on', b.dataset.sec === k));
     history.replaceState(null, '', `#${k}`);
-    ({ orders: ordersSec, profile: profileSec, security: securitySec })[k](u);
+    ({ orders: ordersSec, addresses: addressSec, size: sizeSec, looks: looksSec, profile: profileSec, security: securitySec })[k](u);
   };
   $$('[data-sec]').forEach((b) => b.addEventListener('click', () => show(b.dataset.sec)));
+  $$('[data-go]').forEach((b) => b.addEventListener('click', () => { show(b.dataset.go); $('.account').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
   show(tabs.some(([k]) => `#${k}` === location.hash) ? location.hash.slice(1) : 'orders');
+  api.orders().then((orders) => {
+    $('[data-stat="orders"]').textContent = orders.length;
+    $('[data-stat="transit"]').textContent = orders.filter((o) => ['shipped', 'out_for_delivery'].includes(String(o.status).toLowerCase())).length;
+  }).catch(() => {});
 }
+
+const sec = (title, action = '') => `<header><h3>${title}</h3>${action}</header>`;
 
 async function ordersSec() {
   const body = $('[data-sec-body]');
   body.innerHTML = '<div class="skeleton" style="height:160px"></div>';
   let orders = [];
   try { orders = await api.orders(); } catch (ex) { body.innerHTML = `<p class="form-error">${esc(ex.message)}</p>`; return; }
-  if (!orders.length) { body.innerHTML = `<div class="empty">${icon.box}<b>No orders yet</b><a class="btn" href="shop.html">Start shopping</a></div>`; return; }
-  body.innerHTML = `<div style="display:grid;gap:14px">${orders.map((o) => {
+  if (!orders.length) { body.innerHTML = `<div class="acc-section">${sec('Orders')}<div class="empty">${icon.box}<b>No orders yet</b><p class="muted">When you place an order, you can track it here.</p><a class="btn" href="shop.html">Browse the shop</a></div></div>`; return; }
+  body.innerHTML = `<div class="acc-section">${sec('Orders', `<span class="muted">${orders.length} order${orders.length > 1 ? 's' : ''}</span>`)}${orders.map((o) => {
     const st = String(o.status || 'placed').toLowerCase();
+    const cancelled = ['cancelled', 'failed'].includes(st);
+    const at = stageOf(st);
     const canCancel = ['placed', 'processing', 'confirmed', 'pending'].includes(st) && o.payment_status !== 'paid';
     return `<div class="order-card">
-      <div class="order-card__head"><div><b>${esc(o.order_id)}</b><div class="muted" style="font-size:12.5px">${fmtDate(o.created_at)} · ${inr(o.total ?? o.subtotal)} · ${o.payment_method === 'cod' || o.payment_status === 'cod_pending' ? 'Cash on delivery' : 'Paid online'}</div></div>
-        <span class="status status--${esc(st)}">${esc(st)}</span></div>
-      <div class="order-card__items">${(o.items || []).slice(0, 5).map((i) => `<img src="${img(i.image)}" alt="${esc(i.name)}" title="${esc(i.name)} · ${esc(i.size)} × ${i.qty}">`).join('')}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn--sm" href="order.html?id=${encodeURIComponent(o.order_id)}">Track</a>
+      <div class="order-card__head"><div><b>${esc(o.order_id)}</b><div class="muted" style="font-size:13.5px">${fmtDate(o.created_at)} · ${inr(o.total ?? o.subtotal)} · ${o.payment_method === 'cod' || o.payment_status === 'cod_pending' ? 'Cash on delivery' : 'Paid online'}</div></div>
+        <span class="status status--${esc(st)}">${esc(st.replace(/_/g, ' '))}</span></div>
+      ${cancelled ? '' : `<div><div class="mini-track" aria-hidden="true">${STAGES.map((_, i) => `<i class="${i <= at ? 'is-done' : ''}"></i>`).join('')}</div>
+        <div class="mini-track-labels">${STAGES.map((l, i) => `<span style="${i === at ? 'color:var(--ink);font-weight:600' : ''}">${l}</span>`).join('')}</div></div>`}
+      <div class="order-card__items">${(o.items || []).slice(0, 5).map((i) => `<img src="${img(i.image)}" alt="${esc(i.name)}, size ${esc(i.size)}" title="${esc(i.name)} · ${esc(i.size)} × ${i.qty}" loading="lazy">`).join('')}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn--sm" href="order.html?id=${encodeURIComponent(o.order_id)}">Track order</a>
         ${canCancel ? `<button class="btn btn--ghost btn--sm" data-cancel="${esc(o.order_id)}">Cancel order</button>` : ''}</div></div>`;
   }).join('')}</div>`;
   $$('[data-cancel]').forEach((b) => b.addEventListener('click', async () => {
@@ -228,14 +260,93 @@ async function ordersSec() {
   }));
 }
 
+// ---- saved addresses
+const STATES = ['Andhra Pradesh', 'Assam', 'Bihar', 'Chandigarh', 'Chhattisgarh', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Tamil Nadu', 'Telangana', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'];
+async function addressSec() {
+  const body = $('[data-sec-body]');
+  body.innerHTML = '<div class="skeleton" style="height:140px"></div>';
+  let list = [];
+  try { list = await api.addresses(); } catch (ex) { body.innerHTML = `<p class="form-error">${esc(ex.message)}</p>`; return; }
+  body.innerHTML = `<div class="acc-section">${sec('Saved addresses', '<button class="btn btn--sm" data-add-addr>Add address</button>')}
+    ${list.length ? `<div class="addr-grid">${list.map((a) => `<div class="addr ${a.is_default ? 'is-default' : ''}">
+      ${a.is_default ? '<span class="tag">Default</span>' : ''}<b>${esc(a.label || 'Home')}</b>
+      <span>${esc(a.street)}${a.area ? `, ${esc(a.area)}` : ''}</span><span class="muted">${esc(a.city)}, ${esc(a.state)} ${esc(a.pin)}</span>
+      <div style="display:flex;gap:14px;margin-top:8px">${a.is_default ? '' : `<button class="linkish" data-default="${esc(a.address_id)}">Make default</button>`}<button class="linkish" style="color:var(--bad)" data-del="${esc(a.address_id)}">Remove</button></div></div>`).join('')}</div>`
+      : `<div class="empty">${icon.pin}<b>No saved addresses</b><p class="muted">Save one now and checkout fills it in for you.</p></div>`}</div>`;
+  $('[data-add-addr]').addEventListener('click', () => {
+    const m = modal(`<h2 class="h3" style="margin-bottom:16px">Add an address</h2><form class="form-grid" data-addr>
+      <label class="field"><span>Label</span><select class="select" name="label"><option>Home</option><option>Work</option><option>Other</option></select></label>
+      <label class="field"><span>PIN code</span><input class="input" name="pin" required pattern="[1-9][0-9]{5}" inputmode="numeric" maxlength="6"></label>
+      <label class="field full"><span>House number and street</span><input class="input" name="street" required minlength="4" autocomplete="address-line1"></label>
+      <label class="field full"><span>Area or landmark (optional)</span><input class="input" name="area" autocomplete="address-line2"></label>
+      <label class="field"><span>City</span><input class="input" name="city" required autocomplete="address-level2"></label>
+      <label class="field"><span>State</span><select class="select" name="state" required><option value="">Select</option>${STATES.map((x) => `<option>${x}</option>`).join('')}</select></label>
+      <label class="check full"><input type="checkbox" name="is_default" ${list.length ? '' : 'checked'}> Use as my default address</label>
+      <p class="form-error full" data-err></p><button class="btn full">Save address</button></form>`);
+    $('[data-addr]', m.el).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target; if (!f.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(f)); data.is_default = !!f.is_default.checked;
+      const btn = $('button.btn', f); busy(btn, true);
+      try { await api.addAddress(data); m.close(); toast('Address saved'); addressSec(); }
+      catch (ex) { $('[data-err]', f).textContent = ex.message; busy(btn, false); }
+    });
+  });
+  $$('[data-default]').forEach((b) => b.addEventListener('click', async () => { await api.updateAddress(b.dataset.default, { is_default: true }); toast('Default address updated'); addressSec(); }));
+  $$('[data-del]').forEach((b) => b.addEventListener('click', async () => {
+    if (!confirm('Remove this address?')) return;
+    try { await api.deleteAddress(b.dataset.del); toast('Address removed'); addressSec(); } catch (ex) { toast(ex.message, { type: 'error' }); }
+  }));
+}
+
+// ---- size profile (kept on this device; also used to pre-select sizes)
+const sizeFor = (h, w) => {
+  const order = ['S', 'M', 'L', 'XL', 'XXL'];
+  let i = w < 58 ? 0 : w < 68 ? 1 : w < 78 ? 2 : w < 90 ? 3 : 4;
+  if (h >= 183 && i < 4) i += 1; // tall frames need the extra length
+  return order[i];
+};
+function sizeSec() {
+  const saved = readLS(SIZE_KEY, {});
+  const body = $('[data-sec-body]');
+  const result = (s) => (s?.size ? `<div class="size-result"><span>Your TridentWear size</span><b>${esc(s.size)}</b>
+      <span style="color:#b4b8c6">Based on ${esc(s.height)} cm and ${esc(s.weight)} kg. Oversized pieces are cut roomy, so take this size for the intended fit, or one smaller for a closer fit.</span></div>`
+    : `<div class="size-result"><span>Your TridentWear size</span><b>?</b><span style="color:#b4b8c6">Add your height and weight to get an estimate.</span></div>`);
+  body.innerHTML = `<div class="acc-section">${sec('My size')}<div class="size-profile">
+    <form class="panel" data-size-form>
+      <label class="field"><span>Height (cm)</span><input class="input" name="height" type="number" min="140" max="210" required value="${esc(saved.height || '')}"></label>
+      <label class="field"><span>Weight (kg)</span><input class="input" name="weight" type="number" min="35" max="160" required value="${esc(saved.weight || '')}"></label>
+      <button class="btn">Work out my size</button><p class="muted" style="margin:0;font-size:13.5px">This is an estimate. Each product page also has the full size chart.</p>
+    </form><div data-size-out>${result(saved)}</div></div></div>`;
+  $('[data-size-form]').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const h = Number(e.target.height.value), w = Number(e.target.weight.value);
+    const s = { height: h, weight: w, size: sizeFor(h, w) };
+    try { localStorage.setItem(SIZE_KEY, JSON.stringify(s)); } catch {}
+    $('[data-size-out]').innerHTML = result(s);
+    toast(`Saved. Your size is ${s.size}.`);
+  });
+}
+
+// ---- saved fit checks
+function looksSec() {
+  const looks = readLS(LOOKS_KEY, []);
+  const body = $('[data-sec-body]');
+  body.innerHTML = `<div class="acc-section">${sec('My fit checks', looks.length ? '<button class="linkish" data-clear-looks>Clear all</button>' : '')}
+    ${looks.length ? `<div class="saved-looks">${looks.map((l, i) => `<figure><img src="${l.src}" alt="Fit check of ${esc(l.name)}, size ${esc(l.size)}"><figcaption>
+      <a class="btn btn--light btn--sm" href="product.html?id=${l.id}">${esc(l.size)} · Shop</a><a class="icon-btn" style="background:rgba(255,255,255,.85)" href="${l.src}" download="tridentwear-fit-check-${i + 1}.jpg" aria-label="Download">${icon.download}</a></figcaption></figure>`).join('')}</div>`
+      : `<div class="empty">${icon.camera}<b>No fit checks yet</b><p class="muted">Take one in Fit Check and it will be saved here on this device.</p><a class="btn" href="tryon.html">Open Fit Check</a></div>`}</div>`;
+  $('[data-clear-looks]')?.addEventListener('click', () => { if (!confirm('Delete all saved fit checks from this device?')) return; localStorage.removeItem(LOOKS_KEY); looksSec(); });
+}
+
 function profileSec(u) {
-  $('[data-sec-body]').innerHTML = `<form class="panel" data-prof>
+  $('[data-sec-body]').innerHTML = `<div class="acc-section">${sec('Your details')}<form class="panel" data-prof>
     <div class="form-grid">
       <label class="field"><span>Name</span><input class="input" name="name" value="${esc(u.name || '')}" required minlength="2"></label>
       <label class="field"><span>Email</span><input class="input" value="${esc(u.email || '')}" disabled></label>
       <label class="field"><span>Mobile</span><input class="input" name="phone" value="${esc(u.phone || '')}" inputmode="tel"></label>
       <label class="field"><span>Gender</span><select class="select" name="gender">${['', 'Male', 'Female', 'Other', 'Prefer not to say'].map((g) => `<option ${String(u.gender || '').toLowerCase() === g.toLowerCase() ? 'selected' : ''} value="${g}">${g || 'Select'}</option>`).join('')}</select></label>
-    </div><p class="form-error" data-err></p><button class="btn">Save changes</button></form>`;
+    </div><p class="form-error" data-err></p><button class="btn">Save changes</button></form></div>`;
   $('[data-prof]').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = $('button', e.target); busy(btn, true);
@@ -245,11 +356,11 @@ function profileSec(u) {
 }
 
 function securitySec() {
-  $('[data-sec-body]').innerHTML = `<form class="panel" data-pw>
+  $('[data-sec-body]').innerHTML = `<div class="acc-section">${sec('Security')}<form class="panel" data-pw>
     <h2 class="h3">Change password</h2>
     <label class="field"><span>Current password</span><input class="input" type="password" name="current_password" required autocomplete="current-password"></label>
     <label class="field"><span>New password</span><input class="input" type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
-    <p class="form-error" data-err></p><button class="btn">Update password</button></form>`;
+    <p class="form-error" data-err></p><button class="btn">Update password</button></form></div>`;
   $('[data-pw]').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = $('button', e.target); busy(btn, true);

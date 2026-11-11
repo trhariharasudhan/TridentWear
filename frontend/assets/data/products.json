@@ -24,7 +24,7 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -46,16 +46,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.747,
+        0.168
       ],
       "rs": [
-        0.285,
-        0.165
+        0.253,
+        0.168
       ],
       "hip": [
         0.5,
-        0.8
+        0.853
       ]
     },
     "tag_metadata": {
@@ -81,7 +81,7 @@
       "XL",
       "XXL"
     ],
-    "stock": 140,
+    "stock": 139,
     "featured": true,
     "cloth_type": "Half Sleeve T-Shirt",
     "base_color": "Bone White",
@@ -91,7 +91,7 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -113,16 +113,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.752,
+        0.157
       ],
       "rs": [
-        0.285,
-        0.165
+        0.247,
+        0.157
       ],
       "hip": [
         0.5,
-        0.8
+        0.865
       ]
     },
     "tag_metadata": {
@@ -158,7 +158,7 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -180,16 +180,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.746,
+        0.145
       ],
       "rs": [
-        0.285,
-        0.165
+        0.253,
+        0.145
       ],
       "hip": [
         0.5,
-        0.8
+        0.879
       ]
     },
     "tag_metadata": {
@@ -225,7 +225,7 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Graphic",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery",
       "Puff Print"
@@ -248,16 +248,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.747,
+        0.168
       ],
       "rs": [
-        0.285,
-        0.165
+        0.253,
+        0.168
       ],
       "hip": [
         0.5,
-        0.8
+        0.853
       ]
     },
     "tag_metadata": {
@@ -293,7 +293,7 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Graphic",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery",
       "Puff Print"
@@ -316,16 +316,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.762,
+        0.159
       ],
       "rs": [
-        0.285,
-        0.165
+        0.237,
+        0.159
       ],
       "hip": [
         0.5,
-        0.8
+        0.863
       ]
     },
     "tag_metadata": {
@@ -361,7 +361,7 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -383,16 +383,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.748,
+        0.155
       ],
       "rs": [
-        0.285,
-        0.165
+        0.251,
+        0.155
       ],
       "hip": [
         0.5,
-        0.8
+        0.867
       ]
     },
     "tag_metadata": {
@@ -428,7 +428,7 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Graphic",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery",
       "Puff Print"
@@ -451,16 +451,16 @@
     ],
     "tryon": {
       "ls": [
-        0.715,
-        0.165
+        0.752,
+        0.157
       ],
       "rs": [
-        0.285,
-        0.165
+        0.247,
+        0.157
       ],
       "hip": [
         0.5,
-        0.8
+        0.865
       ]
     },
     "tag_metadata": {
@@ -496,7 +496,7 @@
     "fit_type": "Regular",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -518,16 +518,16 @@
     ],
     "tryon": {
       "ls": [
-        0.69,
-        0.14
+        0.752,
+        0.13
       ],
       "rs": [
-        0.31,
-        0.14
+        0.246,
+        0.13
       ],
       "hip": [
         0.5,
-        0.8
+        0.895
       ]
     },
     "tag_metadata": {
@@ -563,7 +563,7 @@
     "fit_type": "Regular",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -585,16 +585,16 @@
     ],
     "tryon": {
       "ls": [
-        0.69,
-        0.14
+        0.744,
+        0.12
       ],
       "rs": [
-        0.31,
-        0.14
+        0.254,
+        0.12
       ],
       "hip": [
         0.5,
-        0.8
+        0.905
       ]
     },
     "tag_metadata": {
@@ -630,7 +630,7 @@
     "fit_type": "Regular",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -652,16 +652,16 @@
     ],
     "tryon": {
       "ls": [
-        0.69,
-        0.14
+        0.737,
+        0.142
       ],
       "rs": [
-        0.31,
-        0.14
+        0.262,
+        0.142
       ],
       "hip": [
         0.5,
-        0.8
+        0.882
       ]
     },
     "tag_metadata": {
@@ -697,7 +697,7 @@
     "fit_type": "Regular",
     "neck_type": "Button-Down Collar",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -714,21 +714,20 @@
     "color_hex": "#a8c0da",
     "mrp": 1999,
     "gallery": [
-      "/images/products/oxford-button-down-sky-front.webp",
-      "/images/products/oxford-button-down-sky-back.webp"
+      "/images/products/oxford-button-down-sky-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.7,
-        0.13
+        0.71,
+        0.122
       ],
       "rs": [
-        0.3,
-        0.13
+        0.29,
+        0.122
       ],
       "hip": [
         0.5,
-        0.78
+        0.908
       ]
     },
     "tag_metadata": {
@@ -764,7 +763,7 @@
     "fit_type": "Relaxed",
     "neck_type": "Point Collar",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -831,7 +830,7 @@
     "fit_type": "Relaxed",
     "neck_type": "Camp Collar",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -898,7 +897,7 @@
     "fit_type": "Regular",
     "neck_type": "Button-Down Collar",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -915,21 +914,20 @@
     "color_hex": "#f1f0ec",
     "mrp": 1999,
     "gallery": [
-      "/images/products/oxford-button-down-white-front.webp",
-      "/images/products/oxford-button-down-white-back.webp"
+      "/images/products/oxford-button-down-white-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.7,
-        0.13
+        0.71,
+        0.122
       ],
       "rs": [
-        0.3,
-        0.13
+        0.29,
+        0.122
       ],
       "hip": [
         0.5,
-        0.78
+        0.908
       ]
     },
     "tag_metadata": {
@@ -965,7 +963,7 @@
     "fit_type": "Slim",
     "neck_type": "Spread Collar",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],
@@ -1032,7 +1030,7 @@
     "fit_type": "Relaxed",
     "neck_type": "Camp Collar",
     "design_type": "Solid",
-    "design_color": "",
+    "design_color": "None",
     "print_method": [
       "Embroidery"
     ],

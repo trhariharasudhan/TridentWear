@@ -10,7 +10,7 @@ const asList = (x, key) => (Array.isArray(x) ? x : x?.[key] || x?.items || []);
 const user = await session.load();
 
 if (!user || user.role !== 'admin') {
-  root.innerHTML = `<div class="wrap"><div class="empty" style="min-height:80vh"><a class="brand" href="index.html">${logo}<b>TRIDENTWEAR</b></a>
+  root.innerHTML = `<div class="wrap"><div class="empty" style="min-height:80vh"><a class="brand" href="index.html">${logo}<b class="wordmark">TridentWear</b></a>
     <h1 class="h2">Admin access only</h1><p class="muted">${user ? 'Your account does not have admin rights.' : 'Please sign in with an admin account.'}</p>
     <a class="btn" href="account.html?next=admin.html">Sign in</a>
     ${(await getMode()) === 'demo' ? '<p class="dev-hint">Preview mode admin: <b>admin@tridentwear.in</b> / <b>Admin@123</b></p>' : ''}</div></div>`;

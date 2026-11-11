@@ -226,9 +226,9 @@ $('[data-snap]').addEventListener('click', async () => {
   // branded footer strip
   const h = Math.round(out.height * 0.075);
   o.fillStyle = 'rgba(18,20,29,.82)'; o.fillRect(0, out.height - h, out.width, h);
-  o.fillStyle = '#d4b06a'; o.font = `800 ${Math.round(h * 0.38)}px Archivo, Inter, sans-serif`; o.textBaseline = 'middle';
-  o.fillText('TRIDENTWEAR · FIT CHECK', h * 0.5, out.height - h / 2);
-  o.fillStyle = '#fff'; o.textAlign = 'right'; o.font = `600 ${Math.round(h * 0.3)}px Inter, sans-serif`;
+  o.fillStyle = '#d4b06a'; o.font = `760 ${Math.round(h * 0.4)}px 'Bricolage Grotesque', sans-serif`; o.textBaseline = 'middle';
+  o.fillText('TridentWear · Fit Check', h * 0.5, out.height - h / 2);
+  o.fillStyle = '#fff'; o.textAlign = 'right'; o.font = `500 ${Math.round(h * 0.3)}px 'Bricolage Grotesque', sans-serif`;
   o.fillText(`${state.product.name} · ${SIZES[state.sizeIdx]}`, out.width - h * 0.5, out.height - h / 2);
   const blob = await new Promise((r) => out.toBlob(r, 'image/jpeg', 0.9));
   const url = URL.createObjectURL(blob);
@@ -243,7 +243,8 @@ $('[data-snap]').addEventListener('click', async () => {
     if (navigator.canShare?.({ files: [f] })) { try { await navigator.share({ files: [f], title: 'My TridentWear fit check' }); } catch {} }
     else toast('Sharing not supported here — use download instead.');
   });
-  toast('Fit check saved below');
+  saveLook(out, state.product, SIZES[state.sizeIdx]);
+  toast('Fit check saved below and in your account', { link: { href: 'account.html#looks', label: 'View' } });
 });
 
 // ---------------------------------------------------------------- optional HD AI render (server)
@@ -262,6 +263,18 @@ $('[data-ai-render]').addEventListener('click', async (e) => {
   } catch (ex) { toast(ex.status === 401 ? 'Please sign in to use HD renders.' : ex.message, { type: 'error', timeout: 6000 }); }
   finally { busy(e.currentTarget, false); }
 });
+
+// Keep the last 6 fit checks on this device (small JPEGs) so they show up under Account > My fit checks.
+function saveLook(canvas, product, size) {
+  try {
+    const w = 360, h = Math.round((canvas.height / canvas.width) * w);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(canvas, 0, 0, w, h);
+    const looks = JSON.parse(localStorage.getItem('tw_looks') || '[]');
+    looks.unshift({ src: c.toDataURL('image/jpeg', 0.78), id: product.id, name: product.name, size, at: Date.now() });
+    localStorage.setItem('tw_looks', JSON.stringify(looks.slice(0, 6)));
+  } catch { /* storage full or blocked: the on-page copy still works */ }
+}
 
 addEventListener('pagehide', stopCamera);
 await logoSvg();

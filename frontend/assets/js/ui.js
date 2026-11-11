@@ -18,6 +18,9 @@ export const img = (p) => {
   return p;
 };
 export const gallery = (p) => (p.gallery?.length ? p.gallery : [p.image]).map(img);
+// every product image ships a 480w variant next to the full 900w file
+export const srcset = (src) => (/\/products\/[^/]+\.webp$/.test(src) ? `${src.replace(/\.webp$/, '-480.webp')} 480w, ${src} 900w` : '');
+const SIZES = '(max-width: 640px) 48vw, (max-width: 1100px) 32vw, 300px';
 export const fullName = (p) => (p.base_color ? `${p.name} — ${p.base_color}` : p.name);
 export const discountPct = (p) => (p.mrp && p.mrp > p.price ? Math.round((1 - p.price / p.mrp) * 100) : 0);
 export const fmtDate = (s) => (s ? new Date(s).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
@@ -102,8 +105,8 @@ export function productCard(p, { lazy = true } = {}) {
   const tags = [p.tag && `<span class="tag ${/limited|drop/i.test(p.tag) ? 'tag--violet' : /new/i.test(p.tag) ? 'tag--amber' : ''}">${esc(p.tag)}</span>`].filter(Boolean).join('');
   return `<article class="card" data-id="${p.id}">
     <a class="card__media" href="product.html?id=${p.id}" aria-label="${esc(fullName(p))}">
-      <img class="img-front" src="${front}" alt="${esc(fullName(p))}" ${lazy ? 'loading="lazy"' : ''} decoding="async">
-      ${back ? `<img class="img-back" src="${back}" alt="" loading="lazy" decoding="async">` : ''}
+      <img class="img-front" src="${front}" srcset="${srcset(front)}" sizes="${SIZES}" width="900" height="1080" alt="${esc(fullName(p))}" ${lazy ? 'loading="lazy"' : 'fetchpriority="high"'} decoding="async">
+      ${back ? `<img class="img-back" src="${back}" srcset="${srcset(back)}" sizes="${SIZES}" width="900" height="1080" alt="" loading="lazy" decoding="async">` : ''}
       ${p.stock <= 0 ? '<span class="oos">Sold out</span>' : ''}
     </a>
     <div class="card__tags">${tags}</div>
@@ -153,6 +156,13 @@ const NAV = [
   ['about.html', 'Story', 'about'],
 ];
 
+const ANNOUNCEMENTS = [
+  'Free shipping on every order across India',
+  'Use code <b>TRIDENTFIRST</b> for 20% off your first order',
+  `${CONFIG.returnDays}-day exchanges, no questions asked`,
+  'See it on you first with <b>AI Fit Check</b>',
+];
+
 export async function mountChrome({ page = '', overlayHeader = false } = {}) {
   const logo = await logoSvg();
   document.documentElement.style.setProperty('--logo-mask', `url("${new URL('../brand/logo-mark.svg', import.meta.url).href}")`);
@@ -160,14 +170,11 @@ export async function mountChrome({ page = '', overlayHeader = false } = {}) {
   const top = document.createElement('div');
   top.innerHTML = `
     ${mode === 'demo' ? `<div class="demo-banner">Preview store — no backend connected. Orders & payments here are simulated. <a href="admin.html">Admin demo</a></div>` : ''}
-    <div class="topbar" aria-label="Announcements"><div class="topbar__track">${Array(2).fill(`
-      <span>Free shipping on every order across India</span><span>Use code <b>TRIDENTFIRST</b> for 20% off your first order</span>
-      <span>${CONFIG.returnDays}-day easy exchanges</span><span>Try it on with <b>AI Fit Check</b></span><span>Proudly made in India</span>`).join('')}
-    </div></div>
+    <div class="topbar" aria-label="Announcements" aria-live="polite"><span class="topbar__msg">${ANNOUNCEMENTS[0]}</span></div>
     <header class="site-header ${overlayHeader ? 'site-header--overlay' : ''}">
       <div class="wrap header-row">
         <button class="icon-btn burger" data-open="nav" aria-label="Menu">${icon.menu}</button>
-        <a class="brand" href="index.html" aria-label="TridentWear home">${logo}<b>TRIDENTWEAR</b></a>
+        <a class="brand" href="index.html" aria-label="TridentWear home">${logo}<b class="wordmark">TridentWear</b></a>
         <nav class="nav" aria-label="Main">${NAV.map(([h, l, k]) => `<a href="${h}" class="${k === page ? 'is-active' : ''}">${l}</a>`).join('')}</nav>
         <div class="header-actions">
           <button class="icon-btn" data-open="search" aria-label="Search">${icon.search}</button>
@@ -185,7 +192,7 @@ export async function mountChrome({ page = '', overlayHeader = false } = {}) {
       <input type="search" placeholder="Search tees, shirts, colours…" aria-label="Search products" autocomplete="off">
       <div class="search-results"></div></div></div>
     <div class="drawer drawer--left" data-panel="nav"><div class="drawer__scrim" data-close></div><div class="drawer__panel">
-      <div class="drawer__head"><a class="brand" href="index.html">${logo}<b>TRIDENTWEAR</b></a><button class="icon-btn" data-close aria-label="Close">${icon.close}</button></div>
+      <div class="drawer__head"><a class="brand" href="index.html">${logo}<b class="wordmark">TridentWear</b></a><button class="icon-btn" data-close aria-label="Close">${icon.close}</button></div>
       <div class="drawer__body mobile-nav">${NAV.map(([h, l]) => `<a href="${h}">${l}<span>${icon.arrow}</span></a>`).join('')}
         <a href="account.html">Account<span>${icon.arrow}</span></a><a href="wishlist.html">Wishlist<span>${icon.arrow}</span></a><a href="contact.html">Contact<span>${icon.arrow}</span></a></div>
     </div></div>
@@ -227,7 +234,34 @@ export async function mountChrome({ page = '', overlayHeader = false } = {}) {
   addEventListener('storage', badges);
   session.load();
   reveal();
+  rotateAnnouncements();
+  enableInstantNav();
   registerSW();
+}
+
+function rotateAnnouncements() {
+  let el = $('.topbar__msg');
+  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let i = 0;
+  setInterval(() => {
+    if (document.hidden) return;
+    i = (i + 1) % ANNOUNCEMENTS.length;
+    const next = el.cloneNode(); next.innerHTML = ANNOUNCEMENTS[i];
+    el.replaceWith(next); el = next; // re-insert so the entrance animation replays
+  }, 5000);
+}
+
+// Instant navigation: the browser pre-renders same-site pages on hover/press (Speculation Rules),
+// and cross-document View Transitions (see tw.css) cross-fade between pages.
+function enableInstantNav() {
+  if (HTMLScriptElement.supports?.('speculationrules') && !document.querySelector('script[type="speculationrules"]')) {
+    const s = document.createElement('script');
+    s.type = 'speculationrules';
+    s.textContent = JSON.stringify({
+      prerender: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/admin*' } }, { not: { href_matches: '/*checkout*' } }] }, eagerness: 'moderate' }],
+    });
+    document.head.append(s);
+  }
 }
 
 export function openPanel(name) {
@@ -244,13 +278,14 @@ function footer(logo) {
   const b = CONFIG.brand;
   f.innerHTML = `<div class="wrap">
     <div class="footer-grid">
-      <div class="footer-brand"><a class="brand" href="index.html">${logo}<b>TRIDENTWEAR</b></a>
-        <p class="muted" style="max-width:34ch">Premium T-shirts and shirts, designed and made in India. Wear the standard.</p>
+      <div class="footer-brand"><a class="brand" href="index.html">${logo}<b class="wordmark">TridentWear</b></a>
+        <p style="max-width:34ch;margin:0">Heavyweight T-shirts and shirts, designed and made in India. Every piece carries the gold Trident.</p>
         <div class="socials"><a href="${b.instagram}" aria-label="Instagram" rel="noopener" target="_blank">${icon.insta}</a><a href="https://wa.me/${b.whatsapp}" aria-label="WhatsApp" rel="noopener" target="_blank">${icon.whatsapp}</a><a href="mailto:${b.email}" aria-label="Email">${icon.mail}</a></div></div>
       <div><h4>Shop</h4><a href="shop.html?cat=tshirt">T-Shirts</a><a href="shop.html?cat=shirt">Shirts</a><a href="shop.html?sort=new">New arrivals</a><a href="tryon.html">AI Fit Check</a></div>
       <div><h4>Help</h4><a href="order.html">Track order</a><a href="policies.html#shipping">Shipping</a><a href="policies.html#returns">Returns & exchanges</a><a href="faq.html">FAQ</a><a href="contact.html">Contact us</a></div>
       <div><h4>Company</h4><a href="about.html">Our story</a><a href="policies.html#privacy">Privacy</a><a href="policies.html#terms">Terms</a><a href="admin.html">Admin</a></div>
     </div>
+    <div class="footer-wordmark" aria-hidden="true">TridentWear</div>
     <div class="footer-bottom"><span>© ${new Date().getFullYear()} TridentWear. All rights reserved.</span>
       <div class="pay-icons"><span>UPI</span><span>VISA</span><span>MASTERCARD</span><span>RUPAY</span><span>NETBANKING</span><span>COD</span></div></div>
   </div>`;
@@ -275,7 +310,7 @@ export async function renderCartDrawer() {
   if (!body) return;
   const { lines, subtotal, savings } = await cart.detailed();
   if (!lines.length) {
-    body.innerHTML = `<div class="empty">${icon.bag}<b>Your bag is empty</b><p class="muted">Heavyweight essentials are waiting.</p><a class="btn" href="shop.html">Shop now</a></div>`;
+    body.innerHTML = `<div class="empty">${icon.bag}<b>Your bag is empty</b><p class="muted">Add a tee or shirt and it will show up here.</p><a class="btn" href="shop.html">Browse the shop</a></div>`;
     foot.innerHTML = ''; return;
   }
   body.innerHTML = lines.map(lineHtml).join('');

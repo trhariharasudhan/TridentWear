@@ -142,6 +142,60 @@ await step('register → email OTP verify → signed in → orders tab', async (
   await p.context().close();
 });
 
+await step('account dashboard: add address, it pre-fills checkout', async () => {
+  const p = await newPage();
+  await p.goto(`${BASE}/account.html#register`, { waitUntil: 'networkidle' });
+  const em = `addr${Date.now()}@example.com`;
+  await p.fill('[name=name]', 'Address Tester'); await p.fill('[name=email]', em); await p.fill('[name=password]', 'Trident123');
+  await p.check('[name=terms]'); await p.click('[data-reg] button.btn');
+  await p.waitForSelector('[data-verify]');
+  const code = (await p.textContent('.dev-hint b')).trim();
+  const boxes = p.locator('.otp input');
+  for (let i = 0; i < 6; i++) await boxes.nth(i).fill(code[i]);
+  await p.click('[data-verify] button.btn');
+  await p.waitForSelector('.profile-hero');
+  expect((await p.locator('.stat').count()) === 4, 'stat tiles missing');
+  await p.click('[data-sec="addresses"]');
+  await p.click('[data-add-addr]');
+  await p.fill('[data-addr] [name=pin]', '560068');
+  await p.fill('[data-addr] [name=street]', '12 MG Road, 2nd Cross');
+  await p.fill('[data-addr] [name=city]', 'Bengaluru');
+  await p.selectOption('[data-addr] [name=state]', 'Karnataka');
+  await p.click('[data-addr] button.btn');
+  await p.waitForSelector('.addr.is-default');
+  expect((await p.textContent('.addr')).includes('560068'), 'saved address not listed');
+  await shot(p, '07b-account-addresses');
+  await p.click('[data-sec="size"]');
+  await p.fill('[data-size-form] [name=height]', '175'); await p.fill('[data-size-form] [name=weight]', '72');
+  await p.click('[data-size-form] button');
+  expect((await p.textContent('.size-result b')).trim() === 'L', 'size estimate wrong');
+  // checkout picks up the default address
+  await p.goto(`${BASE}/product.html?id=3`, { waitUntil: 'networkidle' });
+  await p.click('[data-size="M"]'); await p.click('[data-add]');
+  await p.evaluate(() => localStorage.removeItem('tw_last_address'));
+  await p.goto(`${BASE}/checkout.html`, { waitUntil: 'networkidle' });
+  await p.waitForSelector('[name=pincode]');
+  expect((await p.inputValue('[name=pincode]')) === '560068', 'checkout did not pre-fill default address');
+  expect((await p.inputValue('[name=city]')) === 'Bengaluru', 'checkout city not pre-filled');
+  await p.context().close();
+});
+
+await step('hero rail: arrows browse, page scroll does not move the rail', async () => {
+  const p = await newPage();
+  await p.goto(`${BASE}/index.html`, { waitUntil: 'networkidle' });
+  await p.waitForTimeout(400);
+  const before = await p.evaluate(() => document.querySelector('[data-rail]').scrollLeft);
+  await p.mouse.wheel(0, 600); await p.waitForTimeout(400);
+  const afterScroll = await p.evaluate(() => document.querySelector('[data-rail]').scrollLeft);
+  const tf = await p.evaluate(() => getComputedStyle(document.querySelector('[data-rail]')).transform);
+  expect(before === afterScroll && (tf === 'none'), `rail moved on page scroll (${before} -> ${afterScroll}, ${tf})`);
+  await p.evaluate(() => scrollTo(0, 0));
+  await p.click('[data-rail-step="1"]'); await p.waitForTimeout(700);
+  const afterArrow = await p.evaluate(() => document.querySelector('[data-rail]').scrollLeft);
+  expect(afterArrow > before, 'next arrow did not move the rail');
+  await p.context().close();
+});
+
 await step('admin: dashboard, products, update order status', async () => {
   const p = await newPage();
   await p.goto(`${BASE}/account.html?next=admin.html`, { waitUntil: 'networkidle' });

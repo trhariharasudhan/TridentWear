@@ -35,3 +35,37 @@ class PasswordChangePayload(BaseModel):
 @router.post("/password-change")
 def password_change(payload: PasswordChangePayload, request: Request) -> Dict[str, Any]:
     return change_account_password(payload, request)
+
+
+# ---------------------------------------------------------------- saved addresses
+from app.services.address_service import list_addresses, add_address, update_address, delete_address
+
+
+class AddressPayload(BaseModel):
+    label: Optional[str] = None
+    street: Optional[str] = None
+    area: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pin: Optional[str] = None
+    is_default: Optional[bool] = None
+
+
+@router.get("/addresses")
+def addresses(request: Request) -> Dict[str, Any]:
+    return {"addresses": list_addresses(request)}
+
+
+@router.post("/addresses")
+def addresses_add(payload: AddressPayload, request: Request) -> Dict[str, Any]:
+    return {"address": add_address(payload.model_dump(exclude_none=True), request)}
+
+
+@router.put("/addresses/{address_id}")
+def addresses_update(address_id: str, payload: AddressPayload, request: Request) -> Dict[str, Any]:
+    return {"address": update_address(address_id, payload.model_dump(exclude_none=True), request)}
+
+
+@router.delete("/addresses/{address_id}")
+def addresses_delete(address_id: str, request: Request) -> Dict[str, Any]:
+    return delete_address(address_id, request)
