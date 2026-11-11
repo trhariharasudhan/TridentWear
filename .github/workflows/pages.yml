@@ -1,4 +1,4 @@
-name: Deploy static content to Pages
+name: Deploy storefront to GitHub Pages
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages-${{ github.ref }}"
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -20,24 +20,20 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Install dependencies
-        run: npm ci
-      - name: Build static site
-        run: npm run build
-
-      - name: Upload frontend/dist folder
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          path: './frontend/dist'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
+          node-version: 20
+      - uses: actions/configure-pages@v5
+      # Static build: validates the catalog, copies the site, writes the sitemap.
+      # Set repository variable TW_API_BASE to your hosted backend URL to go live (otherwise: demo mode).
+      - name: Build static site
+        run: node scripts/build-pages.js
+        env:
+          TW_API_BASE: ${{ vars.TW_API_BASE }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./frontend/dist
+      - id: deployment
         uses: actions/deploy-pages@v4

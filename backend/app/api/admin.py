@@ -24,6 +24,29 @@ class ReviewModerationUpdate(BaseModel):
     status: str
     moderation_notes: Optional[str] = None
 
+def _apply_storefront_extras(product: Dict[str, Any], mrp: str, base_color: str, color_hex: str) -> Dict[str, Any]:
+    """Persist optional storefront fields (MRP, colour name, swatch hex) sent by the admin form."""
+    import re as _re
+    extras: Dict[str, Any] = {}
+    if str(mrp).strip():
+        try:
+            mrp_val = int(float(mrp))
+            if mrp_val < 0 or mrp_val > 1_000_000:
+                raise ValueError
+            extras["mrp"] = mrp_val
+        except ValueError:
+            raise HTTPException(status_code=400, detail="MRP must be a valid amount.")
+    if base_color.strip():
+        extras["base_color"] = base_color.strip()[:40]
+    if color_hex.strip():
+        if not _re.fullmatch(r"#[0-9a-fA-F]{6}", color_hex.strip()):
+            raise HTTPException(status_code=400, detail="Colour must be a hex value like #1a1a1a.")
+        extras["color_hex"] = color_hex.strip().lower()
+    if extras and product.get("id") is not None:
+        db.update("products", {"id": product["id"]}, extras)
+        product = {**product, **extras}
+    return product
+
 @router.post("/products")
 async def create_product(
     request: Request,
@@ -41,6 +64,9 @@ async def create_product(
     neck_type: str = Form("Round Neck"),
     print_method: str = Form("DTG, Embroidery"),
     wash_care_label: str = Form("true"),
+    mrp: str = Form(""),
+    base_color: str = Form(""),
+    color_hex: str = Form(""),
     image: Optional[UploadFile] = File(None),
     admin: Dict[str, Any] = Depends(require_admin),
 ) -> Dict[str, Any]:
@@ -49,6 +75,7 @@ async def create_product(
         fabric, gsm, fit_type, neck_type, print_method, wash_care_label,
     )
     if res.get("success") and "product" in res:
+        res["product"] = _apply_storefront_extras(res["product"], mrp, base_color, color_hex)
         log_action(
             admin_id=admin.get("id"),
             action_type="product_create",
@@ -78,6 +105,9 @@ async def update_product(
     neck_type: str = Form("Round Neck"),
     print_method: str = Form("DTG, Embroidery"),
     wash_care_label: str = Form("true"),
+    mrp: str = Form(""),
+    base_color: str = Form(""),
+    color_hex: str = Form(""),
     image: Optional[UploadFile] = File(None),
     admin: Dict[str, Any] = Depends(require_admin),
 ) -> Dict[str, Any]:
@@ -95,6 +125,7 @@ async def update_product(
         fabric, gsm, fit_type, neck_type, print_method, wash_care_label,
     )
     if res.get("success") and "product" in res:
+        res["product"] = _apply_storefront_extras(res["product"], mrp, base_color, color_hex)
         log_action(
             admin_id=admin.get("id"),
             action_type="product_update",

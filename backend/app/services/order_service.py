@@ -1,3 +1,4 @@
+from app.core.config import allow_client_test_mode
 import os
 import json
 import uuid
@@ -228,7 +229,7 @@ def process_create_order(payload: Any, request: Request) -> Dict[str, Any]:
         "payment_status": "cod_pending" if getattr(payload, "payment_method", "cod") == "cod" else "pending",
         "stock_status": "pending",
         "email_status": "pending",
-        "test_mode": bool(getattr(payload, "test_mode", False)),
+        "test_mode": allow_client_test_mode(getattr(payload, "test_mode", False)),
         "created_at": now_iso(),
     }
     
@@ -615,7 +616,7 @@ def create_pending_payment_order(order_data: Dict[str, Any], currency: str = "IN
         "total": total,
         "customer": customer,
         "shipping": shipping,
-        "test_mode": bool(order_data.get("test_mode", False)),
+        "test_mode": allow_client_test_mode(order_data.get("test_mode", False)),
         "created_at": now_iso(),
         "updated_at": now_iso(),
     }

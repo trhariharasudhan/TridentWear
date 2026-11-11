@@ -1,310 +1,93 @@
-import { get } from "../shared/api.js?v=20260430-v3";
-import {
-  bindProductCardActions,
-  createSkeletonCards,
-  formatCurrency,
-  initSite,
-  pageUrl,
-  productCardMarkup,
-  productUrl,
-  resolveAssetUrl,
-  startProgress,
-  endProgress,
-  escapeHtml,
-} from "../shared/site.js?v=20260430-v3";
-import { createGlobalScrollManager } from "../utilities/scroll-throttle.js";
+import { mountChrome, $, $$, productCard, img, esc, icon, logoSvg, reveal, toast, inr } from '../ui.js';
+import { getProducts } from '../store.js';
+import { api } from '../api.js';
 
-/* ─── Hero Slider ─── */
-function initHeroSlider() {
-  const slides = document.querySelectorAll(".hero-slide");
-  const dots   = document.querySelectorAll(".hero-dot");
-  const prev   = document.querySelector("[data-hero-prev]");
-  const next   = document.querySelector("[data-hero-next]");
-  if (!slides.length) return;
+const HERO_SLUGS = ['essential-oversized-tee-bone-white', 'oxford-button-down-sky', 'violet-signal-tee', 'twill-overshirt-black', 'linen-camp-shirt-stone'];
+const HOOK = `<svg class="hanger__hook" viewBox="0 0 120 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M60 26c0-8 6-10 6-16a6 6 0 0 0-12 0"/><path d="M60 26 8 56h104L60 26Z" stroke-linejoin="round"/></svg>`;
 
-  let current  = 0;
-  let timer    = null;
+await mountChrome({ page: 'home', overlayHeader: true });
 
-  function goTo(index) {
-    slides[current].classList.remove("is-active");
-    dots[current]?.classList.remove("is-active");
-    current = (index + slides.length) % slides.length;
-    slides[current].classList.add("is-active");
-    dots[current]?.classList.add("is-active");
-  }
+$('[data-lockup]').insertAdjacentHTML('afterbegin', await logoSvg());
+$('[data-band]').innerHTML = Array(2).fill(['Heavyweight 240 GSM', 'Gold embroidered', 'Made in India', 'Try before you buy', 'Free shipping', 'Oversized fits']
+  .map((t) => `<span>${t}</span><i></i>`).join('')).join('');
+$$('.promise').forEach((p) => p.insertAdjacentHTML('afterbegin', icon[p.dataset.icon]));
 
-  function autoplay() {
-    clearInterval(timer);
-    timer = setInterval(() => goTo(current + 1), 4500);
-  }
+const products = await getProducts().catch(() => []);
+const bySlug = new Map(products.map((p) => [p.slug, p]));
 
-  prev?.addEventListener("click", () => { goTo(current - 1); autoplay(); });
-  next?.addEventListener("click", () => { goTo(current + 1); autoplay(); });
-  dots.forEach((dot, i) => dot.addEventListener("click", () => { goTo(i); autoplay(); }));
+// ---- hero rail
+const rail = $('[data-rail]');
+const heroItems = HERO_SLUGS.map((s) => bySlug.get(s)).filter(Boolean);
+rail.innerHTML = heroItems.map((p) => `
+  <a class="hanger" href="product.html?id=${p.id}" aria-label="${esc(p.name)}">
+    <div class="hanger__swing">${HOOK}<img class="hanger__img" src="${img(p.image)}" alt="${esc(p.name)} in ${esc(p.base_color)}"></div>
+    <span class="hanger__label">${esc(p.name)} · ${inr(p.price)}</span>
+  </a>`).join('');
 
-  // Pause on hover
-  document.querySelector(".hero-banner")?.addEventListener("mouseenter", () => clearInterval(timer));
-  document.querySelector(".hero-banner")?.addEventListener("mouseleave", autoplay);
-
-  autoplay();
+// scroll parallax: rail slides, big word drifts; pointer nudges the swing
+const hero = $('.hero');
+const word = $('.hero__bigword');
+let ticking = false;
+function heroFrame() {
+  ticking = false;
+  const h = hero.offsetHeight;
+  const p = Math.min(1, Math.max(0, scrollY / h));
+  rail.style.transform = `translateX(calc(-50% - ${p * 22}vw))`;
+  word.style.transform = `translate(calc(-50% + ${p * 12}vw), -50%) scale(${1 + p * 0.15})`;
 }
-
-/* ─── Featured Products (New Arrivals) ─── */
-async function loadFeaturedProducts() {
-  const grid = document.querySelector("[data-featured-grid]");
-  const spotlight = document.querySelector("[data-featured-drop-product]");
-  if (!grid && !spotlight) return;
-
-  if (grid) grid.innerHTML = createSkeletonCards(4);
-  startProgress();
-
-  try {
-    const data     = await get("/api/v1/products?featured=true");
-    const products = (Array.isArray(data) ? data : data.products || []).slice(0, 4);
-    if (!products.length) {
-      if (grid) grid.innerHTML = "";
-      if (spotlight) spotlight.closest("[data-featured-drop]")?.remove();
-      return;
-    }
-    if (grid) {
-      grid.innerHTML = products.map(productCardMarkup).join("");
-      bindProductCardActions(grid, products);
-    }
-    if (spotlight) {
-      const heroProduct = products[0];
-      spotlight.innerHTML = productCardMarkup(heroProduct);
-      bindProductCardActions(spotlight, [heroProduct]);
-    }
-  } catch {
-    if (grid) grid.innerHTML = "";
-    if (spotlight) spotlight.closest("[data-featured-drop]")?.remove();
-  } finally {
-    endProgress();
-  }
-}
-
-/* ─── Trending Products (horizontal scroll) ─── */
-async function loadTrendingProducts() {
-  const wrap = document.querySelector("[data-trending-grid]");
-  if (!wrap) return;
-
-  wrap.innerHTML = createSkeletonCards(6);
-
-  try {
-    const data     = await get("/api/v1/products");
-    const products = (Array.isArray(data) ? data : data.products || []).slice(0, 8);
-    if (!products.length) { wrap.closest(".trending-section")?.remove(); return; }
-    wrap.innerHTML = products.map(productCardMarkup).join("");
-    bindProductCardActions(wrap, products);
-  } catch {
-    wrap.closest(".trending-section")?.remove();
-  }
-}
-
-/* ─── Customer Count Ticker ─── */
-async function loadStats() {
-  const statNumbers = document.querySelectorAll("[data-count], [data-rating]");
-  if (!statNumbers.length) return;
-
-  // Get stats from API or use defaults
-  let statsData = {
-    customers: 15000,
-    orders: 25000,
-    rating: 4.8
-  };
-
-  try {
-    const data = await get("/api/v1/orders/stats");
-    if (data?.customers) statsData.customers = data.customers;
-    if (data?.orders) statsData.orders = data.orders;
-    if (data?.rating) statsData.rating = data.rating;
-  } catch { /* use defaults */ }
-
-  const animateNumber = (element, target, duration = 1800) => {
-    const isRating = element.hasAttribute("data-rating");
-    if (isRating) {
-      // For rating, just set it directly since it's typically 4-5
-      element.textContent = target;
-      return;
-    }
-
-    const start = performance.now();
-    const startVal = 0;
-
-    const animate = (now) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Ease-out cubic for smooth deceleration
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      const currentVal = Math.floor(easeProgress * target);
-      
-      element.textContent = currentVal;
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        element.textContent = target;
-      }
-    };
-
-    requestAnimationFrame(animate);
-  };
-
-  // Animate each stat
-  statNumbers.forEach((el) => {
-    if (el.hasAttribute("data-count")) {
-      const target = parseInt(el.getAttribute("data-count"));
-      animateNumber(el, target);
-    } else if (el.hasAttribute("data-rating")) {
-      animateNumber(el, parseFloat(el.getAttribute("data-rating")));
-    }
-  });
-}
-
-/* ─── Newsletter ─── */
-function initNewsletter() {
-  const form = document.querySelector("[data-newsletter-form]");
-  const status = document.querySelector("[data-newsletter-status]");
-  if (!form || !status) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const input = form.querySelector("input[type=email]");
-    const btn   = form.querySelector("button[type=submit]");
-    const email = input.value.trim();
-
-    const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    if (!emailPattern.test(email)) {
-      status.innerHTML = `<span style="color:#ef4444; font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> Please enter a valid email address.</span>`;
-      input.focus();
-      return;
-    }
-
-    const prev = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subscribing...';
-    btn.disabled = true;
-
-    setTimeout(() => {
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> Welcome!';
-      status.innerHTML = `<span style="color:#10b981; font-weight:600;"><i class="fa-solid fa-circle-check"></i> Welcome to the Trident Crew! Check your inbox for early access benefits.</span>`;
-      input.value = "";
-      setTimeout(() => {
-        btn.innerHTML = prev;
-        btn.disabled = false;
-        status.innerHTML = "";
-      }, 5000);
-    }, 1000);
-  });
-}
-
-/* ─── Scroll Reveal ─── */
-function initScrollReveal() {
-  const targets = document.querySelectorAll("[data-animate]");
-  if (!targets.length) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("is-visible");
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.05, rootMargin: "0px 0px -20px 0px" });
-
-  targets.forEach(el => {
-    // Already in viewport? Reveal immediately with stagger
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight) {
-      const delay = parseInt(el.dataset.delay || 0);
-      setTimeout(() => el.classList.add("is-visible"), delay);
-    } else {
-      observer.observe(el);
-    }
-  });
-}
-
-/* ─── Hero Parallax ─── */
-function initHeroParallax() {
-  const bg = document.querySelector(".hero-bg-gradient");
-  if (!bg || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const scrollManager = createGlobalScrollManager();
-  scrollManager.onScroll((scrollY) => {
-    const offset = scrollY * 0.3;
-    bg.style.transform = `translateY(${offset}px) scale(1.1)`;
-  });
-}
-
-/* ─── Recently Viewed ─── */
-function loadRecentlyViewed() {
-  const section = document.getElementById("recently-viewed-section");
-  const grid = document.getElementById("recently-viewed-grid");
-  const clearBtn = document.getElementById("clear-recently-viewed");
-  if (!section || !grid) return;
-
-  const RV_KEY = "trident_recently_viewed";
-  const items = JSON.parse(localStorage.getItem(RV_KEY) || "[]");
-  if (!items.length) return;
-
-  // Only show up to 4 cards
-  const toShow = items.slice(0, 4);
-  grid.innerHTML = toShow.map(p => {
-    const prodHref = productUrl(p);
-    const img = resolveAssetUrl(p.image || "assets/images/Logo.png");
-    return `
-      <article class="product-card reveal" style="cursor:pointer;" data-recent-product-link="${escapeHtml(prodHref)}">
-        <div class="product-media" style="position:relative; overflow:hidden;">
-          <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy" class="product-image">
-        </div>
-        <div class="product-body">
-          <span class="product-type">${escapeHtml(p.category || "T-Shirt")}</span>
-          <h3 class="product-name">${escapeHtml(p.name)}</h3>
-          <div class="product-footer">
-            <strong class="product-price">${formatCurrency(p.price)}</strong>
-          </div>
-          <a href="${prodHref}" class="btn btn-outline" style="width:100%;text-align:center;display:block;margin-top:0.75rem;padding:0.5rem;font-size:0.85rem;">View Again</a>
-        </div>
-      </article>`;
-  }).join("");
-
-  section.style.display = "block";
-  grid.querySelectorAll("[data-recent-product-link]").forEach((card) => {
-    card.addEventListener("click", (event) => {
-      if (event.target.closest("a")) return;
-      window.location.href = card.dataset.recentProductLink;
-    });
-  });
-
-  clearBtn?.addEventListener("click", () => {
-    localStorage.removeItem(RV_KEY);
-    section.style.display = "none";
-  });
-}
-
-/* ─── Sticky mobile CTA — show after hero ─── */
-function initStickyCTA() {
-  const cta = document.getElementById("sticky-mob-cta");
-  if (!cta) return;
-  const hero = document.querySelector(".hero-premium");
-  const threshold = hero ? hero.offsetHeight * 0.8 : 400;
-  window.addEventListener("scroll", () => {
-    cta.style.transform = window.scrollY > threshold ? "translateY(0)" : "translateY(100%)";
-  }, { passive: true });
-  cta.style.transform = "translateY(100%)";
-  cta.style.transition = "transform 0.35s ease";
-}
-
-/* ─── Boot ─── */
-window.addEventListener("DOMContentLoaded", async () => {
-  document.body.classList.add("js-loaded");
-  await initSite();
-  // initHeroSlider(); // Disabled: No slider element exists on active homepage
-  initNewsletter();
-  initScrollReveal();
-  initStickyCTA();
-  initHeroParallax();
-  loadRecentlyViewed();
-  loadStats();
-  loadFeaturedProducts();
-  loadTrendingProducts();
+addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(heroFrame); } }, { passive: true });
+hero.addEventListener('pointermove', (e) => {
+  const x = (e.clientX / innerWidth - 0.5) * 2;
+  $$('.hanger__img', rail).forEach((el, i) => { el.style.transform = `translateX(${x * (6 + i * 2)}px) rotate(${x * 1.5}deg)`; });
 });
+hero.addEventListener('pointerleave', () => $$('.hanger__img', rail).forEach((el) => (el.style.transform = '')));
+
+// ---- featured drop
+const featured = products.filter((p) => p.featured);
+$('[data-featured]').innerHTML = (featured.length ? featured : products.slice(0, 8)).map((p) => productCard(p)).join('');
+
+// ---- lookbook
+const looks = [
+  ['trident-wordmark-tee-black', 'back', 'The Flagship'],
+  ['linen-camp-shirt-stone', 'front', 'Summer Linen'],
+  ['oxford-button-down-sky', 'front', 'Office Oxford'],
+  ['essential-oversized-tee-olive', 'front', 'Utility Olive'],
+  ['essential-oversized-tee-bone-white', 'back', 'Clean Bone'],
+];
+$('[data-look]').innerHTML = looks.map(([slug, view, label]) => {
+  const p = bySlug.get(slug); if (!p) return '';
+  const src = view === 'back' && p.gallery?.[1] ? img(p.gallery[1]) : img(p.image);
+  return `<a class="look__tile" href="product.html?id=${p.id}"><img src="${src}" alt="${esc(p.name)}" loading="lazy"><div class="look__cap"><span>${label}</span><span>${inr(p.price)} →</span></div></a>`;
+}).join('');
+
+// ---- pinned 360 section: scrub video + reveal specs with scroll progress
+const pin = $('[data-pin]');
+const video = $('[data-scrub]');
+const bar = $('[data-pin-bar]');
+const specs = $$('[data-spec]');
+let duration = 0;
+video.addEventListener('loadedmetadata', () => { duration = video.duration || 8; });
+video.load();
+function pinFrame() {
+  const r = pin.getBoundingClientRect();
+  const total = pin.offsetHeight - innerHeight;
+  const p = Math.min(1, Math.max(0, -r.top / total));
+  bar.style.width = `${p * 100}%`;
+  if (duration && Math.abs(video.currentTime - p * duration) > 0.04) video.currentTime = p * (duration - 0.05);
+  specs.forEach((s, i) => s.classList.toggle('is-on', p > 0.12 + i * 0.2 && (innerWidth > 640 || p < 0.32 + i * 0.2)));
+}
+let pinTick = false;
+addEventListener('scroll', () => { if (!pinTick) { pinTick = true; requestAnimationFrame(() => { pinTick = false; pinFrame(); }); } }, { passive: true });
+
+// ---- newsletter (stored as a contact message so it reaches the admin inbox)
+$('[data-news]').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = $('#news-email');
+  if (!input.checkValidity()) { input.classList.add('is-invalid'); toast('Enter a valid email address', { type: 'error' }); return; }
+  try {
+    await api.contact({ name: 'Newsletter subscriber', email: input.value, subject: 'Newsletter signup', message: 'Please add me to the Trident list.' });
+    input.value = ''; toast("You're on the list. Welcome to Trident.");
+  } catch (err) { toast(err.message, { type: 'error' }); }
+});
+
+reveal();

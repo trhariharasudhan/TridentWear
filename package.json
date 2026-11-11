@@ -1,17 +1,19 @@
 {
+  "name": "tridentwear",
+  "version": "2.0.0",
+  "private": true,
   "scripts": {
-    "dev": "python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8020",
-    "validate:css": "node scripts/validators/validate-css.js",
+    "dev": "python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8020 --app-dir backend",
+    "build": "node scripts/build-pages.js",
+    "art": "python scripts/art/garments.py && node scripts/art/render.js",
+    "test": "python -m pytest backend/tests -q && node --test tests/js/*.test.mjs",
+    "test:e2e": "node tests/e2e/smoke.mjs",
+    "app:sync": "npm run build && npx cap sync",
+    "app:open:android": "npx cap open android",
     "deploy": "bash scripts/deployment/deploy.sh",
-    "build": "node scripts/build-pages.js"
+    "app:setup": "npm i -D @capacitor/cli@^6 @capacitor/core@^6 @capacitor/android@^6 && npx cap add android"
   },
-
   "devDependencies": {
-    "css": "^3.0.0",
-    "postcss": "^8.5.10"
-  },
-  "dependencies": {
-    "acorn": "^8.16.0",
     "playwright": "^1.60.0"
   }
 }

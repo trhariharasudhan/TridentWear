@@ -29,6 +29,9 @@ users = Table(
     Column("gender", String),
     Column("otp_verification_status", Boolean, default=False),
     Column("profile_completed_status", Boolean, default=False),
+    # Email-signup OTP (migration 20261111_0016). Was silently dropped in SQL mode.
+    Column("otp", String),
+    Column("otp_expiry", DateTime(timezone=True)),
     Column("is_active", Boolean, default=True),
     Column("last_login_at", DateTime(timezone=True)),
     Column("password_reset_token", String, nullable=True),
@@ -64,6 +67,13 @@ products = Table(
     Column("wash_care", JSON),
     Column("size_quantities", JSON),
     Column("tag_metadata", JSON),
+    # Storefront v2 catalog fields (see migration 20261111_0015)
+    Column("slug", String, index=True),
+    Column("style_code", String, index=True),
+    Column("mrp", Float),
+    Column("color_hex", String),
+    Column("gallery", JSON),
+    Column("tryon", JSON),
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
     Column("updated_at", DateTime(timezone=True), onupdate=func.now()),
 )
@@ -98,6 +108,10 @@ orders = Table(
     Column("courier", String),
     Column("estimated_delivery", String),
     Column("test_mode", Boolean, default=False, index=True),
+    # Bundle offer + simulated-payment flags (migration 20261111_0016)
+    Column("fbt_offer_id", String, index=True),
+    Column("fbt_token", String),
+    Column("payment_simulated", Boolean, default=False, index=True),
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
     Column("updated_at", DateTime(timezone=True), onupdate=func.now()),
 )

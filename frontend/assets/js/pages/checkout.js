@@ -1,336 +1,169 @@
-import { STATIC_MODE, post } from "../shared/api.js?v=20260430-v3";
-import { clearCart, getCartSubtotal, loadCart } from "../shared/cart.js?v=20260430-v3";
-import { formatCurrency, getCurrentUser, initSite, pageUrl, showToast, trackEvent } from "../shared/site.js?v=20260430-v3";
+// Checkout: address -> payment (Razorpay online or COD) -> verify -> order page.
+// Prices are always re-calculated by the backend; the UI total is only a preview.
+import { mountChrome, $, $$, esc, icon, inr, img, toast, busy, modal } from '../ui.js';
+import { cart, session } from '../store.js';
+import { api, getMode } from '../api.js';
 
-let appliedCoupon = null; // { code, discount_amount, final_total }
+await mountChrome({ page: 'checkout' });
+const root = $('[data-checkout]');
+const COUPON_KEY = 'tw_coupon';
+const ADDR_KEY = 'tw_last_address';
+const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Karnataka', 'Kerala', 'Ladakh', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Lakshadweep'];
 
-// ─── Order summary ────────────────────────────────────────────
-function renderSummary(items) {
-  const summary = document.querySelector("[data-cart-summary]");
-  if (!summary) return;
-  const subtotal = getCartSubtotal(items);
-  const discountRow = appliedCoupon
-    ? `<div class="summary-row" style="color:var(--success);">
-         <span>Coupon (${appliedCoupon.code})</span>
-         <strong>-${formatCurrency(appliedCoupon.discount_amount)}</strong>
-       </div>`
-    : "";
-  const finalTotal = appliedCoupon ? appliedCoupon.final_total : subtotal;
-  summary.innerHTML = `
-    <div class="summary-row">
-      <span>Subtotal</span>
-      <strong class="summary-price">${formatCurrency(subtotal)}</strong>
-    </div>
-    <div class="summary-row">
-      <span>Items</span>
-      <strong>${items.length}</strong>
-    </div>
-    ${discountRow}
-    <div class="summary-row" style="border-top:1px solid #e9ecef;padding-top:0.5rem;margin-top:0.25rem;">
-      <span style="font-weight:700;color:var(--gray-dark);">Total</span>
-      <strong class="summary-price">${formatCurrency(finalTotal)}</strong>
-    </div>
-  `;
-}
+const { lines, subtotal } = await cart.detailed();
+if (!lines.length) { location.replace('cart.html'); throw new Error('empty'); }
+const user = await session.load();
+const coupon = JSON.parse(sessionStorage.getItem(COUPON_KEY) || 'null');
+const discount = coupon ? Math.round(subtotal * coupon.discount_pct) / 100 : 0;
+const saved = JSON.parse(localStorage.getItem(ADDR_KEY) || 'null') || {};
+const v = (k, d = '') => esc(saved[k] ?? d);
 
-// ─── Coupon ───────────────────────────────────────────────────
-function bindCoupon(items) {
-  const btn = document.querySelector("[data-coupon-apply]");
-  const input = document.querySelector("#coupon-code");
-  const msg = document.querySelector("[data-coupon-msg]");
-  if (!btn || !input) return;
-
-  btn.addEventListener("click", async () => {
-    const code = input.value.trim().toUpperCase();
-    if (!code) { showToast("Enter a coupon code.", "error"); return; }
-    btn.disabled = true;
-    btn.textContent = "Checking…";
-    const currentCart = loadCart();
-    const payload = {
-      code,
-      subtotal: getCartSubtotal(currentCart),
-      items: currentCart,
-    };
-    const fbtToken = localStorage.getItem("tridentwear-fbt-token");
-    if (fbtToken) {
-      payload.fbt_token = fbtToken;
-    }
-    try {
-      const data = await post("/api/v1/coupons/apply", payload);
-      appliedCoupon = {
-        code: data.code,
-        discount_amount: data.discount_amount,
-        final_total: data.final_total,
-        fbt_token: (data.code === "BUNDLE10" ? fbtToken : null),
-        qualifying_product_ids: data.qualifying_product_ids || null,
-      };
-      localStorage.setItem("tridentwear-applied-coupon", data.code);
-      msg.textContent = `${data.discount_pct}% off applied — saving ${formatCurrency(data.discount_amount)}!`;
-      msg.style.color = "var(--success)";
-      renderSummary(currentCart);
-      showToast(`Coupon "${data.code}" applied!`);
-    } catch (err) {
-      appliedCoupon = null;
-      localStorage.removeItem("tridentwear-applied-coupon");
-      msg.textContent = err.message || "Invalid coupon.";
-      msg.style.color = "var(--danger)";
-      renderSummary(currentCart);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Apply";
-    }
-  });
-}
-
-// ─── Auto-Apply Stored FBT Coupon ──────────────────────────────
-async function autoApplyStoredCoupon(items) {
-  const storedCoupon = localStorage.getItem("tridentwear-applied-coupon");
-  const storedFbtToken = localStorage.getItem("tridentwear-fbt-token");
-  const msg = document.querySelector("[data-coupon-msg]");
-  const input = document.querySelector("#coupon-code");
-
-  if (storedCoupon === "BUNDLE10" || storedFbtToken) {
-    if (input) input.value = "BUNDLE10";
-    if (!items || items.length < 2 || !storedFbtToken) {
-      if (msg) {
-        msg.textContent = "BUNDLE10 requires at least 2 distinct products from your FBT offer.";
-        msg.style.color = "var(--danger)";
-      }
-      localStorage.removeItem("tridentwear-applied-coupon");
-      return;
-    }
-
-    try {
-      const data = await post("/api/v1/coupons/apply", {
-        code: "BUNDLE10",
-        subtotal: getCartSubtotal(items),
-        fbt_token: storedFbtToken,
-        items: items,
-      });
-      appliedCoupon = {
-        code: "BUNDLE10",
-        discount_amount: data.discount_amount,
-        final_total: data.final_total,
-        fbt_token: storedFbtToken,
-        qualifying_product_ids: data.qualifying_product_ids || null,
-      };
-      if (msg) {
-        msg.textContent = `10% FBT bundle discount applied — saving ${formatCurrency(data.discount_amount)}!`;
-        msg.style.color = "var(--success)";
-      }
-      renderSummary(items);
-    } catch (err) {
-      console.warn("FBT auto-qualification check:", err.message);
-      appliedCoupon = null;
-      localStorage.removeItem("tridentwear-applied-coupon");
-      if (msg) {
-        msg.textContent = err.message || "Bundle discount disqualified.";
-        msg.style.color = "var(--danger)";
-      }
-      renderSummary(items);
-    }
-  }
-}
-
-// ─── User prefill ─────────────────────────────────────────────
-function prefillUser() {
-  const user = getCurrentUser();
-  if (!user) return;
-  const nameField = document.querySelector("#checkout-name");
-  const emailField = document.querySelector("#checkout-email");
-  if (nameField && !nameField.value) nameField.value = user.name;
-  if (emailField && !emailField.value) emailField.value = user.email;
-}
-
-// ─── Success screen ───────────────────────────────────────────
-function showSuccess(orderId, form, items = [], finalTotal = 0, verifyResult = {}) {
-  const waText = encodeURIComponent(`Hello TridentWear! I placed an order ${orderId}.`);
-  const waLink = `https://wa.me/919876543210?text=${waText}`;
-  
-  trackEvent("purchase", {
-    transaction_id: orderId,
-    value: finalTotal,
-    currency: "INR",
-    items: items.map(i => ({ item_id: i.id, item_name: i.name, price: i.price, quantity: i.qty }))
-  });
-
-  try {
-    localStorage.removeItem("tridentwear-fbt-token");
-    localStorage.removeItem("tridentwear-applied-coupon");
-  } catch (_) {}
-
-  clearCart();
-  form.style.display = "none";
-  const summaryEl = document.querySelector("[data-cart-summary]");
-  if (summaryEl) summaryEl.innerHTML = "";
-
-  const isManualReview = verifyResult?.fulfillment_status === "manual_review_required" || verifyResult?.manual_review_required;
-  const statusNotice = isManualReview
-    ? `<div class="helper-note warning" style="margin: 1rem 0; padding:0.75rem; border-radius:6px; background:rgba(255,165,2,0.15); color:#ffa502;">
-         <strong>Under Priority Review:</strong> Your payment was captured, and order fulfillment is pending verification by our support team.
-       </div>`
-    : `<p class="order-success-copy">Thank you for your purchase. You'll receive a confirmation email shortly.</p>`;
-
-  showToast(`Order placed! ID: ${orderId}`);
-  document.querySelector("[data-order-status]").innerHTML = `
-    <div class="order-success-card">
-      <div class="order-success-icon">🎉</div>
-      <h3 class="order-success-title">Order Placed!</h3>
-      <code class="order-success-id">${orderId}</code>
-      ${statusNotice}
-      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;margin-top:1rem;">
-        <a class="btn btn-primary" href="${pageUrl(`/track?id=${orderId}`)}">Track Order</a>
-        <a class="btn btn-secondary" href="${waLink}" target="_blank" rel="noreferrer">WhatsApp Us</a>
-        <a class="btn btn-outline" href="${pageUrl("/products")}">Continue Shopping</a>
+root.innerHTML = `
+  <form data-form novalidate>
+    <div class="co-steps"><span class="is-on">1 Details</span><span class="is-on">2 Payment</span><span>3 Done</span></div>
+    ${user ? '' : `<div class="panel" style="flex-direction:row;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>Have an account? Sign in to track orders easily.</span><a class="btn btn--ghost btn--sm" href="account.html?next=checkout.html">Sign in</a></div>`}
+    <div class="panel">
+      <h2 class="h3">Contact</h2>
+      <div class="form-grid">
+        <label class="field"><span>Full name</span><input class="input" name="name" required minlength="2" autocomplete="name" value="${esc(user?.name || saved.name || '')}"></label>
+        <label class="field"><span>Mobile number</span><input class="input" name="phone" required inputmode="tel" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile" autocomplete="tel-national" value="${esc((user?.phone || saved.phone || '').replace(/^\+?91/, ''))}"></label>
+        <label class="field full"><span>Email (for order updates)</span><input class="input" name="email" type="email" required autocomplete="email" value="${esc(user?.email && !user.email.endsWith('.demo') ? user.email : saved.email || '')}"></label>
       </div>
     </div>
-  `;
+    <div class="panel">
+      <h2 class="h3">Delivery address</h2>
+      <div class="form-grid">
+        <label class="field full"><span>House / flat, street</span><input class="input" name="address" required minlength="6" autocomplete="address-line1" value="${v('address')}"></label>
+        <label class="field full"><span>Area, landmark (optional)</span><input class="input" name="address2" autocomplete="address-line2" value="${v('address2')}"></label>
+        <label class="field"><span>Pincode</span><input class="input" name="pincode" required inputmode="numeric" pattern="[1-9][0-9]{5}" maxlength="6" autocomplete="postal-code" value="${v('pincode')}"></label>
+        <label class="field"><span>City</span><input class="input" name="city" required minlength="2" autocomplete="address-level2" value="${v('city')}"></label>
+        <label class="field full"><span>State</span><select class="select" name="state" required><option value="">Select state</option>${STATES.map((s) => `<option ${saved.state === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 class="h3">Payment</h2>
+      <div class="pay-opts">
+        <label class="pay-opt"><input type="radio" name="method" value="online" checked><div style="flex:1"><b>Pay online</b><small>UPI, cards, netbanking & wallets via Razorpay</small></div><div class="pay-icons"><span>UPI</span><span>VISA</span><span>RUPAY</span></div></label>
+        <label class="pay-opt"><input type="radio" name="method" value="cod"><div style="flex:1"><b>Cash on delivery</b><small>Pay in cash or UPI when your order arrives</small></div></label>
+      </div>
+      <p class="form-error" data-error role="alert"></p>
+      <button class="btn btn--violet btn--block" data-place>Place order · ${inr(subtotal - discount)}</button>
+      <div class="secure-note">${icon.shield} 256-bit encrypted · We never store card details</div>
+    </div>
+  </form>
+  <aside class="summary">
+    <h2 class="h3">In your bag</h2>
+    <div style="display:grid;gap:12px">${lines.map((l) => `<div class="mini-line"><div class="line__img"><img src="${img(l.product.image)}" alt=""><em>${l.qty}</em></div><div><b>${esc(l.product.name)}</b><div class="muted" style="font-size:12px">${esc(l.product.base_color)} · ${esc(l.size)}</div></div><b>${inr(l.product.price * l.qty)}</b></div>`).join('')}</div>
+    <div class="totals">
+      <div><span>Subtotal</span><span>${inr(subtotal)}</span></div>
+      ${discount ? `<div style="color:var(--ok)"><span>Coupon ${esc(coupon.code)}</span><span>−${inr(discount)}</span></div>` : ''}
+      <div><span>Shipping</span><span>Free</span></div>
+      <div class="grand"><span>Total</span><span>${inr(subtotal - discount)}</span></div>
+    </div>
+    <a class="linkish" href="cart.html">Edit bag</a>
+  </aside>`;
+
+const form = $('[data-form]');
+const errEl = $('[data-error]');
+const placeBtn = $('[data-place]');
+
+function collect() {
+  $$('.input, .select', form).forEach((i) => i.classList.toggle('is-invalid', !i.checkValidity()));
+  if (!form.checkValidity()) {
+    const bad = $(':invalid', form);
+    bad?.focus();
+    const label = bad?.closest('.field')?.querySelector('span')?.textContent || 'a field';
+    throw new Error(`Please check: ${label}.`);
+  }
+  const f = Object.fromEntries(new FormData(form));
+  localStorage.setItem(ADDR_KEY, JSON.stringify(f));
+  const addressLine = [f.address, f.address2].filter(Boolean).join(', ');
+  return {
+    method: f.method,
+    order: {
+      items: cart.asOrderItems(),
+      subtotal,
+      coupon_code: coupon?.code || undefined,
+      customer: { name: f.name.trim(), email: f.email.trim(), phone: f.phone.trim() },
+      shipping: { address: addressLine, city: f.city.trim(), state: f.state, pincode: f.pincode.trim(), country: 'India' },
+    },
+  };
 }
 
-// ─── Checkout form + payment routing ─────────────────────────
-function bindCheckout(items) {
-  const form = document.querySelector("[data-checkout-form]");
-  if (!form) return;
-  document.querySelectorAll("input[name='payment']").forEach((input) => {
-    input.addEventListener("change", () => {
-      const btn = document.querySelector("[data-checkout-button]");
-      if (btn) btn.textContent = input.value === "cod" ? "Place Order (COD)" : "Pay Online";
+function done(orderId) {
+  cart.clear();
+  sessionStorage.removeItem(COUPON_KEY);
+  location.href = `order.html?id=${encodeURIComponent(orderId)}&new=1`;
+}
+
+// Razorpay checkout script is loaded only when needed
+function loadRazorpay() {
+  if (window.Razorpay) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    s.onload = res; s.onerror = () => rej(new Error('Could not load Razorpay. Check your connection.'));
+    document.head.append(s);
+  });
+}
+
+// Simulated gateway for demo mode / local dev without Razorpay keys
+function mockGateway(pay, order) {
+  return new Promise((resolve, reject) => {
+    const m = modal(`<div class="paysheet__head"><b>TridentWear · Test payment</b><span>${inr(pay.amount / 100)}</span></div>
+      <div class="paysheet__body">
+        <div class="paysheet__warn">No real money moves. Razorpay keys aren't configured, so this simulates the gateway so you can test the full flow.</div>
+        <label class="pay-opt"><input type="radio" name="mk" checked><div><b>UPI</b><small>success@razorpay</small></div></label>
+        <button class="btn btn--violet btn--block" data-ok>Pay ${inr(pay.amount / 100)}</button>
+        <button class="btn btn--ghost btn--block" data-fail>Simulate failure</button>
+      </div>`, { onClose: () => reject(Object.assign(new Error('Payment cancelled.'), { cancelled: true })) });
+    m.el.classList.add('paysheet');
+    $('[data-ok]', m.el).addEventListener('click', () => {
+      m.close = () => {}; m.el.remove();
+      resolve({ razorpay_order_id: pay.razorpay_order_id, razorpay_payment_id: 'pay_mock_' + Date.now(), razorpay_signature: 'mock_signature', order_data: { ...order, test_mode: true } });
     });
-  });
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const currentItems = loadCart();
-    if (!currentItems.length) { showToast("Your cart is empty.", "error"); return; }
-
-    const method = document.querySelector("input[name='payment']:checked")?.value || "cod";
-    const subtotal = getCartSubtotal(currentItems);
-    const finalTotal = appliedCoupon
-      ? Math.max(0, subtotal - appliedCoupon.discount_amount)
-      : subtotal;
-
-    const fbtTokenForOrder = (appliedCoupon && appliedCoupon.code === "BUNDLE10")
-      ? (appliedCoupon.fbt_token || localStorage.getItem("tridentwear-fbt-token"))
-      : (localStorage.getItem("tridentwear-fbt-token") || null);
-
-    const orderData = {
-      items: currentItems,
-      subtotal: finalTotal,
-      discount_amount: appliedCoupon ? appliedCoupon.discount_amount : 0,
-      coupon_code: appliedCoupon ? appliedCoupon.code : null,
-      fbt_token: fbtTokenForOrder,
-      payment_method: method,
-      test_mode: Boolean(form.querySelector("#checkout-test-mode")?.checked),
-      customer: {
-        name: form.querySelector("#checkout-name").value.trim(),
-        email: form.querySelector("#checkout-email").value.trim(),
-        phone: form.querySelector("#checkout-phone").value.trim(),
-      },
-      shipping: {
-        address: form.querySelector("#checkout-address").value.trim(),
-        city: form.querySelector("#checkout-city").value.trim(),
-        postal_code: form.querySelector("#checkout-postal").value.trim(),
-        country: form.querySelector("#checkout-country").value.trim() || "India",
-        notes: form.querySelector("#checkout-notes").value.trim(),
-      },
-    };
-
-    const btn = document.querySelector("[data-checkout-button]");
-    btn.disabled = true;
-    btn.textContent = method === "cod" ? "Placing Order…" : "Opening Payment…";
-
-    try {
-      if (method === "cod") {
-        const data = await post("/api/v1/payments/cod", {
-          ...orderData,
-          coupon_code: orderData.coupon_code,
-        });
-        showSuccess(data.order_id, form, currentItems, finalTotal);
-
-      } else {
-        if (STATIC_MODE) {
-          const verifyData = await post("/api/v1/payments/verify", {
-            razorpay_order_id: `order_${Date.now()}`,
-            razorpay_payment_id: `pay_${Date.now()}`,
-            razorpay_signature: "static-demo-signature",
-            order_data: orderData,
-          });
-          showSuccess(verifyData.order_id, form, currentItems, finalTotal);
-          return;
-        }
-
-        // Razorpay online payment
-        const rzResp = await post("/api/v1/payments/create-order", {
-          amount: Math.round(finalTotal * 100), // paise
-          currency: "INR",
-          order_data: orderData,
-        });
-
-        const options = {
-          key: rzResp.key_id,
-          amount: rzResp.amount || Math.round(finalTotal * 100),
-          currency: rzResp.currency || "INR",
-          name: "TridentWear",
-          description: "Premium T-Shirt Purchase",
-          order_id: rzResp.razorpay_order_id,
-          prefill: {
-            name: orderData.customer.name,
-            email: orderData.customer.email,
-            contact: orderData.customer.phone,
-          },
-          theme: { color: "#6244c5" },
-          handler: async (response) => {
-            try {
-              const verifyData = await post("/api/v1/payments/verify", {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                order_data: orderData,
-              });
-              showSuccess(verifyData.order_id, form, currentItems, finalTotal, verifyData);
-            } catch (err) {
-              showToast("Payment verification failed: " + err.message, "error");
-              btn.disabled = false;
-              btn.textContent = "Pay Online";
-            }
-          },
-          modal: {
-            ondismiss: () => {
-              btn.disabled = false;
-              btn.textContent = "Pay Online";
-            },
-          },
-        };
-
-        if (!window.Razorpay) {
-          showToast("Razorpay not loaded. Please try again.", "error");
-          btn.disabled = false;
-          btn.textContent = "Pay Online";
-          return;
-        }
-
-        new window.Razorpay(options).open();
-        return; // Don't re-enable button; handler does it
-      }
-    } catch (err) {
-      showToast(err.message, "error");
-    } finally {
-      // Only re-enable for COD failures; Razorpay handler manages its own state
-      if (method === "cod") {
-        btn.disabled = false;
-        btn.textContent = "Place Order (COD)";
-      }
-    }
+    $('[data-fail]', m.el).addEventListener('click', () => { m.el.remove(); reject(new Error('Payment failed at the bank. No money was deducted. Please try again.')); });
   });
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
-  await initSite();
-  const items = loadCart();
-  trackEvent("begin_checkout", { items: items.map(i => ({ item_id: i.id, item_name: i.name, price: i.price, quantity: i.qty })) });
-  renderSummary(items);
-  prefillUser();
-  bindCoupon(items);
-  await autoApplyStoredCoupon(items);
-  bindCheckout(items);
+async function realGateway(pay, order) {
+  await loadRazorpay();
+  return new Promise((resolve, reject) => {
+    const rzp = new window.Razorpay({
+      key: pay.key_id, amount: pay.amount, currency: pay.currency || 'INR', order_id: pay.razorpay_order_id,
+      name: 'TridentWear', description: `Order ${pay.order_id}`,
+      image: new URL('assets/brand/icon-192.png', location.href).href,
+      prefill: { name: order.customer.name, email: order.customer.email, contact: order.customer.phone },
+      notes: { order_id: pay.order_id },
+      theme: { color: '#6244c5' },
+      handler: (r) => resolve({ ...r, order_data: order }),
+      modal: { ondismiss: () => reject(Object.assign(new Error('Payment window closed. Your bag is still saved.'), { cancelled: true })) },
+    });
+    rzp.on('payment.failed', (r) => reject(new Error(r?.error?.description || 'Payment failed. Please try another method.')));
+    rzp.open();
+  });
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errEl.textContent = '';
+  let data;
+  try { data = collect(); } catch (ex) { errEl.textContent = ex.message; return; }
+  busy(placeBtn, true, data.method === 'cod' ? 'Placing order…' : 'Connecting to payment…');
+  try {
+    if (data.method === 'cod') {
+      const r = await api.placeCod({ ...data.order, discount_amount: 0 });
+      return done(r.order_id);
+    }
+    const pay = await api.createPayment(data.order);
+    const mock = (await getMode()) === 'demo' || !pay.key_id || pay.key_id.includes('mock');
+    const result = await (mock ? mockGateway(pay, data.order) : realGateway(pay, data.order));
+    busy(placeBtn, false); busy(placeBtn, true, 'Verifying payment…');
+    const v = await api.verifyPayment(result);
+    done(v.order_id || pay.order_id);
+  } catch (ex) {
+    busy(placeBtn, false);
+    errEl.textContent = ex.message;
+    if (!ex.cancelled) toast(ex.message, { type: 'error', timeout: 5000 });
+  }
 });

@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 import uuid
 from pathlib import Path
 
-from sqlalchemy import create_engine, select, update as sql_update, delete as sql_delete, insert as sql_insert, func
+from sqlalchemy import Integer, create_engine, select, update as sql_update, delete as sql_delete, insert as sql_insert, func
 from sqlalchemy.exc import IntegrityError
 
 from app.db.json_manager import read_json, update_json
@@ -883,13 +883,15 @@ class PostgresDatabaseAdapter(DatabaseInterface):
 
     def insert(self, table: str, data: dict) -> Dict[str, Any]:
         table_obj = self._get_table(table)
-        clean_data = {k: v for k, v in data.items() if k in table_obj.c}
+        clean_data = self._clean(table_obj, data)
         stmt = sql_insert(table_obj).values(**clean_data).returning(table_obj)
         
         try:
             with self.engine.begin() as conn:
                 result = conn.execute(stmt)
-                return dict(result.first()._mapping)
+                row = dict(result.first()._mapping)
+                self._sync_id_sequence(conn, table_obj, clean_data)
+                return row
         except IntegrityError as e:
             if table == "orders":
                 with self.engine.connect() as conn:
@@ -901,12 +903,37 @@ class PostgresDatabaseAdapter(DatabaseInterface):
                                 return dict(existing._mapping)
             raise e
 
+    def _clean(self, table_obj, data: dict) -> dict:
+        """Keep only real columns. Dropped keys are logged: silent drops hid real
+        bugs (OTP never stored, product MRP/gallery lost) in postgres mode."""
+        # allocated_orders (JSON stock bookkeeping) and method (legacy alias of payment_method) are expected extras.
+        dropped = [k for k in data if k not in table_obj.c and k not in ("allocated_orders", "method")]
+        if dropped:
+            from app.core.logger import app_logger
+            app_logger.warning(f"[DB] {table_obj.name}: ignoring non-column keys {sorted(dropped)}")
+        return {k: v for k, v in data.items() if k in table_obj.c}
+
+    def _sync_id_sequence(self, conn, table_obj, clean_data: dict) -> None:
+        """Explicit integer ids (admin seed, catalog seed, JSON migration) do not
+        advance a Postgres SERIAL sequence, so the next auto-id insert collides
+        (users_pkey UniqueViolation on first signup). Bump the sequence past MAX(id)."""
+        if self.engine.dialect.name != "postgresql" or clean_data.get("id") is None:
+            return
+        id_col = table_obj.c.get("id")
+        if id_col is None or not isinstance(id_col.type, Integer):
+            return
+        from sqlalchemy import text
+        conn.execute(text(
+            "SELECT setval(pg_get_serial_sequence(:t, 'id'), "
+            "GREATEST((SELECT COALESCE(MAX(id), 0) FROM " + table_obj.name + "), 1))"
+        ), {"t": table_obj.name})
+
     def update(self, table: str, filters: dict, data: dict) -> List[Dict[str, Any]]:
         if not filters:
             raise ValueError(f"Empty filters not allowed for update on table '{table}'")
         table_obj = self._get_table(table)
         self._validate_filters(table_obj, filters, table)
-        clean_data = {k: v for k, v in data.items() if k in table_obj.c}
+        clean_data = self._clean(table_obj, data)
         stmt = sql_update(table_obj).values(**clean_data).returning(table_obj)
         for k, v in filters.items():
             stmt = stmt.where(getattr(table_obj.c, k) == v)

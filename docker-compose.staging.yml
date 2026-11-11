@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -50,7 +48,7 @@ services:
     environment:
       ENVIRONMENT: staging
       DB_MODE: postgres
-      DATABASE_URL: postgresql+psycopg://trident_staging:${POSTGRES_PASSWORD:-StagingSecurePass2026!}@postgres:5432/tridentwear_staging
+      DATABASE_URL: postgresql://trident_staging:${POSTGRES_PASSWORD:-StagingSecurePass2026!}@postgres:5432/tridentwear_staging
       REDIS_URL: redis://:${REDIS_PASSWORD:-StagingRedisPass2026!}@redis:6379/0
       TRUSTED_PROXIES: 127.0.0.1,::1,172.16.0.0/12,10.0.0.0/8
       TRIDENT_JWT_SECRET: ${TRIDENT_JWT_SECRET:-8f8a6c8b4e2d0f1a9b3c5e7d8f0a2b4c6e8d0f1a3b5c7e9d1f3a5b7c9e1d3f5a}
@@ -61,11 +59,12 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-StagingAdminPass2026!}
       RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_placeholder}
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-rzp_test_secret_placeholder}
+      WEB_CONCURRENCY: 4
     ports:
       - "127.0.0.1:8030:8000"
-    command: >
-      sh -c "alembic upgrade head &&
-             python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"
+    # entrypoint runs `alembic -c /app/alembic.ini upgrade head` (the old command ran
+    # from /app/backend where no alembic.ini exists, so staging could not boot).
+    command: ["sh", "/app/scripts/docker/entrypoint.sh"]
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
       interval: 15s

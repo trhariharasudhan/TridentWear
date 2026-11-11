@@ -1,3 +1,4 @@
+from app.core.config import allow_client_test_mode
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
@@ -35,7 +36,7 @@ def place_cod_order(payload: CODPayload, request: Request) -> Dict[str, Any]:
         items=payload.items,
         coupon_code=payload.coupon_code,
         fbt_token=payload.fbt_token,
-        test_mode=payload.test_mode,
+        test_mode=allow_client_test_mode(payload.test_mode),
         request=request,
     )
 

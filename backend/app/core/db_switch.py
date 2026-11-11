@@ -91,18 +91,34 @@ def validate_db_safety(db_dir: Optional[Path] = None, dsn: Optional[str] = None)
             )
         active_mode = os.getenv("DB_MODE", "json").lower()
         if active_mode in ("postgres", "dual_write"):
-            active_dsn = dsn or os.getenv("PG_DSN", "")
+            active_dsn = dsn or resolve_dsn("")
             if is_production_database_url(active_dsn):
                 raise UnsafeTestDatabaseError(
                     f"[SAFETY GUARD] Test mode cannot connect to production PostgreSQL database DSN: '{active_dsn}'."
                 )
 
 DB_MODE = os.getenv("DB_MODE", "json") # "json", "postgres", "dual_write"
-PG_DSN = os.getenv("PG_DSN", "postgresql://user:password@localhost/tridentwear")
+def resolve_dsn(default: str = "postgresql://user:password@localhost/tridentwear") -> str:
+    """DATABASE_URL (what Docker/Render/Railway set) wins over PG_DSN.
+
+    Previously only PG_DSN was read, so the staging container (which sets
+    DATABASE_URL) silently fell back to the placeholder DSN and could not boot.
+    Also normalises URL schemes to the installed psycopg2 driver:
+      postgres://            -> postgresql://   (Heroku/Render style; SQLAlchemy 2 rejects it)
+      postgresql+psycopg://  -> postgresql://   (psycopg3 driver is not installed)
+    """
+    dsn = (os.getenv("DATABASE_URL") or os.getenv("PG_DSN") or default).strip()
+    for prefix in ("postgres://", "postgresql+psycopg://"):
+        if dsn.startswith(prefix):
+            dsn = "postgresql://" + dsn[len(prefix):]
+    return dsn
+
+
+PG_DSN = resolve_dsn()
 
 def get_db(db_dir: Optional[Union[str, Path]] = None) -> DatabaseInterface:
     mode = os.getenv("DB_MODE", "json").strip().lower()
-    dsn = os.getenv("PG_DSN", PG_DSN)
+    dsn = resolve_dsn()
 
     if db_dir is not None and is_test_mode():
         validate_db_safety(db_dir=Path(db_dir).resolve(), dsn=dsn)

@@ -1,0 +1,57 @@
+/* TridentWear admin — layered on tw.css */
+.adm { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; background: #f2f3f5; }
+.adm-side { background: var(--ink); color: #c9ccd6; padding: 22px 14px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
+.adm-side .brand { color: #fff; padding: 6px 10px 22px; }
+.adm-side button, .adm-side a { display: flex; gap: 12px; align-items: center; padding: 11px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; color: #c9ccd6; text-align: left; }
+.adm-side button:hover, .adm-side a:hover { background: var(--ink-2); color: #fff; }
+.adm-side button.is-on { background: var(--violet); color: #fff; }
+.adm-side svg { width: 18px; height: 18px; }
+.adm-side .spacer { flex: 1; }
+.adm-main { padding: 28px clamp(16px, 3vw, 40px) 60px; min-width: 0; }
+.adm-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+.kpi { background: var(--white); border-radius: var(--r-md); padding: 18px; border: 1px solid var(--line); }
+.kpi span { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.kpi b { display: block; font: 800 28px/1.1 var(--font-display); margin-top: 8px; }
+.kpi small { color: var(--muted); }
+.adm-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+.card-box { background: var(--white); border-radius: var(--r-md); border: 1px solid var(--line); padding: 18px; min-width: 0; }
+.card-box h3 { margin: 0 0 14px; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
+.chart { width: 100%; height: 220px; }
+.chart rect { fill: var(--violet); }
+.chart rect:hover { fill: var(--amber); }
+.chart text { font: 10px var(--font-body); fill: var(--muted); }
+.bar-list { display: grid; gap: 10px; font-size: 13.5px; }
+.bar-list div { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; }
+.bar-list i { grid-column: 1 / -1; height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; display: block; }
+.bar-list i em { display: block; height: 100%; background: linear-gradient(90deg, var(--violet), var(--amber)); }
+.table-wrap { overflow-x: auto; background: var(--white); border-radius: var(--r-md); border: 1px solid var(--line); }
+table.t { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.t th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; background: #fafafb; }
+table.t td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.t tr:last-child td { border-bottom: 0; }
+table.t tr:hover td { background: #fafafb; }
+.thumb { width: 44px; height: 52px; object-fit: contain; background: var(--studio-1); border-radius: 8px; padding: 3px; }
+.row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.row-actions button { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); font-size: 12px; font-weight: 600; background: var(--white); }
+.row-actions button:hover { border-color: var(--ink); }
+.row-actions .danger:hover { border-color: var(--bad); color: var(--bad); }
+.filters-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.filters-row .input, .filters-row .select { height: 40px; width: auto; }
+.stock-low { color: var(--warn); font-weight: 700; }
+.stock-out { color: var(--bad); font-weight: 700; }
+.img-drop { border: 2px dashed var(--line); border-radius: var(--r-md); padding: 14px; display: flex; gap: 14px; align-items: center; cursor: pointer; }
+.img-drop img { width: 70px; height: 84px; object-fit: contain; background: var(--studio-1); border-radius: 8px; }
+.status--packed { background: rgba(98,68,197,.12); color: var(--violet); }
+.adm-mobile-top { display: none; }
+@media (max-width: 1000px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .adm-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 800px) {
+  .adm { grid-template-columns: 1fr; }
+  .adm-side { position: static; height: auto; flex-direction: row; overflow-x: auto; padding: 10px; }
+  .adm-side .brand, .adm-side .spacer { display: none; }
+  .adm-side button, .adm-side a { white-space: nowrap; }
+  body { padding-bottom: 0 !important; }
+}

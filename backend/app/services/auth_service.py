@@ -75,18 +75,56 @@ def record_password_reset_request(key: str) -> None:
         PASSWORD_RESET_ATTEMPTS[key] = []
     PASSWORD_RESET_ATTEMPTS[key].append(now)
 
-# Default admin credentials loaded from environment variables.
-# ADMIN_EMAIL and ADMIN_PASSWORD_HASH must be set before production deployment.
-# The fallback hash below is for local development only (password: "Admin@123").
-_DEFAULT_ADMIN_HASH = ADMIN_PASSWORD_HASH or "$2b$12$R.S4wN69Y4iR9wJ7C8mEeuJ81pM0mD7FqA1S4xZ0sF8K0kR8wJ7C8" # Admin@123
+# Default admin account. Credentials come from env:
+#   ADMIN_EMAIL + ADMIN_PASSWORD_HASH (preferred)  or  ADMIN_PASSWORD (plain, hashed at boot)
+# In development with neither set, the password falls back to "Admin@123".
+# (Previously the fallback hash was invalid and ADMIN_PASSWORD was ignored,
+#  so the admin could never log in.)
+from app.core.config import ADMIN_PASSWORD_RAW
+
+DEV_FALLBACK_ADMIN_PASSWORD = "Admin@123"
+
+
+def _resolve_admin_hash() -> str:
+    if ADMIN_PASSWORD_HASH:
+        return ADMIN_PASSWORD_HASH
+    # Fallback only for local dev/test - never staging or production, which must set credentials.
+    dev_like = str(ENVIRONMENT or "").strip().lower() in ("development", "dev", "local", "test", "testing")
+    raw = ADMIN_PASSWORD_RAW or (DEV_FALLBACK_ADMIN_PASSWORD if dev_like else "")
+    if not raw:
+        return ""  # production without credentials: validate_production_secrets() fails first
+    return bcrypt.hashpw(raw.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
 DEFAULT_ADMIN = {
     "id": 1,
     "name": "Trident Admin",
-    "email": ADMIN_EMAIL,
-    "password_hash": _DEFAULT_ADMIN_HASH,
+    "email": ADMIN_EMAIL.strip().lower(),
     "role": "admin",
+    "otp_verification_status": True,
+    "is_active": True,
     "created_at": "2026-04-12T00:00:00+00:00",
 }
+
+
+def ensure_admin_user() -> Dict[str, Any]:
+    """Idempotently make sure the configured admin account exists (called at startup)."""
+    email = DEFAULT_ADMIN["email"]
+    existing = db.read("users", {"email": email})
+    if existing:
+        admin = existing[0]
+        if admin.get("role") != "admin":
+            db.update("users", {"id": admin["id"]}, {"role": "admin"})
+        return admin
+    pw_hash = _resolve_admin_hash()
+    if not pw_hash:
+        return {}
+    all_users = db.read("users", {})
+    used_ids = {int(u.get("id", 0) or 0) for u in all_users}
+    record = dict(DEFAULT_ADMIN, password_hash=pw_hash)
+    record["id"] = 1 if 1 not in used_ids else max(used_ids) + 1
+    db.insert("users", record)
+    return record
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -94,7 +132,7 @@ def now_iso() -> str:
 def load_users() -> List[Dict[str, Any]]:
     res = db.read("users", {})
     if not res:
-        db.insert("users", DEFAULT_ADMIN)
+        ensure_admin_user()
         res = db.read("users", {})
     return res
 
@@ -132,7 +170,7 @@ def find_user_by_email(email: str) -> Optional[Dict[str, Any]]:
     if res:
         return res[0]
     if target == DEFAULT_ADMIN["email"].lower():
-        load_users()
+        ensure_admin_user()
         res = db.read("users", {"email": target})
         if res:
             return res[0]
@@ -628,14 +666,24 @@ def verify_email_otp(payload: Any) -> Dict[str, Any]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account already verified.")
         
     # Check OTP expiry
-    otp_expiry_str = user.get("otp_expiry")
-    if otp_expiry_str:
-        try:
-            otp_expiry = datetime.fromisoformat(otp_expiry_str)
+    # JSON mode stores an ISO string, SQL mode returns a datetime. The previous
+    # `except Exception: pass` also swallowed the "expired" HTTPException, so
+    # expired OTPs were accepted. Only parsing errors are tolerated now.
+    raw_expiry = user.get("otp_expiry")
+    if raw_expiry:
+        otp_expiry = None
+        if isinstance(raw_expiry, datetime):
+            otp_expiry = raw_expiry
+        else:
+            try:
+                otp_expiry = datetime.fromisoformat(str(raw_expiry))
+            except ValueError:
+                otp_expiry = None
+        if otp_expiry is not None:
+            if otp_expiry.tzinfo is None:
+                otp_expiry = otp_expiry.replace(tzinfo=timezone.utc)
             if otp_expiry <= datetime.now(timezone.utc):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP has expired. Please register again.")
-        except Exception:
-            pass
             
     if user.get("otp") != otp:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect OTP.")

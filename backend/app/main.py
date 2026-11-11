@@ -21,6 +21,7 @@ from app.api.account import router as account_router
 from app.api.reviews import router as reviews_router
 from app.api.wishlist import router as wishlist_router
 from app.api.coupons import router as coupons_router
+from app.api.tryon import router as tryon_router
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
@@ -40,7 +41,6 @@ IMAGES_DIR = FRONTEND_ROOT / "assets" / "images"
 
 app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
-app.mount("/components", StaticFiles(directory=str(FRONTEND_ROOT / "components")), name="components")
 
 # CORS — never wildcard when credentials=True.
 # In development, CORS_ORIGINS = explicit localhost list (set in config.py).
@@ -75,6 +75,7 @@ app.include_router(account_router)
 app.include_router(reviews_router)
 app.include_router(wishlist_router)
 app.include_router(coupons_router)
+app.include_router(tryon_router)
 app.include_router(frontend_router)  # frontend last — catch-all routes
 
 from fastapi import Request, HTTPException
@@ -99,6 +100,8 @@ async def startup_event():
         f"[DB STARTUP] Mode: {os.getenv('DB_MODE', 'json')} | Active DB Dir: {active_db_dir} | Test Mode: {is_test_mode()}"
     )
     recover_db_files(str(active_db_dir))
+    from app.services.auth_service import ensure_admin_user
+    ensure_admin_user()
 
 # Idempotency cache: { "key": {"timestamp": 123456, "status_code": 200, "response": {...}} }
 idempotency_cache = {}
@@ -203,21 +206,25 @@ async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    
+    # Camera is needed by the virtual try-on page (same origin only)
+    response.headers["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=()"
+
     is_prod = os.getenv("ENVIRONMENT", "development") == "production"
     if is_prod:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        
+
     csp_directives = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://checkout.razorpay.com https://cdn.razorpay.com https://*.googletagmanager.com https://*.google-analytics.com; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://accounts.google.com; "
-        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-        "img-src 'self' data: https://*.razorpay.com https://images.unsplash.com https://*.google-analytics.com https://*.google.com; "
-        "connect-src 'self' https://*.razorpay.com https://*.google-analytics.com https://*.google.com; "
-        "frame-src 'self' https://accounts.google.com https://api.razorpay.com;"
+        "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://checkout.razorpay.com https://cdn.razorpay.com https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: blob: https://*.razorpay.com https://replicate.delivery https://*.replicate.delivery; "
+        "media-src 'self' blob: mediastream:; "
+        "connect-src 'self' https://*.razorpay.com https://cdn.jsdelivr.net https://storage.googleapis.com; "
+        "worker-src 'self' blob:; "
+        "frame-src https://api.razorpay.com https://checkout.razorpay.com; "
+        "frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
     )
     response.headers["Content-Security-Policy"] = csp_directives
     return response

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Contact · TridentWear</title>
+  <meta name="description" content="Contact TridentWear.">
+  <meta name="theme-color" content="#12141d">
+  <meta property="og:image" content="assets/brand/og-image.jpg">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tw.css">
+</head>
+<body data-page="contact">
+<main id="main" class="wrap">
+  <div class="page-head"><nav class="crumbs"><a href="index.html">Home</a>/<span>Contact</span></nav><h1 class="h1">Talk to us</h1><p class="muted">Questions about sizing, an order or bulk enquiries — we usually reply within a day.</p></div>
+  <div class="contact-grid">
+    <div style="display:grid;gap:12px;align-content:start" data-contact-cards></div>
+    <form class="panel" data-contact-form novalidate>
+      <div class="form-grid">
+        <label class="field"><span>Name</span><input class="input" name="name" required minlength="2" autocomplete="name"></label>
+        <label class="field"><span>Email</span><input class="input" name="email" type="email" required autocomplete="email"></label>
+        <label class="field full"><span>Subject</span><input class="input" name="subject" placeholder="Order, sizing, collab…"></label>
+        <label class="field full"><span>Message</span><textarea class="textarea" name="message" required minlength="10"></textarea></label>
+      </div>
+      <p class="form-error" data-error></p>
+      <button class="btn">Send message</button>
+    </form>
+  </div>
+</main>
+<script type="module" src="assets/js/pages/content.js"></script>
+</body>
+</html>
