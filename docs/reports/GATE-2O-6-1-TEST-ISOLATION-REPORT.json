@@ -1,0 +1,166 @@
+{
+  "gate": "GATE-2O.6.1",
+  "title": "Test Database Isolation & Safe E2E Infrastructure",
+  "timestamp": "2026-11-09T21:35:00+05:30",
+  "repository": "D:\\Projects\\TridentWear",
+  "branch": "main",
+  "initial_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "final_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "status": "APPROVED",
+  "backup": {
+    "directory": "D:\\backupcode\\TridentWear_Gate2O6_1_PreChange_Backup_20261109_210635",
+    "verified": true,
+    "manifest_files": [
+      "backend/app/core/config.py",
+      "backend/app/core/db_switch.py",
+      "backend/app/db/database.py",
+      "backend/app/api/wishlist.py",
+      "backend/app/main.py",
+      "backend/app/services/order_service.py",
+      "backend/app/services/payment_service.py",
+      "db/orders.json",
+      "db/coupons.json",
+      "db/products.json"
+    ]
+  },
+  "database_architecture": {
+    "default_dev_db": "D:\\Projects\\TridentWear\\db",
+    "adapter_selection": "Centralized via app.core.db_switch.get_db() with dynamic db_dir resolution",
+    "test_mode_detection": "TRIDENT_TEST_MODE=1 or ENVIRONMENT in ('test', 'testing') or PYTEST_CURRENT_TEST in env",
+    "test_db_selection": "TRIDENT_DB_DIR environment variable or monkeypatched app.db.database.DB_DIR",
+    "safeguards": [
+      "Rejects test runs where resolved DB directory matches development db/",
+      "Rejects production PostgreSQL DSNs when test mode is active",
+      "Startup diagnostics log active mode, directory, and test status without leaking credentials",
+      "Fail-closed execution when test mode is enabled but no isolated storage is provided"
+    ]
+  },
+  "test_execution": {
+    "summary": {
+      "total_collected": 185,
+      "passed": 185,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 16.95
+    },
+    "suites": [
+      {
+        "suite": "backend/tests/test_database_isolation.py",
+        "collected": 10,
+        "passed": 10,
+        "failed": 0,
+        "category": "Test DB Isolation & Safety Safeguards (New)"
+      },
+      {
+        "suite": "backend/tests/test_razorpay_binding.py",
+        "collected": 24,
+        "passed": 24,
+        "failed": 0,
+        "category": "Core Regression — Payment Binding & Race Conditions"
+      },
+      {
+        "suite": "backend/tests/test_fbt_qualification.py",
+        "collected": 49,
+        "passed": 49,
+        "failed": 0,
+        "category": "Core Regression — FBT Qualification & Token Security"
+      },
+      {
+        "suite": "backend/tests/test_coupon_unit.py",
+        "collected": 22,
+        "passed": 22,
+        "failed": 0,
+        "category": "Core Regression — Coupon Unit Tests"
+      },
+      {
+        "suite": "backend/tests/test_coupon_idempotency.py",
+        "collected": 17,
+        "passed": 17,
+        "failed": 0,
+        "category": "Core Regression — Coupon Idempotency & Multiprocess Lock"
+      },
+      {
+        "suite": "backend/tests/test_coupon_caller_correctness.py",
+        "collected": 18,
+        "passed": 18,
+        "failed": 0,
+        "category": "Core Regression — Caller Correctness & Order Integration"
+      },
+      {
+        "suite": "backend/tests/test_json_stock_safety.py",
+        "collected": 9,
+        "passed": 9,
+        "failed": 0,
+        "category": "Core Regression — Stock Deduction & Ledger Idempotency"
+      },
+      {
+        "suite": "backend/tests/test_fulfillment_claims_adapter.py",
+        "collected": 14,
+        "passed": 14,
+        "failed": 0,
+        "category": "Core Regression — Claim Acquisition & Lease Fencing"
+      },
+      {
+        "suite": "backend/tests/test_fulfillment_schema.py",
+        "collected": 10,
+        "passed": 10,
+        "failed": 0,
+        "category": "Core Regression — Alembic Schema & Metadata"
+      },
+      {
+        "suite": "backend/tests/test_stock_recovery.py",
+        "collected": 12,
+        "passed": 12,
+        "failed": 0,
+        "category": "Stock Recovery & Ledger Audit"
+      }
+    ],
+    "standalone_live_server_scripts_not_in_pytest": [
+      "backend/tests/test_admin.py",
+      "backend/tests/test_basic.py",
+      "backend/tests/test_coupon_crud.py",
+      "backend/tests/test_deploy_audit.py",
+      "backend/tests/test_payment_security.py",
+      "backend/tests/test_phase5.py",
+      "backend/tests/test_user_management.py"
+    ]
+  },
+  "cod_e2e_isolation_verification": {
+    "status": "PASS",
+    "journey_flow": "Product 2 PDP -> FBT Add -> Checkout -> COD Submit -> Confirmation (TRD-F1F02442) -> Refresh Safe -> Admin Dashboard Verified",
+    "backend_port": 8020,
+    "test_db_sandbox": "C:\\Users\\ASUS\\AppData\\Local\\Temp\\trident_cod_e2e_76aojagq",
+    "sandbox_order_id": "TRD-F1F02442",
+    "sandbox_persistence_verified": true,
+    "dev_database_unmodified": true,
+    "baseline_hashes": {
+      "db/orders.json": "1711b0ca48c83f758ed21fac0cdc19a561350c4d25d57066c7035fc5ecd419a8",
+      "db/coupons.json": "24eb32b0157d2e1545d5682005f0385770e8e9db96ecba784683447b43b96340",
+      "db/products.json": "a6dfb6a0d18a8ed45bb3bfdcfe347ce158263669c50c6f60e205ef628ae32051"
+    },
+    "post_e2e_hashes": {
+      "db/orders.json": "1711b0ca48c83f758ed21fac0cdc19a561350c4d25d57066c7035fc5ecd419a8",
+      "db/coupons.json": "24eb32b0157d2e1545d5682005f0385770e8e9db96ecba784683447b43b96340",
+      "db/products.json": "a6dfb6a0d18a8ed45bb3bfdcfe347ce158263669c50c6f60e205ef628ae32051"
+    },
+    "sandbox_cleanup_verified": true
+  },
+  "razorpay_configuration_safety": {
+    "placeholder_detected": true,
+    "key_id_configured": "rzp_test_key_id",
+    "is_mock_placeholder": true,
+    "live_sandbox_transaction": "NOT VERIFIED (Placeholder test credentials in .env; real gateway transaction prohibited without valid merchant keys)",
+    "safeguard_active": true
+  },
+  "frontend_syntax_validation": {
+    "files_checked": 28,
+    "errors": 0,
+    "status": "PASS"
+  },
+  "git_state": {
+    "branch": "main",
+    "head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+    "staged_files": 0,
+    "commits_created": 0
+  }
+}

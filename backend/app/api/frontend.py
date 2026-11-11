@@ -85,6 +85,9 @@ def serve_register_page(): return html_response("register.html")
 @router.get("/about")
 def serve_about_page(): return html_response("about.html")
 
+@router.get("/faq")
+def serve_faq_page(): return html_response("faq.html")
+
 @router.get("/contact")
 def serve_contact_page(): return html_response("contact.html")
 

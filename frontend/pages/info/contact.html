@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,6 +11,7 @@
       content="Contact TridentWear for product questions, support, WhatsApp help, and business address details."
     />
     <title>Contact Us | TridentWear</title>
+    <link rel="canonical" href="/contact" />
     <link rel="stylesheet" href="/assets/css/styles.css?v=20260430-v3" />
     <link rel="icon" type="image/png" href="/assets/images/Logo.png" />
     <link
@@ -51,12 +52,18 @@
                 <span>hello@tridentwear.com</span>
               </div>
               <div class="contact-item">
-                <strong>Phone</strong>
+                <strong>WhatsApp Support</strong>
                 <span>+91 98765 43210</span>
+                <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" class="whatsapp-btn"><i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp</a>
               </div>
               <div class="contact-item">
-                <strong>WhatsApp</strong>
-                <span>+91 98765 43210</span>
+                <strong>Support Hours</strong>
+                <span class="support-hours-badge">Mon - Sat: 10 AM - 7 PM IST</span>
+              </div>
+              <div class="contact-item">
+                <strong>Need Instant Help?</strong>
+                <span>Check out our quick answers.</span>
+                <a href="/faq" class="btn btn-outline" style="margin-top: 0.5rem; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; padding: 0.5rem 1rem;">View FAQs <i class="fa-regular fa-circle-question"></i></a>
               </div>
               <div class="contact-item">
                 <strong>Business Address</strong>
@@ -82,6 +89,10 @@
               <div class="form-group">
                 <label class="label" for="contact-email">Email</label>
                 <input class="field" id="contact-email" type="email" required />
+              </div>
+              <div class="form-group full">
+                <label class="label" for="contact-subject">Subject</label>
+                <input class="field" id="contact-subject" type="text" placeholder="e.g. Sizing query, Order update" required />
               </div>
               <div class="form-group full">
                 <label class="label" for="contact-message">Message</label>

@@ -6,12 +6,15 @@ from datetime import datetime, timezone
 from app.core.db_switch import db
 from app.services.auth_service import require_admin
 from app.services.audit_service import log_action
+from app.services.product_service import load_products
+from app.services.fbt_service import validate_fbt_bundle_qualification
 
 router = APIRouter(prefix="/api/v1", tags=["coupons"])
 
 DEFAULT_COUPONS = [
     {"code": "TRIDENTFIRST", "discount_pct": 20.0, "expires_at": "2027-12-31", "usage_limit": 1000, "usage_count": 0, "is_active": True},
     {"code": "TRIDENT10", "discount_pct": 10.0, "expires_at": "2027-12-31", "usage_limit": 5000, "usage_count": 0, "is_active": True},
+    {"code": "BUNDLE10", "discount_pct": 10.0, "expires_at": "2027-12-31", "usage_limit": 5000, "usage_count": 0, "is_active": True},
 ]
 
 def round_currency(value: float) -> float:
@@ -20,6 +23,8 @@ def round_currency(value: float) -> float:
 class ApplyCouponPayload(BaseModel):
     code: str
     subtotal: float
+    items: Optional[List[Dict[str, Any]]] = None
+    fbt_token: Optional[str] = None
 
 class CouponCreatePayload(BaseModel):
     code: str
@@ -76,6 +81,32 @@ def apply_coupon(payload: ApplyCouponPayload) -> Dict[str, Any]:
     usage_limit = int(coupon.get("usage_limit", 9999))
     if usage_count >= usage_limit:
         raise HTTPException(status_code=400, detail="Coupon usage limit reached.")
+
+    if code == "BUNDLE10":
+        if not payload.fbt_token:
+            raise HTTPException(status_code=400, detail="BUNDLE10 coupon requires a valid FBT offer token.")
+        if not payload.items:
+            raise HTTPException(status_code=400, detail="BUNDLE10 coupon requires cart items for qualification.")
+        all_prods = load_products()
+        product_map = {int(p["id"]): p for p in all_prods}
+        try:
+            qualification = validate_fbt_bundle_qualification(payload.fbt_token, payload.items, product_map)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+        discount_amount = qualification["discount_amount"]
+        discount_pct = qualification["discount_pct"]
+
+        return {
+            "success": True,
+            "code": "BUNDLE10",
+            "discount_pct": discount_pct,
+            "discount_amount": discount_amount,
+            "final_total": round_currency(max(0.0, subtotal - discount_amount)),
+            "qualifying_subtotal": qualification["qualifying_subtotal"],
+            "qualifying_product_ids": qualification["qualifying_product_ids"],
+            "offer_id": qualification["offer_id"],
+        }
 
     discount_pct = float(coupon.get("discount_pct") if coupon.get("discount_pct") is not None else coupon.get("discount", 0))
     discount_amount = round_currency(subtotal * discount_pct / 100)

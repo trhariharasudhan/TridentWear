@@ -1,0 +1,78 @@
+{
+  "gate": "2O.6.2",
+  "name": "Production Readiness, Security Hardening & Deployment Audit",
+  "repository": "D:\\Projects\\TridentWear",
+  "branch": "main",
+  "baseline_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "timestamp": "2026-11-09T22:30:00+05:30",
+  "overall_verdict": "CONDITIONAL_APPROVAL_READY_FOR_STAGING",
+  "external_backup": {
+    "path": "D:\\backupcode\\TridentWear_Gate2O6_2_PreChange_Backup_20261109_213812",
+    "verified": true
+  },
+  "database_integrity": {
+    "orders_json_sha256": "1711b0ca48c83f758ed21fac0cdc19a561350c4d25d57066c7035fc5ecd419a8",
+    "coupons_json_sha256": "24eb32b0157d2e1545d5682005f0385770e8e9db96ecba784683447b43b96340",
+    "products_json_sha256": "a6dfb6a0d18a8ed45bb3bfdcfe347ce158263669c50c6f60e205ef628ae32051",
+    "users_json_sha256": "0951bf193a2aba84f944e5c736cb738a3766075761a7247039625a1bf8c480af",
+    "contaminated": false
+  },
+  "security_hardening": {
+    "admin_authorization": {
+      "enforced": true,
+      "unauthorized_status_code": 403
+    },
+    "brute_force_rate_limit": {
+      "enforced": true,
+      "max_failed_attempts": 5,
+      "window_minutes": 15,
+      "rate_limited_status_code": 429
+    },
+    "password_reset_rate_limit": {
+      "enforced": true,
+      "max_requests": 5,
+      "window_minutes": 15,
+      "rate_limited_status_code": 429
+    },
+    "dev_leakage_suppression": {
+      "suppress_dev_reset_link_in_production": true,
+      "suppress_dev_otp_in_production": true
+    },
+    "payload_size_guards": {
+      "enforced": true,
+      "standard_route_max_bytes": 2097152,
+      "admin_route_max_bytes": 15728640,
+      "payload_too_large_status_code": 413
+    },
+    "ip_spoofing_defense": {
+      "trusted_first_hop_x_forwarded_for": true
+    },
+    "secret_validation": {
+      "startup_fail_fast_on_default_password": true,
+      "startup_fail_fast_on_placeholder_keys": true
+    }
+  },
+  "test_verification": {
+    "total_backend_suites": 11,
+    "tests_collected": 195,
+    "tests_passed": 195,
+    "tests_failed": 0,
+    "pass_rate_percentage": 100.0,
+    "execution_time_seconds": 17.61,
+    "frontend_js_files_checked": 28,
+    "frontend_syntax_errors": 0
+  },
+  "deployment_readiness": {
+    "json_database_production_suitability": "NON_SUITABLE_SINGLE_PROCESS_ONLY",
+    "postgresql_production_readiness": "READY",
+    "alembic_migrations_verified": ["0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "0010", "0011", "0012", "0013", "0014"],
+    "razorpay_live_verification_status": "NOT_VERIFIED_MOCK_KEYS_CONFIGURED",
+    "docker_asgi_command_defined": true,
+    "health_check_available": true
+  },
+  "production_blocking_prerequisites": [
+    "Provision managed PostgreSQL database and set DATABASE_URL",
+    "Set strong production ADMIN_PASSWORD, TRIDENT_JWT_SECRET, and TRIDENT_FBT_SECRET",
+    "Provide live Razorpay merchant credentials (RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET)"
+  ]
+}

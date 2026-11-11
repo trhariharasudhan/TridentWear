@@ -26,4 +26,4 @@ Disallow: /docs
 Disallow: /redoc
 Disallow: /openapi.json
 
-Sitemap: https://tridentwear.in/sitemap.xml
+Sitemap: https://trhariharasudhan.github.io/TridentWear/sitemap.xml

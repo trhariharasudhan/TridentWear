@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 import tempfile
 import threading
@@ -10,30 +11,44 @@ import copy
 from app.db.db_interface import DBInterface
 
 class CrossProcessLock:
+    """Safe cross-process file lock using operating system kernel primitives."""
     def __init__(self, lock_path: str):
-        self.lock_dir = f"{lock_path}.lock"
+        import hashlib
+        lock_name = hashlib.md5(os.path.abspath(lock_path).encode("utf-8")).hexdigest()
+        self.lock_file = os.path.join(tempfile.gettempdir(), f"tw_lock_{lock_name}.lck")
+        self._fd = None
     
     def __enter__(self):
-        start = time.time()
-        while True:
-            try:
-                os.mkdir(self.lock_dir)
-                break
-            except FileExistsError:
-                # If lock is held for more than 5 seconds, assume worker crash and forcefully break lock
-                if time.time() - start > 5:
-                    try:
-                        os.rmdir(self.lock_dir)
-                    except OSError:
-                        pass
-                time.sleep(0.05)
+        self._fd = open(self.lock_file, "a+")
+        if sys.platform == "win32":
+            import msvcrt
+            while True:
+                try:
+                    self._fd.seek(0)
+                    msvcrt.locking(self._fd.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except (BlockingIOError, OSError):
+                    time.sleep(0.05)
+        else:
+            import fcntl
+            fcntl.flock(self._fd.fileno(), fcntl.LOCK_EX)
         return self
         
     def __exit__(self, exc_type, exc_val, exc_tb):
-        try:
-            os.rmdir(self.lock_dir)
-        except OSError:
-            pass
+        if self._fd is not None:
+            try:
+                if sys.platform == "win32":
+                    import msvcrt
+                    self._fd.seek(0)
+                    msvcrt.locking(self._fd.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(self._fd.fileno(), fcntl.LOCK_UN)
+            except Exception:
+                pass
+            finally:
+                self._fd.close()
+                self._fd = None
 
 class JsonDB(DBInterface):
     """File-based persistence using atomic writes and cross-worker directory locks."""

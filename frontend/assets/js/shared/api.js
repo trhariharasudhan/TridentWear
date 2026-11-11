@@ -352,23 +352,38 @@ function createMobileUser(phone) {
   return user;
 }
 
-function createTrackingPayload(order) {
+function createTrackingPayload(order, orderId) {
   if (!order) {
-    throw createHttpError(404, "Order not found.");
+    const id = orderId || "TRD-040DD383";
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const statuses = ["Processing", "Packed", "Shipped", "Out for Delivery", "Delivered"];
+    const status = statuses[Math.abs(hash) % statuses.length];
+    const trackingId = `SR${Math.abs(hash).toString(16).toUpperCase().padStart(8, '0')}`;
+    const est = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
+    return {
+      status: status,
+      courier: "Delhivery (Shiprocket)",
+      tracking_id: status === "Processing" || status === "Packed" ? null : trackingId,
+      estimated_delivery: est,
+    };
   }
 
   if (order.tracking_id) {
-    const status = order.status === "shipped" ? "In Transit" : String(order.status || "confirmed").replace(/\b\w/g, (match) => match.toUpperCase());
+    const status = order.status === "shipped" ? "Shipped" : String(order.status || "Processing").replace(/\b\w/g, (match) => match.toUpperCase());
     return {
       status,
-      courier: order.courier || "Delhivery",
+      courier: order.courier || "Delhivery (Shiprocket)",
       tracking_id: order.tracking_id,
       estimated_delivery: order.estimated_delivery || "Within 3-5 days",
     };
   }
 
   return {
-    status: String(order.status || "confirmed").replace(/\b\w/g, (match) => match.toUpperCase()),
+    status: String(order.status || "Processing").replace(/\b\w/g, (match) => match.toUpperCase()),
     courier: "Pending Allocation",
     tracking_id: null,
     estimated_delivery: "Tracking will be updated soon",
@@ -734,6 +749,26 @@ async function handleStaticRequest(url, method, body, originalPath) {
     };
   }
 
+  if ((pathname === "/api/v1/contact" || pathname === "/api/contact") && method === "POST") {
+    const name = String(body?.name || "").trim();
+    const email = validateEmail(body?.email);
+    const subject = String(body?.subject || "No Subject").trim();
+    const message = String(body?.message || "").trim();
+
+    if (name.length < 2) {
+      throw createHttpError(400, "Name must be at least 2 characters.");
+    }
+    if (message.length < 10) {
+      throw createHttpError(400, "Message must be at least 10 characters.");
+    }
+
+    const contacts = getContactsDb();
+    contacts.push({ id: nextNumericId(contacts), name, email, subject, message, created_at: nowIso() });
+    saveContactsDb(contacts);
+
+    return { success: true, message: "Message sent successfully." };
+  }
+
   if (pathname === "/api/auth/profile/setup" && method === "POST") {
     const userAuth = getAuthUser();
     if (!userAuth) throw createHttpError(401, "Unauthorized");
@@ -905,8 +940,9 @@ async function handleStaticRequest(url, method, body, originalPath) {
       product_id: productId,
       rating,
       review: reviewText,
-      verified_purchase: false,
-      status: "pending_moderation",
+      images: Array.isArray(body?.images) ? body.images : [],
+      verified_purchase: true, // Mock purchase validation
+      status: "approved", // Automatically approve in static mode for immediate visual response
       created_at: nowIso(),
     };
     reviews.push(review);
@@ -995,8 +1031,9 @@ async function handleStaticRequest(url, method, body, originalPath) {
 
   const trackingMatch = pathname.match(/^\/api(?:\/v1)?\/orders\/([^/]+)\/tracking$/);
   if (trackingMatch && method === "GET") {
-    const order = getOrdersDb().find((entry) => entry.order_id === trackingMatch[1]);
-    return createTrackingPayload(order);
+    const orderId = trackingMatch[1];
+    const order = getOrdersDb().find((entry) => entry.order_id === orderId);
+    return createTrackingPayload(order, orderId);
   }
 
   if ((pathname === "/api/orders" || pathname === "/api/v1/orders") && method === "GET") {

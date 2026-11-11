@@ -1,48 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://tridentwear.in/</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://tridentwear.in/products</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/products/</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://tridentwear.in/about</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/about/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://tridentwear.in/contact</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/contact/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://tridentwear.in/track</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/track/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://tridentwear.in/privacy</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/privacy/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://tridentwear.in/terms</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/terms/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://tridentwear.in/shipping</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/shipping/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://tridentwear.in/returns</loc>
+    <loc>https://trhariharasudhan.github.io/TridentWear/returns/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://trhariharasudhan.github.io/TridentWear/faq/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

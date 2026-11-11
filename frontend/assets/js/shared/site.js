@@ -1,6 +1,6 @@
 import { clearAuthSession, get, getAuthSession, post, resolveAssetUrl, resolveUrl, saveAuthSession, withLoading, STATIC_MODE } from "./api.js";
 import { addCartItem, getCartCount, getCartSubtotal, loadCart, syncCart } from "./cart.js";
-import { normalizeProduct } from "./catalog.js";
+import { normalizeProduct, slugify } from "./catalog.js";
 import { initErrorMonitoring } from "./error-monitor.js";
 
 let currentUser = null;
@@ -9,6 +9,45 @@ export { resolveAssetUrl };
 
 export function pageUrl(path = "/") {
   return resolveUrl(path);
+}
+
+export function productUrl(product) {
+  if (!product) return pageUrl("/products/");
+
+  if (typeof product === "object") {
+    if (typeof product.name === "string" && product.name.trim()) {
+      const slug = slugify(product.name);
+      if (slug) return pageUrl(`/products/${slug}/`);
+    }
+    const numId = Number(product.id);
+    if (Number.isInteger(numId) && numId > 0) {
+      return pageUrl(`/product/?id=${numId}`);
+    }
+    return pageUrl("/products/");
+  }
+
+  if (typeof product === "string") {
+    const trimmed = product.trim();
+    if (!trimmed) return pageUrl("/products/");
+    if (/^\d+$/.test(trimmed)) {
+      const numId = Number(trimmed);
+      if (Number.isInteger(numId) && numId > 0) {
+        return pageUrl(`/product/?id=${numId}`);
+      }
+    }
+    const slug = slugify(trimmed);
+    if (slug) return pageUrl(`/products/${slug}/`);
+    return pageUrl("/products/");
+  }
+
+  if (typeof product === "number") {
+    if (Number.isInteger(product) && product > 0) {
+      return pageUrl(`/product/?id=${product}`);
+    }
+    return pageUrl("/products/");
+  }
+
+  return pageUrl("/products/");
 }
 
 /* ───────── Currency ───────── */
@@ -99,6 +138,7 @@ export function createEmptyMarkup(title, copy, href = "/products", label = "Brow
 export function productCardMarkup(product) {
   const item = normalizeProduct(product);
   const productImage = resolveAssetUrl(item.image);
+  const prodHref = productUrl(item);
   const metaSource = item.fit_type || item.subcategory || item.category || "";
   const subcategoryLabel = metaSource
     ? String(metaSource)
@@ -122,8 +162,8 @@ export function productCardMarkup(product) {
   const tagline = item.description ? `<p class="product-tagline">${escapeHtml(item.description.split('.')[0])}</p>` : `<p class="product-tagline">Built for movement.</p>`;
 
   return `
-    <article class="product-card reveal" data-product-card data-product-id="${item.id}">
-      <a class="product-media image-wrap" href="${pageUrl(`/product?id=${item.id}`)}" aria-label="View ${escapeHtml(item.name)}">
+    <article class="product-card reveal" data-product-card data-product-id="${item.id}" data-product-url="${escapeHtml(prodHref)}">
+      <a class="product-media image-wrap" href="${prodHref}" aria-label="View ${escapeHtml(item.name)}">
         ${scarcityTag}
         <button
           class="wishlist-btn product-card-wishlist ${isWishlisted(item.id) ? "is-wishlisted" : ""}"
@@ -160,7 +200,7 @@ export function productCardMarkup(product) {
         </div>
         <div class="product-footer" style="margin-top: 12px;">
           <strong class="product-price" style="font-size: 1.1rem;">${formatCurrency(item.price)}</strong>
-          <a href="${pageUrl(`/product?id=${item.id}`)}" class="btn btn-premium-primary product-card-cta" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 4px;">${item.stock <= 0 ? "Notify Me" : "Select Size"}</a>
+          <a href="${prodHref}" class="btn btn-premium-primary product-card-cta" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 4px;">${item.stock <= 0 ? "Notify Me" : "Select Size"}</a>
         </div>
       </div>
     </article>
@@ -191,8 +231,8 @@ export function bindProductCardActions(container, products) {
       if (event.target.closest("[data-wishlist-toggle]") || event.target.closest("a") || event.target.closest("[data-add-cart-mock]")) return;
       event.preventDefault();
       event.stopPropagation();
-      const productId = card.dataset.productId;
-      if (productId) window.location.href = pageUrl(`/product?id=${productId}`);
+      const targetUrl = card.dataset.productUrl || (card.dataset.productId ? productUrl({ id: card.dataset.productId }) : null);
+      if (targetUrl) window.location.href = targetUrl;
     });
   });
 
@@ -207,7 +247,17 @@ export function bindProductCardActions(container, products) {
       if (!product) return;
       const item = normalizeProduct(product);
       try {
-        addCartItem(item, { size: item.sizes?.[0] || "M", qty: 1 });
+        const result = addCartItem(item, { size: item.sizes?.[0] || "M", qty: 1 });
+        if (result.addedQty === 0) {
+          if (result.status === "OUT_OF_STOCK") {
+            showToast("This item is currently out of stock.", "error");
+          } else if (result.status === "EXCEEDED") {
+            showToast(`Cannot add more. You already have the maximum available stock (${result.availableStock}) in your cart.`, "warning");
+          } else {
+            showToast("Could not add item to cart.", "error");
+          }
+          return;
+        }
         showToast(`${item.name} added to cart!`, "success");
         // Small bounce animation on button
         btn.classList.add("cart-added");
@@ -462,8 +512,22 @@ function openProductDetail(product) {
   modal.querySelector(".detail-add-to-cart").addEventListener("click", () => {
     try {
       const q = getQty();
-      for (let i = 0; i < q; i++) addCartItem(product, { size: selectedSize });
-      showToast(`${product.name} (${selectedSize}) \xd7${q} added to cart.`);
+      const result = addCartItem(product, { size: selectedSize, qty: q });
+      if (result.addedQty === 0) {
+        if (result.status === "OUT_OF_STOCK") {
+          showToast("This item is currently out of stock.", "error");
+        } else if (result.status === "EXCEEDED") {
+          showToast(`Cannot add more. You already have the maximum available stock (${result.availableStock}) in your cart.`, "warning");
+        } else {
+          showToast("Could not add item to cart.", "error");
+        }
+        return;
+      }
+      if (result.addedQty < q) {
+        showToast(`Only ${result.addedQty} remaining in stock. Added ${result.addedQty} to cart.`, "warning");
+      } else {
+        showToast(`${product.name} (${selectedSize}) \xd7${q} added to cart.`, "success");
+      }
       closeModal();
     } catch (err) { 
       promptLoginOverlay();
@@ -474,7 +538,20 @@ function openProductDetail(product) {
   modal.querySelector(".detail-buy-now").addEventListener("click", () => {
     try {
       const q = getQty();
-      for (let i = 0; i < q; i++) addCartItem(product, { size: selectedSize });
+      const result = addCartItem(product, { size: selectedSize, qty: q });
+      if (result.addedQty === 0) {
+        if (result.status === "OUT_OF_STOCK") {
+          showToast("This item is currently out of stock.", "error");
+        } else if (result.status === "EXCEEDED") {
+          showToast(`Cannot add more. You already have the maximum available stock (${result.availableStock}) in your cart.`, "warning");
+        } else {
+          showToast("Could not add item to cart.", "error");
+        }
+        return;
+      }
+      if (result.addedQty < q) {
+        showToast(`Only ${result.addedQty} remaining in stock. Added ${result.addedQty} to cart.`, "warning");
+      }
       closeModal();
       window.location.href = pageUrl("/checkout");
     } catch (err) { 
@@ -590,7 +667,7 @@ function openQuickView(product) {
           <article class="spec-card"><span class="label">Neck</span><strong>${escapeHtml(item.neck_type)}</strong></article>
         </div>
         <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-            <a class="btn btn-primary" href="${pageUrl(`/product?id=${item.id}`)}">Full Details</a>
+            <a class="btn btn-primary" href="${productUrl(item)}">Full Details</a>
           <button class="btn btn-secondary" type="button" data-qv-add data-product-id="${item.id}">Add to Cart</button>
         </div>
       </div>
@@ -608,8 +685,18 @@ function openQuickView(product) {
   if (addBtn) {
     addBtn.addEventListener("click", () => {
       const size = item.sizes?.[0] || "M";
-      addCartItem(item, { size });
-      showToast(`${item.name} (${size}) added to cart.`);
+      const result = addCartItem(item, { size, qty: 1 });
+      if (result.addedQty === 0) {
+        if (result.status === "OUT_OF_STOCK") {
+          showToast("This item is currently out of stock.", "error");
+        } else if (result.status === "EXCEEDED") {
+          showToast(`Cannot add more. You already have the maximum available stock (${result.availableStock}) in your cart.`, "warning");
+        } else {
+          showToast("Could not add item to cart.", "error");
+        }
+        return;
+      }
+      showToast(`${item.name} (${size}) added to cart.`, "success");
       addBtn.textContent = "Added ✓";
       window.setTimeout(() => { addBtn.textContent = "Add to Cart"; }, 1200);
     });
@@ -812,7 +899,7 @@ function bindSearch() {
       }
       
       dropdown.innerHTML = matches.map((p) => `
-        <a class="search-result-item" href="${pageUrl(`/product?id=${p.id}`)}">
+        <a class="search-result-item" href="${productUrl(p)}">
           <img class="search-result-thumb" src="${resolveAssetUrl(p.image)}" alt="${escapeHtml(p.name)}">
           <div class="search-result-info">
             <span class="search-result-name">${escapeHtml(p.name)}</span>
@@ -888,7 +975,12 @@ function bindNewsletter() {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const email = form.querySelector("input[type='email']");
-    if (email && email.value.trim()) { showToast("Thanks for subscribing!"); email.value = ""; }
+    if (email && email.value.trim()) { 
+      const emailValue = email.value.trim();
+      trackEvent("newsletter_signup", { email: emailValue });
+      showToast("Thanks for subscribing!"); 
+      email.value = ""; 
+    }
   });
 }
 
@@ -987,6 +1079,29 @@ function initButtonRipple() {
   });
 }
 
+/* ───────── GA4 Event Tracking & Init ───────── */
+
+export function trackEvent(name, params = {}) {
+  console.log(`[ANALYTICS EVENT] ${name}:`, params);
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    window.gtag("event", name, params);
+  }
+}
+
+function initGA4() {
+  if (typeof window === "undefined" || window.gtag) return;
+  const trackingId = "G-TRIDENT123";
+  const script1 = document.createElement("script");
+  script1.async = true;
+  script1.src = `https://www.googletagmanager.com/gtag/js?id=${trackingId}`;
+  document.head.appendChild(script1);
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function() { window.dataLayer.push(arguments); };
+  window.gtag("js", new Date());
+  window.gtag("config", trackingId, { send_page_view: true });
+}
+
 /* ───────── Init ───────── */
 
 export async function initSite() {
@@ -996,6 +1111,8 @@ export async function initSite() {
   initGlobalScrollReveal();
   interceptLinks();
   initNavbarScroll();
+  initGA4();
+  trackEvent("page_view", { page_title: document.title, page_location: window.location.href });
 
   setActiveNav();
   await refreshAuthState();
@@ -1021,11 +1138,25 @@ export async function initSite() {
     setCartCount(event.detail.count);
     renderCartDrawer(event.detail.items || loadCart());
     renderStickyCartCta(event.detail.items || loadCart());
-    if (event.detail.openDrawer) openCartDrawer(event.detail.items || loadCart());
+  });
+  window.addEventListener("trident:cart-open-drawer", (event) => {
+    openCartDrawer(event.detail.items || loadCart());
+  });
+  window.addEventListener("trident:cart-merged", (event) => {
+    const { mergedCount, unmergedCount } = event.detail || {};
+    if (unmergedCount > 0 && mergedCount > 0) {
+      showToast(`${mergedCount} guest item(s) merged into your cart. ${unmergedCount} item(s) exceed stock and remain saved in your guest cart.`, "warning");
+    } else if (unmergedCount > 0 && mergedCount === 0) {
+      showToast("Items from your guest cart could not be added because available stock is full. They remain saved in your guest cart.", "warning");
+    } else if (mergedCount > 0) {
+      showToast(`${mergedCount} item(s) from your guest cart were added to your account.`, "success");
+    }
   });
   syncCart();
   bindAppComingSoon();
   observeReveals();
+  initExitIntent();
+  startRecentlyPurchasedToasts();
 }
 
 function bindAppComingSoon() {
@@ -1107,4 +1238,121 @@ export function promptLoginOverlay() {
   modal.querySelector("[data-login]").addEventListener("click", () => {
     window.location.href = pageUrl(`/login?next=${encodeURIComponent(window.location.pathname)}`);
   });
+}
+
+/* ───────── Exit Intent Popup ───────── */
+
+export function initExitIntent() {
+  if (typeof window === "undefined") return;
+  
+  document.addEventListener("mouseleave", (e) => {
+    // Check if cursor leaves top edge
+    if (e.clientY < 20) {
+      if (!sessionStorage.getItem("trident_exit_intent_shown")) {
+        sessionStorage.setItem("trident_exit_intent_shown", "true");
+        showExitIntentPopup();
+      }
+    }
+  });
+}
+
+function showExitIntentPopup() {
+  let modal = document.getElementById("exit-intent-overlay");
+  if (modal) modal.remove();
+
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="exit-intent-overlay" id="exit-intent-overlay" role="dialog" aria-modal="true" aria-labelledby="exit-title">
+      <div class="exit-intent-panel">
+        <button class="exit-intent-close" id="exit-intent-close" aria-label="Close popup">&times;</button>
+        <span class="eyebrow" style="color:var(--accent);">Exclusive Drop</span>
+        <h3 id="exit-title">Wait! Don't Miss Out</h3>
+        <p>Take 10% off your order right now. Use code at checkout.</p>
+        <div class="exit-coupon-box" id="exit-coupon">TRIDENT10</div>
+        <button class="btn btn-primary" id="exit-claim-btn" style="width:100%;">Copy Code & Shop</button>
+      </div>
+    </div>
+  `);
+
+  modal = document.getElementById("exit-intent-overlay");
+  const closeBtn = document.getElementById("exit-intent-close");
+  const claimBtn = document.getElementById("exit-claim-btn");
+
+  setTimeout(() => modal.classList.add("is-open"), 100);
+
+  const closePopup = () => {
+    modal.classList.remove("is-open");
+    setTimeout(() => modal.remove(), 400);
+  };
+
+  closeBtn.addEventListener("click", closePopup);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closePopup();
+  });
+
+  claimBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText("TRIDENT10").then(() => {
+      showToast("Coupon 'TRIDENT10' copied to clipboard!", "success");
+      // Pre-apply in localStorage for seamless cart integration
+      localStorage.setItem("tridentwear-applied-coupon", "TRIDENT10");
+    }).catch(() => {
+      localStorage.setItem("tridentwear-applied-coupon", "TRIDENT10");
+    });
+    closePopup();
+  });
+}
+
+/* ───────── Recently Purchased Toasts ───────── */
+
+export function startRecentlyPurchasedToasts() {
+  if (typeof window === "undefined") return;
+
+  const names = ["Aarav", "Kabir", "Ishaan", "Ananya", "Diya", "Rohan", "Sneha", "Aditya", "Meera", "Vikram"];
+  const cities = ["Mumbai", "Bangalore", "Delhi", "Pune", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad"];
+  const products = [
+    { name: "Classic Black Crew Neck", img: "assets/images/black-tshirt.png" },
+    { name: "Standard White Tee", img: "assets/images/white-tshirt.png" },
+    { name: "Navy Drop Shoulder", img: "navy-shirt.png" },
+    { name: "Olive Regular Fit", img: "olive-shirt.png" }
+  ];
+
+  // Run toast cycle every 25 seconds
+  setInterval(() => {
+    if (Math.random() > 0.4) {
+      showPurchaseToast(names, cities, products);
+    }
+  }, 25000);
+  
+  // Trigger first toast after 8 seconds
+  setTimeout(() => showPurchaseToast(names, cities, products), 8000);
+}
+
+function showPurchaseToast(names, cities, products) {
+  let toast = document.getElementById("purchase-toast");
+  if (toast) toast.remove();
+
+  const name = names[Math.floor(Math.random() * names.length)];
+  const city = cities[Math.floor(Math.random() * cities.length)];
+  const prod = products[Math.floor(Math.random() * products.length)];
+  const imgUrl = resolveAssetUrl(prod.img);
+  const timeAgo = 2 + Math.floor(Math.random() * 55);
+
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="purchase-toast" id="purchase-toast">
+      <img src="${imgUrl}" class="purchase-toast-img" alt="${escapeHtml(prod.name)}">
+      <div class="purchase-toast-copy">
+        <strong>${name} from ${city} <i class="fa-solid fa-circle-check"></i></strong>
+        <span>Recently purchased ${escapeHtml(prod.name)}</span>
+        <span style="display:block; font-size:0.7rem; color:var(--gray); margin-top:0.1rem;">${timeAgo} mins ago</span>
+      </div>
+    </div>
+  `);
+
+  toast = document.getElementById("purchase-toast");
+  setTimeout(() => toast.classList.add("is-visible"), 100);
+  setTimeout(() => {
+    if (toast) {
+      toast.classList.remove("is-visible");
+      setTimeout(() => toast.remove(), 400);
+    }
+  }, 6000);
 }

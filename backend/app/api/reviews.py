@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
@@ -12,6 +12,7 @@ class ReviewPayload(BaseModel):
     product_id: int
     rating: int
     review: str
+    images: Optional[List[str]] = None
 
 
 @router.get("/{product_id}")

@@ -12,10 +12,14 @@ def health_check():
     except Exception as e:
         db_status = f"unhealthy: {e}"
         
+    from app.core.redis_client import get_redis_health
+    redis_info = get_redis_health()
+
     return {
         "status": "healthy" if db_status == "healthy" else "unhealthy",
         "service": "TridentWear API",
-        "storage": db_status
+        "storage": db_status,
+        "redis": redis_info["status"]
     }
 
 root_health_router = APIRouter(tags=["health"])

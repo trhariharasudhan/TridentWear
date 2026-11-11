@@ -11,6 +11,7 @@
       content="Track your TridentWear order status and updates."
     />
     <title>Track Order | TridentWear</title>
+    <link rel="canonical" href="/track" />
     <link rel="stylesheet" href="/assets/css/styles.css?v=20260430-v3" />
     <link rel="icon" type="image/png" href="/assets/images/Logo.png" />
     <link
@@ -42,20 +43,28 @@
             class="checkout-panel reveal-scale track-form-card"
             data-track-form
           >
-            <div class="track-form-row">
-              <div class="form-group track-form-field">
-                <label class="label" for="track-order-id"
-                  >Order Reference ID</label
-                >
+            <div class="track-form-row" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group track-form-field" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                <label class="label" for="track-order-id">Order Reference ID</label>
                 <input
                   class="field"
                   id="track-order-id"
                   type="text"
-                  placeholder="e.g. TRI-F4A1BC2D"
+                  placeholder="e.g. TRD-040DD383"
                   required
                 />
               </div>
-              <button class="btn btn-primary" type="submit" data-track-btn>
+              <div class="form-group track-form-field" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                <label class="label" for="track-email">Email Address</label>
+                <input
+                  class="field"
+                  id="track-email"
+                  type="email"
+                  placeholder="e.g. customer@example.com"
+                  required
+                />
+              </div>
+              <button class="btn btn-primary" type="submit" data-track-btn style="height: var(--field-height);">
                 Track
               </button>
             </div>
@@ -66,9 +75,13 @@
               <h2 class="section-title track-status-title">Status Overview</h2>
 
               <div class="track-progress-bar">
-                <div class="track-step" data-step="placed">
+                <div class="track-step" data-step="processing">
                   <div class="track-dot"></div>
-                  <div class="track-label">Placed</div>
+                  <div class="track-label">Processing</div>
+                </div>
+                <div class="track-step" data-step="packed">
+                  <div class="track-dot"></div>
+                  <div class="track-label">Packed</div>
                 </div>
                 <div class="track-step" data-step="shipped">
                   <div class="track-dot"></div>

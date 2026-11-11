@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -41,11 +42,15 @@ def get_logger():
     
     # Avoid duplicate handlers in dev mode
     if not logger.handlers:
-        handler = RotatingFileHandler(
-            LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5 # 10MB limit
+        file_handler = RotatingFileHandler(
+            LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5  # 10MB limit
         )
-        handler.setFormatter(JSONFormatter())
-        logger.addHandler(handler)
+        file_handler.setFormatter(JSONFormatter())
+        logger.addHandler(file_handler)
+
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(JSONFormatter())
+        logger.addHandler(stream_handler)
         
     return logger
 

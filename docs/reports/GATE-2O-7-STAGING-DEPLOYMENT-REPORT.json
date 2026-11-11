@@ -1,0 +1,127 @@
+{
+  "gate": "Gate 2O.7",
+  "title": "Controlled Staging Deployment & Full Environment Validation",
+  "timestamp": "2026-11-10T09:48:00+05:30",
+  "repository": "D:\\Projects\\TridentWear",
+  "branch": "main",
+  "baseline_commit": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "status": "APPROVED_WITH_LIMITATIONS",
+  "infrastructure_status": "PREPARED_INFRASTRUCTURE_BLOCKED",
+  "backup_location": "D:\\backupcode\\TridentWear_Gate2O7_PreChange_Backup_20261110_093800",
+  "backup_verification": "SUCCESS_100_PERCENT_MATCH",
+  "deployment_environment": {
+    "type": "CONTROLLED_LOCAL_STAGING",
+    "host": "127.0.0.1",
+    "port": 8030,
+    "backend_url": "http://127.0.0.1:8030",
+    "frontend_url": "http://127.0.0.1:8030",
+    "environment_mode": "staging",
+    "workers": 1,
+    "storage_mode": "isolated_json_storage",
+    "database_path": "C:\\Users\\ASUS\\AppData\\Local\\Temp\\trident_staging_db_*"
+  },
+  "infrastructure_discovery": {
+    "postgresql": {
+      "port_5432": "UNAVAILABLE",
+      "status": "External/Local PostgreSQL daemon not active; cloud host not configured"
+    },
+    "redis": {
+      "port_6379": "UNAVAILABLE",
+      "status": "Redis service not active; distributed rate limiting fell back safely to single-process in-memory token bucket"
+    },
+    "docker": {
+      "status": "INSTALLED_BUT_DAEMON_STOPPED",
+      "engine": "dockerDesktopLinuxEngine inactive"
+    },
+    "cloud_hosting": {
+      "domain_dns": "UNCONFIGURED",
+      "tls_https": "UNCONFIGURED_ON_HOST",
+      "manifest_prepared": "docker-compose.staging.yml"
+    }
+  },
+  "e2e_results": {
+    "customer_registration": {
+      "status": "PASSED",
+      "user_email": "stg_user_1794284196240@tridentwear.local",
+      "user_id": "TW26-001"
+    },
+    "email_otp_verification": {
+      "status": "PASSED",
+      "endpoint": "/api/auth/otp/verify-email"
+    },
+    "customer_login": {
+      "status": "PASSED",
+      "jwt_token_issued": true
+    },
+    "pdp_browsing": {
+      "status": "PASSED",
+      "product_id": 2
+    },
+    "fbt_bundle_addition": {
+      "status": "PASSED",
+      "items_added": 3
+    },
+    "checkout_and_coupon": {
+      "status": "PASSED",
+      "coupon_code": "BUNDLE10",
+      "discount_amount": 279.7
+    },
+    "cod_order_creation": {
+      "status": "PASSED",
+      "order_id": "TRD-F8DC6A39",
+      "subtotal": 2797.0,
+      "total": 2517.3
+    },
+    "order_confirmation_card": {
+      "status": "PASSED",
+      "screenshot": "task8_staging_order_success.png"
+    },
+    "admin_login_and_visibility": {
+      "status": "PASSED",
+      "admin_email": "admin@trident.local",
+      "order_card_rendered": true,
+      "badges_verified": ["PLACED", "COD PENDING", "BUNDLE10"],
+      "screenshot": "task8_staging_admin_order_card.png"
+    },
+    "order_status_update": {
+      "status": "PASSED",
+      "from_status": "placed",
+      "to_status": "confirmed"
+    },
+    "cancellation_workflow": {
+      "status": "PASSED",
+      "result": "Order cancelled successfully with stock recovery"
+    }
+  },
+  "security_validation": {
+    "health_check": "PASSED (HTTP 200, storage: healthy)",
+    "unauthenticated_admin_access": "BLOCKED (HTTP 403 Forbidden)",
+    "trusted_proxy_forwarding": "VERIFIED (request.client.host checked against TRUSTED_PROXIES)",
+    "razorpay_status": "STRICTLY_NOT_VERIFIED (Mock keys present in dev/staging templates)"
+  },
+  "test_execution": {
+    "backend_pytest": {
+      "collected": 195,
+      "passed": 195,
+      "failed": 0,
+      "duration_seconds": 20.33
+    },
+    "frontend_syntax": {
+      "files_checked": 28,
+      "passed": 28
+    },
+    "development_database_hashes": {
+      "orders.json": "1711b0ca48c83f758ed21fac0cdc19a561350c4d25d57066c7035fc5ecd419a8",
+      "coupons.json": "24eb32b0157d2e1545d5682005f0385770e8e9db96ecba784683447b43b96340",
+      "products.json": "a6dfb6a0d18a8ed45bb3bfdcfe347ce158263669c50c6f60e205ef628ae32051",
+      "users.json": "0951bf193a2aba84f944e5c736cb738a3766075761a7247039625a1bf8c480af",
+      "untouched": true
+    }
+  },
+  "git_status": {
+    "branch": "main",
+    "head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+    "staged_files": 0,
+    "commits_created": 0
+  }
+}

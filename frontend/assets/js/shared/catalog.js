@@ -89,6 +89,15 @@ export function getProductCardTags(product) {
   return unique([product.fit_type, product.fabric || product.material, gsmLabel]);
 }
 
+export function slugify(name) {
+  if (typeof name !== "string") return "";
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function normalizeProduct(product) {
   const clothType = product.cloth_type || "Half Sleeve T-Shirt";
   const fitType = product.fit_type || "Unisex";
@@ -126,6 +135,7 @@ export function normalizeProduct(product) {
 
   return {
     ...product,
+    slug: slugify(product?.name),
     category: product.category || "tshirt",
     categories,
     cloth_type: clothType,

@@ -249,11 +249,26 @@ export const DEFAULT_COUPONS = [
   {
     code: "TRIDENT10",
     discount: 10,
-    usage_limit: 1000,
+    discount_pct: 10,
+    usage_limit: 5000,
+    usage_count: 0,
+    expires_at: "2027-12-31",
+    expiry: "2027-12-31",
+    is_active: true,
   },
   {
     code: "TRIDENTFIRST",
     discount: 20,
-    usage_limit: 500,
+    discount_pct: 20,
+    usage_limit: 1000,
+    usage_count: 0,
+    expires_at: "2027-12-31",
+    expiry: "2027-12-31",
+    is_active: true,
+  },
+  {
+    code: "BUNDLE10",
+    discount: 10,
+    usage_limit: 5000,
   },
 ];

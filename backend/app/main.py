@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 import os
 
-from app.core.config import CORS_ORIGINS, get_session_secret, SESSION_MAX_AGE, validate_production_secrets
+from app.core.config import CORS_ORIGINS, get_session_secret, SESSION_MAX_AGE, validate_production_secrets, TRUSTED_PROXIES
 
 from app.api.health import router as health_router, root_health_router
 from app.api.auth import router as auth_router, legacy_auth_router
@@ -92,8 +92,13 @@ from app.db.json_manager import recover_db_files
 async def startup_event():
     # Fail fast on missing/insecure secrets in production; warn in development.
     validate_production_secrets()
-    DB_DIR = os.path.join(BASE_DIR, "db")
-    recover_db_files(DB_DIR)
+    from app.core.db_switch import get_db_dir, validate_db_safety, is_test_mode
+    validate_db_safety()
+    active_db_dir = get_db_dir()
+    app_logger.info(
+        f"[DB STARTUP] Mode: {os.getenv('DB_MODE', 'json')} | Active DB Dir: {active_db_dir} | Test Mode: {is_test_mode()}"
+    )
+    recover_db_files(str(active_db_dir))
 
 # Idempotency cache: { "key": {"timestamp": 123456, "status_code": 200, "response": {...}} }
 idempotency_cache = {}
@@ -180,7 +185,14 @@ async def api_response_wrapper(request: Request, call_next):
                         "response": wrapped_data.copy()
                     }
                 
-                response = JSONResponse(status_code=response.status_code, content=wrapped_data)
+                new_response = JSONResponse(status_code=response.status_code, content=wrapped_data)
+                for header_key, header_val in response.headers.items():
+                    if header_key.lower() not in ("content-length", "content-type"):
+                        new_response.headers[header_key] = header_val
+                for raw_k, raw_v in getattr(response, "raw_headers", []):
+                    if raw_k.lower() == b"set-cookie":
+                        new_response.headers.append("set-cookie", raw_v.decode("latin-1"))
+                response = new_response
             except json.JSONDecodeError:
                 pass
                 
@@ -200,21 +212,47 @@ async def add_security_headers(request: Request, call_next):
         
     csp_directives = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://checkout.razorpay.com https://cdn.razorpay.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://checkout.razorpay.com https://cdn.razorpay.com https://*.googletagmanager.com https://*.google-analytics.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://accounts.google.com; "
         "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-        "img-src 'self' data: https://*.razorpay.com https://images.unsplash.com; "
-        "connect-src 'self' https://*.razorpay.com; "
+        "img-src 'self' data: https://*.razorpay.com https://images.unsplash.com https://*.google-analytics.com https://*.google.com; "
+        "connect-src 'self' https://*.razorpay.com https://*.google-analytics.com https://*.google.com; "
         "frame-src 'self' https://accounts.google.com https://api.razorpay.com;"
     )
     response.headers["Content-Security-Policy"] = csp_directives
     return response
+
+MAX_ADMIN_PAYLOAD_SIZE = 15 * 1024 * 1024  # 15MB
+MAX_STANDARD_PAYLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 
 # In-memory rate limiting dictionary
 rate_limit_records = {}
 
 @app.middleware("http")
 async def rate_limiter(request: Request, call_next):
+    if request.method in ("POST", "PUT", "PATCH"):
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                length = int(content_length)
+                max_size = MAX_ADMIN_PAYLOAD_SIZE if request.url.path.startswith("/api/v1/admin") else MAX_STANDARD_PAYLOAD_SIZE
+                if length > max_size:
+                    request_id = getattr(request.state, "request_id", None)
+                    return JSONResponse(
+                        status_code=413,
+                        content={
+                            "success": False,
+                            "request_id": request_id,
+                            "data": None,
+                            "error": {
+                                "message": f"Payload too large. Maximum allowed size is {max_size // (1024 * 1024)}MB.",
+                                "code": 413
+                            }
+                        }
+                    )
+            except ValueError:
+                pass
+
     sensitive_prefixes = (
         "/api/v1/auth/login",
         "/api/v1/auth/register",
@@ -228,16 +266,20 @@ async def rate_limiter(request: Request, call_next):
     )
     
     if request.url.path.startswith(sensitive_prefixes) and request.method != "OPTIONS":
-        client_ip = request.client.host if request.client else "unknown"
-        now = time.time()
-        
-        if client_ip not in rate_limit_records:
-            rate_limit_records[client_ip] = []
-            
-        timestamps = rate_limit_records[client_ip]
-        rate_limit_records[client_ip] = [t for t in timestamps if now - t < 60]
-        
-        if len(rate_limit_records[client_ip]) >= 15:
+        direct_peer = request.client.host if request.client else "unknown"
+        x_forwarded_for = request.headers.get("x-forwarded-for")
+        if x_forwarded_for and direct_peer in TRUSTED_PROXIES:
+            client_ip = x_forwarded_for.split(",")[0].strip()
+        else:
+            client_ip = direct_peer
+        from app.core.redis_client import check_rate_limit
+        allowed, _ = check_rate_limit(
+            key=client_ip,
+            max_requests=15,
+            window_seconds=60,
+            in_memory_store=rate_limit_records
+        )
+        if not allowed:
             request_id = getattr(request.state, "request_id", None)
             return JSONResponse(
                 status_code=429,
@@ -252,8 +294,6 @@ async def rate_limiter(request: Request, call_next):
                 },
                 headers={"Retry-After": "60"}
             )
-            
-        rate_limit_records[client_ip].append(now)
         
     return await call_next(request)
 

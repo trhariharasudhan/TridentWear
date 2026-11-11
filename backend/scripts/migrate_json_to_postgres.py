@@ -147,6 +147,10 @@ def map_orders(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "status": row.get("status", "placed"),
                 "payment_method": row.get("payment_method") or row.get("method"),
                 "payment_status": row.get("payment_status", "pending"),
+                "razorpay_order_id": row.get("razorpay_order_id"),
+                "razorpay_payment_id": row.get("razorpay_payment_id"),
+                "idempotency_key": row.get("idempotency_key"),
+                "coupon_status": row.get("coupon_status", "none" if not row.get("coupon_code") else "redeemed"),
                 "tracking_id": row.get("tracking_id"),
                 "courier": row.get("courier"),
                 "estimated_delivery": row.get("estimated_delivery"),
@@ -238,10 +242,11 @@ def map_coupons(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         {
             "id": row.get("id") or (i + 1),
             "code": str(row.get("code", "")).strip().upper(),
-            "discount": float(row.get("discount", 0)),
-            "expiry": str(row.get("expiry", "2027-12-31")).strip(),
+            "discount_pct": float(row.get("discount_pct") if row.get("discount_pct") is not None else row.get("discount", 0)),
+            "expires_at": str(row.get("expires_at") or row.get("expiry") or "2027-12-31").strip(),
             "usage_limit": int(row.get("usage_limit", 1000)),
             "usage_count": int(row.get("usage_count", 0)),
+            "is_active": bool(row.get("is_active", True)),
         }
         for i, row in enumerate(rows)
         if not row.get("__migration_error__")

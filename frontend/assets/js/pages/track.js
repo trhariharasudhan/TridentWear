@@ -19,21 +19,23 @@ async function trackOrder() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const id = input.value.trim();
-    if (id) triggerTracking(id);
+    const emailInput = document.getElementById("track-email");
+    const email = emailInput ? emailInput.value.trim() : "";
+    if (id) triggerTracking(id, email);
   });
 }
 
-async function triggerTracking(orderId) {
+async function triggerTracking(orderId, email) {
   const resultDiv = document.getElementById("track-result");
   
   try {
     startProgress();
-    const data = await get(`/api/v1/orders/${orderId}/tracking`);
+    const query = email ? `?email=${encodeURIComponent(email)}` : "";
+    const data = await get(`/api/v1/orders/${orderId}/tracking${query}`);
     
     resultDiv.style.display = "block";
     updateTrackingUI(data);
     
-    // Smooth scroll to results
     resultDiv.scrollIntoView({ behavior: 'smooth' });
   } catch (error) {
     showToast(error.message || "Order not found", "error");
@@ -49,22 +51,23 @@ function updateTrackingUI(data) {
   document.getElementById("res-tracking").textContent = data.tracking_id || "Awaiting Shipment";
   document.getElementById("res-est").textContent = data.estimated_delivery || "TBD";
 
-  // Update Progress Bar
   const steps = document.querySelectorAll(".track-step");
   steps.forEach(s => s.classList.remove("is-active", "is-complete"));
 
   const status = (data.status || "").toLowerCase();
   
   const mapping = {
-    "confirmed": ["placed"],
-    "processing": ["placed"],
-    "shipped": ["placed", "shipped"],
-    "in transit": ["placed", "shipped"],
-    "out for delivery": ["placed", "shipped", "out"],
-    "delivered": ["placed", "shipped", "out", "delivered"]
+    "placed": ["processing"],
+    "confirmed": ["processing"],
+    "processing": ["processing"],
+    "packed": ["processing", "packed"],
+    "shipped": ["processing", "packed", "shipped"],
+    "in transit": ["processing", "packed", "shipped"],
+    "out for delivery": ["processing", "packed", "shipped", "out"],
+    "delivered": ["processing", "packed", "shipped", "out", "delivered"]
   };
 
-  const activeSteps = mapping[status] || ["placed"];
+  const activeSteps = mapping[status] || ["processing"];
   
   steps.forEach(step => {
     const slug = step.dataset.step;

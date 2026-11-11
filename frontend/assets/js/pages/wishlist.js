@@ -1,5 +1,5 @@
 import { get, request, resolveAssetUrl } from "../shared/api.js?v=20260430-v3";
-import { escapeHtml, formatCurrency, getCurrentUser, initSite, pageUrl, showToast } from "../shared/site.js?v=20260430-v3";
+import { escapeHtml, formatCurrency, getCurrentUser, initSite, pageUrl, productUrl, showToast } from "../shared/site.js?v=20260430-v3";
 
 
 // DELETE helper with JSON body for wishlist removal
@@ -35,7 +35,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     // Use escapeHtml for all user/API-supplied text to prevent XSS
     container.innerHTML = items.map(({ product }) => `
       <article class="product-card reveal">
-        <a class="product-media" href="${pageUrl(`/product?id=${product.id}`)}">
+        <a class="product-media" href="${productUrl(product)}">
           <img src="${resolveAssetUrl(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy">
         </a>
         <div class="product-body">
@@ -48,7 +48,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           <div class="product-footer">
             <strong class="product-price">${formatCurrency(product.price)}</strong>
             <div class="cart-row-actions">
-              <a class="btn btn-outline" href="${pageUrl(`/product?id=${product.id}`)}">View</a>
+              <a class="btn btn-outline" href="${productUrl(product)}">View</a>
               <button class="btn btn-outline" type="button" data-remove-wish="${product.id}" style="color:var(--danger);border-color:var(--danger);">Remove ♥</button>
             </div>
           </div>

@@ -46,6 +46,26 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "TridentWear",
+      "url": "https://trhariharasudhan.github.io/TridentWear/",
+      "logo": "https://trhariharasudhan.github.io/TridentWear/assets/images/Logo.png",
+      "sameAs": [
+        "https://instagram.com/tridentwear.in",
+        "https://twitter.com/tridentwear"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "support@tridentwear.in",
+        "contactType": "customer service",
+        "areaServed": "IN",
+        "availableLanguage": "en"
+      }
+    }
+    </script>
   </head>
 
   <body data-page="home">
@@ -392,6 +412,30 @@
       </section>
 
       <!-- ════════════════════════════════════
+           RECENTLY VIEWED
+      ════════════════════════════════════ -->
+      <section
+        class="home-products-section section-tight"
+        id="recently-viewed-section"
+        style="display: none"
+      >
+        <div class="container">
+          <div class="section-head-row">
+            <div>
+              <span class="eyebrow">Your History</span>
+              <h2 class="section-title">
+                Recently <span class="accent">Viewed</span>
+              </h2>
+            </div>
+            <button class="btn-link" id="clear-recently-viewed" style="background: none; border: none; cursor: pointer; font-size: 0.95rem; font-weight: 600; text-transform: uppercase; color: var(--gray);">
+              Clear All
+            </button>
+          </div>
+          <div class="product-grid" id="recently-viewed-grid"></div>
+        </div>
+      </section>
+
+      <!-- ════════════════════════════════════
            OFFER BANNERS
       ════════════════════════════════════ -->
       <section class="offer-banner-section" aria-label="Offers">
@@ -438,6 +482,31 @@
                   Shop Bundle <i class="fa-solid fa-bag-shopping"></i>
                 </a>
               </div>
+            </div>
+          </div>
+        </div>
+      <!-- ════════════════════════════════════
+           NEWSLETTER SECTION
+      ════════════════════════════════════ -->
+      <section class="newsletter-section" aria-labelledby="newsletter-heading" data-animate="fade-up">
+        <div class="container">
+          <div class="newsletter-shell">
+            <div class="newsletter-content">
+              <span class="eyebrow">Stay Tuned</span>
+              <h2 class="section-title" id="newsletter-heading" style="margin-top:0.25rem;">Join The <span class="accent">Crew</span></h2>
+              <p class="section-copy" style="margin-top:0.5rem; color:rgba(255,255,255,0.7);">
+                Get early access to new drops, exclusive offers, and limited collections.
+              </p>
+              <form class="newsletter-form" data-newsletter-form novalidate>
+                <div class="newsletter-input-group">
+                  <input class="field newsletter-input" type="email" placeholder="Enter your email address" required aria-label="Email address" autocomplete="email" />
+                  <button class="btn btn-primary newsletter-btn" type="submit">Subscribe</button>
+                </div>
+                <div class="newsletter-status" data-newsletter-status></div>
+                <p class="newsletter-privacy">
+                  By subscribing, you agree to our <a href="/privacy">Privacy Policy</a> and consent to receive updates.
+                </p>
+              </form>
             </div>
           </div>
         </div>

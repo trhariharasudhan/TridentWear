@@ -141,15 +141,22 @@ function renderOrders() {
   list.innerHTML = orders.map((order) => {
     const status = String(order.status || "placed").toLowerCase();
     const paymentStatus = String(order.payment_status || (order.method === "COD" ? "cod_pending" : "pending")).toLowerCase();
+    const isManualReview = order.fulfillment_status === "manual_review_required" || order.manual_review_required;
+    const itemsCount = (order.items || []).length;
+    const itemsList = (order.items || []).map(i => `${escapeHtml(i.name || 'Item')} × ${i.qty || 1} (${escapeHtml(i.size || 'M')})`).join(", ");
+
     return `
       <article class="admin-order-card" data-order-id="${escapeHtml(order.order_id)}">
         <div class="admin-order-head">
           <div>
             <strong>${escapeHtml(order.order_id || "Order")}</strong>
             <span>${escapeHtml(order.customer?.name || "Customer")} - ${formatCurrency(order.subtotal || order.total || 0)}</span>
+            ${order.coupon_code ? `<div style="font-size:0.8rem; color:#a29bfe; margin-top:0.25rem;">🎟️ Coupon: <strong>${escapeHtml(order.coupon_code)}</strong> ${order.discount_amount ? `(-${formatCurrency(order.discount_amount)})` : ""} ${order.fbt_offer_id ? `&bull; FBT Offer: ${escapeHtml(order.fbt_offer_id.slice(0,8))}...` : ""}</div>` : ""}
+            ${itemsCount ? `<div style="font-size:0.8rem; color:#888; margin-top:0.25rem;">Items (${itemsCount}): ${itemsList}</div>` : ""}
           </div>
           <div class="admin-badge-row">
             ${order.test_mode ? `<span class="admin-test-badge">TEST</span>` : ""}
+            ${isManualReview ? `<span class="admin-status-badge payment-failed" style="background:#ff4757; color:#fff;">MANUAL REVIEW</span>` : ""}
             ${statusBadge(status)}
             ${statusBadge(paymentStatus, "payment")}
           </div>
@@ -282,7 +289,7 @@ function renderProducts() {
               <strong>${escapeHtml(product.name)}</strong>
               <div class="section-copy">T-Shirt - ${formatCurrency(product.price)}</div>
               <div class="section-copy">${(product.card_tags || []).map(t => escapeHtml(t)).join(" / ")}</div>
-              <div class="admin-stock-line ${Number(product.stock || 0) <= 10 ? "is-low" : "}">
+              <div class="admin-stock-line ${Number(product.stock || 0) <= 10 ? "is-low" : ""}">
                 <span>${escapeHtml(String(product.stock))} stock</span>
                 <span>${product.featured ? "Featured" : "Standard"}</span>
               </div>
@@ -904,7 +911,7 @@ function bindUserFilters() {
   });
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
+async function initAdminPage() {
   await initSite();
   const user = getCurrentUser();
   if (!user || user.role !== "admin") {
@@ -935,4 +942,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       adminList.innerHTML = `<div class="helper-note danger">${escapeHtml(error.message || "Failed to load admin data.")}</div>`;
     }
   }
-});
+}
+
+if (document.readyState === "loading") {
+  window.addEventListener("DOMContentLoaded", initAdminPage);
+} else {
+  initAdminPage();
+}

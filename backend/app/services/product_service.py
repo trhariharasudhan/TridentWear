@@ -220,8 +220,22 @@ def get_single_product(product_id: int) -> Dict[str, Any]:
             return {"success": True, "product": product}
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
 
-def deduct_stock(order_items: List[Dict[str, Any]]) -> None:
+def deduct_stock(order_items: List[Dict[str, Any]], order_id: Optional[str] = None) -> bool:
     """Reduce product stock atomically after an order is saved."""
+    if not order_items:
+        return True
+    import uuid
+    oid = str(order_id) if order_id else f"ORD-{uuid.uuid4().hex[:8]}"
+    if hasattr(db, "deduct_order_stock"):
+        res = db.deduct_order_stock(oid, order_items)
+        try:
+            all_prods = load_products()
+            with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+                json.dump(all_prods, f, indent=2)
+        except Exception:
+            pass
+        return res
+
     for item in order_items:
         pid = int(item.get("id", 0))
         qty = int(item.get("qty", 1))
@@ -238,6 +252,7 @@ def deduct_stock(order_items: List[Dict[str, Any]]) -> None:
             json.dump(all_prods, f, indent=2)
     except Exception:
         pass
+    return True
 
 # Admin Product Management Logic
 IMAGES_DIR = FRONTEND_ROOT / "assets" / "images"

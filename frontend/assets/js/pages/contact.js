@@ -13,10 +13,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     const payload = {
       name: form.querySelector("#contact-name")?.value.trim() || "",
       email: form.querySelector("#contact-email")?.value.trim() || "",
+      subject: form.querySelector("#contact-subject")?.value.trim() || "",
       message: form.querySelector("#contact-message")?.value.trim() || "",
     };
 
-    if (!payload.name || !payload.email || !payload.message) {
+    if (!payload.name || !payload.email || !payload.subject || !payload.message) {
       showToast("Please fill in all fields.", "error");
       return;
     }

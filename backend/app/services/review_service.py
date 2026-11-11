@@ -60,6 +60,7 @@ def create_product_review(payload: Any, request: Request) -> Dict[str, Any]:
         "user_name": user.get("name", "Trident member"),
         "rating": rating,
         "review": review_text,
+        "images": getattr(payload, "images", []) or [],
         "verified_purchase": False,
         "status": "pending_moderation",
         "created_at": datetime.now(timezone.utc).isoformat(),

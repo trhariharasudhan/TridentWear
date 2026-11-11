@@ -393,7 +393,7 @@ function bindGoogleLogin() {
       // Google OAuth is handled by the GIS library on the login page via
       // handleGoogleCredentialResponse. On the register page, redirect to login.
       showToast("Please use the Google button on the login page for Google sign-in.", "info");
-      setTimeout(() => { window.location.href = "/login"; }, 1200);
+      setTimeout(() => { window.location.href = pageUrl("/login"); }, 1200);
     });
   });
 }

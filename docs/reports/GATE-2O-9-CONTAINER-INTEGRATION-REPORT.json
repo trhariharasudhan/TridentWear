@@ -1,0 +1,102 @@
+{
+  "gate": "Gate 2O.9",
+  "title": "Live Container Boot, PostgreSQL + Redis Integration & Multi-Worker Smoke Test",
+  "timestamp": "2026-11-10T11:00:00+05:30",
+  "repository": "D:\\Projects\\TridentWear",
+  "branch": "main",
+  "initial_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "final_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "classification": "PREPARED_INFRASTRUCTURE_BLOCKED",
+  "implementation_readiness": "APPROVED_WITH_LIMITATIONS",
+  "backup": {
+    "location": "D:\\backupcode\\TridentWear_Gate2O9_PreChange_Backup_20261110_105600",
+    "status": "VERIFIED_100_PERCENT_MATCH",
+    "files_copied": 335
+  },
+  "docker_environment": {
+    "client_version": "29.9.2",
+    "compose_version": "v5.6.1",
+    "desktop_version": "4.97.0",
+    "engine_status": "INSTALLED_BUT_STOPPED",
+    "daemon_error": "failed to connect to docker API at npipe:////./pipe/dockerDesktopLinuxEngine",
+    "port_availability": {
+      "port_5432_postgres": "FREE",
+      "port_6379_redis": "FREE",
+      "port_8030_staging_http": "FREE"
+    },
+    "compose_manifest": "docker-compose.staging.yml",
+    "compose_hardening": {
+      "internal_network": "tridentwear_staging_net (bridge, isolated)",
+      "postgres_published_to_host": false,
+      "redis_published_to_host": false,
+      "backend_published_binding": "127.0.0.1:8030:8000",
+      "healthchecks_configured": true,
+      "dockerfile_curl_installed": true,
+      "requirements_redis_pinned": "redis>=5.0.1"
+    }
+  },
+  "postgresql_staging_integration": {
+    "alembic_chain_status": "100_PERCENT_LINEAR",
+    "total_migrations": 14,
+    "latest_revision": "20261109_0014",
+    "earliest_revision": "20260510_0001",
+    "cas_idempotency_verified": true,
+    "downgrade_safe": true,
+    "adapter_status": "PostgresDatabaseAdapter ready with CAS claim/bind/finalize methods"
+  },
+  "redis_staging_integration": {
+    "client_module": "backend/app/core/redis_client.py",
+    "rate_limiting_algorithm": "Sliding window token bucket (ZREMRANGEBYSCORE/ZADD/ZCARD)",
+    "graceful_fallback": "Automatic failover to in-memory sliding window cache on connection refusal",
+    "fallback_test_status": "PASSED (test_redis_integration.py)",
+    "health_probe_reporting": "Verified (returns redis status: connected/disabled/error)"
+  },
+  "multi_worker_validation": {
+    "json_mode": {
+      "workers_supported": 1,
+      "restriction_reason": "Process-local MemoryCache with 3.0s TTL creates split-brain read window across worker processes",
+      "multiprocess_atomic_fencing": "PASSED (File locks prevent simultaneous stock overselling)"
+    },
+    "postgres_redis_mode": {
+      "workers_supported": "4+",
+      "prerequisites": "PostgreSQL 16 + Redis 7 container cluster"
+    }
+  },
+  "razorpay_staging_readiness": {
+    "status": "STRICTLY_NOT_VERIFIED",
+    "reason": "Mock credentials present in dev/staging; real live sandbox transactions require provisioning test keys from Razorpay dashboard",
+    "contract_tests_passed": "24/24"
+  },
+  "test_execution": {
+    "total_tests_collected": 201,
+    "passed": 201,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 21.23,
+    "frontend_syntax_passed": "28/28 files"
+  },
+  "development_database_hashes": {
+    "orders.json": "1711b0ca48c83f758ed21fac0cdc19a561350c4d25d57066c7035fc5ecd419a8",
+    "coupons.json": "24eb32b0157d2e1545d5682005f0385770e8e9db96ecba784683447b43b96340",
+    "products.json": "a6dfb6a0d18a8ed45bb3bfdcfe347ce158263669c50c6f60e205ef628ae32051",
+    "users.json": "0951bf193a2aba84f944e5c736cb738a3766075761a7247039625a1bf8c480af",
+    "all_untouched": true
+  },
+  "git_state": {
+    "staged_files": 0,
+    "commits_created": 0,
+    "untracked_files_preserved": true
+  },
+  "infrastructure_blockers": [
+    "Docker Desktop engine is installed but stopped (manual startup required via Docker Desktop application)",
+    "Razorpay real test API keys (rzp_test_*) need to be generated and configured in .env"
+  ],
+  "manual_steps_to_boot_staging_cluster": [
+    "1. Launch Docker Desktop from Windows Start Menu and wait for Docker Engine to be 'Running'",
+    "2. Open terminal in D:\\Projects\\TridentWear",
+    "3. Run: docker compose -f docker-compose.staging.yml up -d --build",
+    "4. Verify container health: docker compose -f docker-compose.staging.yml ps",
+    "5. Check staging health endpoint: curl http://127.0.0.1:8030/api/v1/health",
+    "6. Teardown when complete: docker compose -f docker-compose.staging.yml down -v"
+  ]
+}

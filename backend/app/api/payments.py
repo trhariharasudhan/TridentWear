@@ -11,18 +11,20 @@ class CODPayload(BaseModel):
     customer: Dict[str, Any]
     shipping: Dict[str, Any]
     coupon_code: Optional[str] = None
+    fbt_token: Optional[str] = None
     discount_amount: float = 0
     test_mode: bool = False
 
 class RazorpayCreatePayload(BaseModel):
-    amount: int
+    amount: Optional[int] = None
     currency: str = "INR"
+    order_data: Optional[Dict[str, Any]] = None
 
 class RazorpayVerifyPayload(BaseModel):
     razorpay_order_id: str
     razorpay_payment_id: str
     razorpay_signature: str
-    order_data: Dict[str, Any]
+    order_data: Optional[Dict[str, Any]] = None
 
 @router.post("/cod")
 def place_cod_order(payload: CODPayload, request: Request) -> Dict[str, Any]:
@@ -32,13 +34,19 @@ def place_cod_order(payload: CODPayload, request: Request) -> Dict[str, Any]:
         shipping=payload.shipping,
         items=payload.items,
         coupon_code=payload.coupon_code,
+        fbt_token=payload.fbt_token,
         test_mode=payload.test_mode,
         request=request,
     )
 
 @router.post("/create-order")
-def create_razorpay_order(payload: RazorpayCreatePayload) -> Dict[str, Any]:
-    return process_razorpay_create(amount=payload.amount, currency=payload.currency)
+def create_razorpay_order(payload: RazorpayCreatePayload, request: Request) -> Dict[str, Any]:
+    return process_razorpay_create(
+        amount=payload.amount,
+        currency=payload.currency,
+        order_data=payload.order_data,
+        request=request,
+    )
 
 @router.post("/verify")
 def verify_razorpay_payment(payload: RazorpayVerifyPayload, request: Request) -> Dict[str, Any]:

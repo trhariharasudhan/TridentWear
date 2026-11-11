@@ -84,6 +84,16 @@ orders = Table(
     Column("status", String, default="placed", index=True),
     Column("payment_method", String),
     Column("payment_status", String, default="pending", index=True),
+    Column("razorpay_order_id", String, unique=True, index=True, nullable=True),
+    Column("razorpay_payment_id", String, unique=True, index=True, nullable=True),
+    Column("idempotency_key", String, unique=True, index=True, nullable=True),
+    Column("coupon_status", String, default="none", index=True, nullable=True),
+    Column("stock_status", String, default="pending", index=True, nullable=True),
+    Column("email_status", String, default="pending", index=True, nullable=True),
+    Column("fulfillment_status", String, default="pending", server_default="pending", index=True, nullable=True),
+    Column("claim_token", String, index=True, nullable=True),
+    Column("claim_expires_at", DateTime(timezone=True), index=True, nullable=True),
+    Column("claim_owner", String, nullable=True),
     Column("tracking_id", String),
     Column("courier", String),
     Column("estimated_delivery", String),
@@ -225,6 +235,17 @@ coupons = Table(
     Column("usage_count", Integer, default=0),
     Column("is_active", Boolean, default=True),
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
+)
+
+coupon_redemptions = Table(
+    "coupon_redemptions",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("order_id", String, unique=True, index=True, nullable=False),
+    Column("coupon_code", String, ForeignKey("coupons.code"), index=True, nullable=False),
+    Column("offer_id", String, unique=True, index=True, nullable=True),
+    Column("status", String, default="redeemed", server_default="redeemed", index=True, nullable=False),
+    Column("redeemed_at", DateTime(timezone=True), server_default=func.now()),
 )
 
 payment_events = Table(

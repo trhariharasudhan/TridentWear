@@ -6,10 +6,11 @@ from app.core.db_switch import db
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
-def create_contact_message(name: str, email: str, message: str) -> Dict[str, Any]:
+def create_contact_message(name: str, email: str, message: str, subject: str = "No Subject") -> Dict[str, Any]:
     db.insert("contacts", {
         "name": name,
         "email": email,
+        "subject": subject,
         "message": message,
     })
     return {"success": True, "message": "Message sent successfully."}

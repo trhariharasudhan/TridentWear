@@ -1,0 +1,160 @@
+{
+  "gate": "GATE-2O.5",
+  "audit_gate": "GATE-2O.5.1",
+  "title": "Full Ecommerce End-to-End Validation & Fix Execution (Reconciled)",
+  "timestamp": "2026-11-09T20:59:00+05:30",
+  "repository": "D:\\Projects\\TridentWear",
+  "branch": "main",
+  "baseline_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "final_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "sign_off_classification": "APPROVED WITH LIMITATIONS",
+  "limitations": [
+    "Razorpay production payment E2E was NOT VERIFIED because real financial transactions and production credentials were intentionally omitted per strict safety rules.",
+    "Razorpay sandbox returned HTTP 401 Unauthorized due to dummy development placeholder credentials in .env (rzp_test_key_id), so Razorpay was verified via automated integration and contract binding suites (24/24 tests passed).",
+    "COD test isolation was NOT VERIFIED: the live Playwright E2E test executed against the active local development database (db/orders.json, db/coupons.json) rather than a dedicated ephemeral test database."
+  ],
+  "backup": {
+    "directory": "D:\\backupcode\\TridentWear_Gate2O5_PreChange_Backup_20261109_204545",
+    "manifest": "D:\\backupcode\\TridentWear_Gate2O5_PreChange_Backup_20261109_204545\\manifest.json",
+    "files_count": 14,
+    "all_hashes_verified": true
+  },
+  "tasks": {
+    "task_1_repository_preflight_and_backup": {
+      "status": "PASS",
+      "branch": "main",
+      "head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+      "staged_files": 0,
+      "modified_files": 48,
+      "untracked_files": 19
+    },
+    "task_2_product_detail_page_and_fbt": {
+      "status": "PASS",
+      "oos_guarded": true,
+      "dynamic_offer_retrieval": true,
+      "interactive_selection": true,
+      "distinct_product_qualification_enforced": true,
+      "client_price_never_authoritative": true,
+      "fbt_tests_passed": "49/49"
+    },
+    "task_3_cart_and_inventory_validation": {
+      "status": "PASS",
+      "invalid_and_negative_qty_rejected": true,
+      "fbt_token_purged_on_cart_clear": true,
+      "concurrent_final_stock_multiprocess_passed": true,
+      "stock_tests_passed": "9/9"
+    },
+    "task_4_checkout_and_coupon_validation": {
+      "status": "PASS",
+      "bundle10_auto_applied": true,
+      "authoritative_catalog_pricing": true,
+      "invalid_and_replayed_tokens_rejected": true,
+      "coupon_tests_passed": "57/57"
+    },
+    "task_5_cod_order_end_to_end": {
+      "status": "PASS",
+      "e2e_flow_status": "PASS",
+      "isolation_status": "NOT VERIFIED",
+      "isolation_details": "Executed against local development database D:\\Projects\\TridentWear\\db, not an isolated ephemeral database.",
+      "order_id": "TRD-17EE1C8B",
+      "subtotal": 2797.0,
+      "discount": 280.0,
+      "final_total": 2517.0,
+      "coupon_code": "BUNDLE10",
+      "items_count": 3,
+      "payment_status": "cod_pending",
+      "order_status": "placed",
+      "refresh_safety_verified": true,
+      "admin_visibility_verified": true,
+      "screenshots": [
+        "task5_order_success.png",
+        "task5_admin_order_card.png"
+      ]
+    },
+    "task_6_razorpay_test_mode_integration": {
+      "status": "PARTIAL",
+      "automated_contract_tests": "PASS (24/24)",
+      "mock_payment_flow": "VERIFIED",
+      "razorpay_sandbox_e2e": "NOT VERIFIED",
+      "production_payment": "NOT VERIFIED",
+      "reason": "Razorpay sandbox credentials in backend/.env are placeholder dummy keys (rzp_test_key_id) returning 401 Unauthorized against api.razorpay.com; live production credentials forbidden by safety rules."
+    },
+    "task_7_order_cancellation_and_inventory_lifecycle": {
+      "status": "PASS",
+      "paid_order_cancellation_prohibited": true,
+      "cancellation_capture_race_guarded": true,
+      "duplicate_webhook_idempotency_verified": true,
+      "fulfillment_claims_tests_passed": "24/24"
+    },
+    "task_8_order_confirmation_and_admin_dashboard": {
+      "status": "PASS",
+      "admin_persisted_values_rendered": true,
+      "unauthorized_admin_requests_rejected": true,
+      "manual_review_badge_rendered": true,
+      "order_status_update_supported": true
+    },
+    "task_9_security_responsiveness_and_browser_e2e": {
+      "status": "PASS",
+      "xss_escaping_verified": true,
+      "client_price_tampering_rejected": true,
+      "invalid_fbt_token_rejected_400": true,
+      "desktop_layout_verified": true,
+      "mobile_layout_no_overflow": true,
+      "runtime_js_errors": 0,
+      "screenshots": [
+        "task9_desktop_pdp.png",
+        "task9_mobile_pdp.png"
+      ]
+    },
+    "task_10_final_regression_and_sign_off": {
+      "status": "PASS",
+      "core_regression_tests_executed": 163,
+      "core_regression_tests_passed": 163,
+      "core_regression_tests_failed": 0,
+      "frontend_js_syntax_check": "PASS",
+      "git_hygiene_verified": true
+    }
+  },
+  "test_suites_summary": {
+    "test_razorpay_binding.py": "24 passed",
+    "test_fbt_qualification.py": "49 passed",
+    "test_coupon_unit.py": "22 passed",
+    "test_coupon_idempotency.py": "17 passed",
+    "test_coupon_caller_correctness.py": "18 passed",
+    "test_json_stock_safety.py": "9 passed",
+    "test_fulfillment_claims_adapter.py": "14 passed",
+    "test_fulfillment_schema.py": "10 passed",
+    "total_tests": 163,
+    "total_passed": 163,
+    "total_failed": 0,
+    "total_skipped": 0,
+    "execution_duration_seconds": 12.33
+  },
+  "backend_test_suite_scope": {
+    "total_test_files_in_backend_tests": 16,
+    "core_targeted_regression_suites": 8,
+    "core_regression_tests_count": 163,
+    "additional_unit_suites": {
+      "test_stock_recovery.py": "12 passed"
+    },
+    "standalone_live_server_integration_scripts": [
+      "test_admin.py",
+      "test_basic.py",
+      "test_coupon_crud.py",
+      "test_deploy_audit.py",
+      "test_payment_security.py",
+      "test_phase5.py",
+      "test_user_management.py"
+    ],
+    "scope_note": "The 8 suites in the Gate 2O.5 report represent the core FBT, payment, coupon, and fulfillment regression suites. They pass 100% (163/163). Standalone scripts require an active running server on their designated port."
+  },
+  "file_checksums": {
+    "frontend/assets/js/pages/product.js": "2f407ba0ff054fe68fe31de69dfefe5502da4cc0cb366aa21a7e879971546a24",
+    "frontend/assets/js/pages/checkout.js": "b09f0c3ef4be4b541bd1eebf51b2cecd9c1ee3e98cf355b3798e0ce3a52155fc",
+    "frontend/assets/js/shared/cart.js": "9d9d91cca504a03d44d35b2b11d4342b95f058924c941e2b386b5331824d51b7",
+    "frontend/assets/js/pages/admin.js": "68ead444e92b4c85f2beaeaa3da0a1210ffd8b16ecbf1b5dba1173c23c1723ef",
+    "backend/app/services/fbt_service.py": "0fa62c431f8ad6537a9ed0930434cade885f04935d0485699575aea0b873503c",
+    "backend/app/api/payments.py": "d58c863face4b857b244859d0c7b49ee565fa4bf4134d557c5a5d4e753162f9a",
+    "backend/app/services/payment_service.py": "9ffde0d71d95459beb4979eccaeba63d0e7b596480e845fb12d7fd1c2dfc2626"
+  }
+}

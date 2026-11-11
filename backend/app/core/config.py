@@ -22,15 +22,22 @@ IS_PRODUCTION: bool = ENVIRONMENT == "production"
 # ── Known-weak dev-only placeholders ──────────────────────────────────────────
 _DEV_JWT_SECRET = "trident-dev-jwt-secret-NOT-FOR-PRODUCTION"
 _DEV_SESSION_SECRET = "trident-dev-session-secret-NOT-FOR-PRODUCTION"
+_DEV_FBT_SECRET = "trident-dev-fbt-secret-NOT-FOR-PRODUCTION"
 
 # ── Database ──────────────────────────────────────────────────────────────────
 # Default to SQLite/JSON in local development if not specified
 DATABASE_URL: str = os.getenv("DATABASE_URL", os.getenv("PG_DSN", "")).strip()
+TRIDENT_TEST_MODE: bool = os.getenv("TRIDENT_TEST_MODE", "").strip().lower() in ("1", "true", "yes") or ENVIRONMENT in ("testing", "test")
+TRIDENT_DB_DIR: str = os.getenv("TRIDENT_DB_DIR", "").strip()
 
 # ── JWT ────────────────────────────────────────────────────────────────────────
 JWT_SECRET: str = os.getenv("TRIDENT_JWT_SECRET", os.getenv("JWT_SECRET", "")).strip()
 JWT_ALGORITHM: str = "HS256"
 JWT_EXPIRATION_DAYS: int = int(os.getenv("TRIDENT_JWT_EXPIRATION_DAYS", "7"))
+
+# ── FBT Offer Security ────────────────────────────────────────────────────────
+FBT_SECRET: str = os.getenv("TRIDENT_FBT_SECRET", "").strip()
+FBT_OFFER_EXPIRATION_HOURS: int = int(os.getenv("TRIDENT_FBT_EXPIRATION_HOURS", "24"))
 
 # ── Session ────────────────────────────────────────────────────────────────────
 SESSION_SECRET: str = os.getenv("TRIDENT_SESSION_SECRET", os.getenv("SESSION_SECRET", "")).strip()
@@ -40,6 +47,13 @@ SESSION_MAX_AGE: int = int(os.getenv("TRIDENT_SESSION_MAX_AGE_SECONDS", "604800"
 RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", os.getenv("RAZORPAY_KEY", "")).strip()
 RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", os.getenv("RAZORPAY_SECRET", "")).strip()
 RAZORPAY_WEBHOOK_SECRET: str = os.getenv("RAZORPAY_WEBHOOK_SECRET", "").strip()
+
+# ── Trusted Proxies ───────────────────────────────────────────────────────────
+_raw_proxies = os.getenv("TRUSTED_PROXIES", "127.0.0.1,::1").strip()
+TRUSTED_PROXIES: list = [p.strip() for p in _raw_proxies.split(",") if p.strip()]
+
+# ── Distributed Cache & Rate Limiting (Redis) ─────────────────────────────────
+REDIS_URL: str = os.getenv("REDIS_URL", "").strip()
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
 _raw_origins = os.getenv("ALLOWED_ORIGINS", "").strip()
@@ -93,6 +107,16 @@ APP_BASE_URL: str = os.getenv("APP_BASE_URL", "http://127.0.0.1:8020").strip()
 LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").strip().upper()
 
 
+def is_razorpay_placeholder() -> bool:
+    """Returns True if Razorpay key credentials are missing or default test placeholders."""
+    return (
+        not RAZORPAY_KEY_ID
+        or not RAZORPAY_KEY_SECRET
+        or RAZORPAY_KEY_ID in ("rzp_test_key_id", "rzp_test_mockkey")
+        or RAZORPAY_KEY_SECRET in ("rzp_test_key_secret", "rzp_test_mocksecret")
+    )
+
+
 def validate_production_secrets() -> None:
     """
     Called at startup. In production mode, fail fast if any required secret is
@@ -112,6 +136,19 @@ def validate_production_secrets() -> None:
             issues.append(f"  - {name} is not set")
         elif known_bad and value in known_bad:
             issues.append(f"  - {name} is set to a missing or known-insecure placeholder")
+
+    if IS_PRODUCTION:
+        if TRIDENT_TEST_MODE:
+            issues.append("  - TRIDENT_TEST_MODE is enabled in production environment")
+        if is_razorpay_placeholder():
+            issues.append("  - Razorpay credentials are unset or configured with mock placeholders in production")
+        _DEV_ADMIN_HASH = "$2b$12$R.S4wN69Y4iR9wJ7C8mEeuJ81pM0mD7FqA1S4xZ0sF8K0kR8wJ7C8"
+        if not ADMIN_PASSWORD_HASH and not ADMIN_PASSWORD_RAW:
+            issues.append("  - ADMIN_PASSWORD_HASH / ADMIN_PASSWORD is not set in production")
+        elif ADMIN_PASSWORD_HASH == _DEV_ADMIN_HASH or ADMIN_PASSWORD_RAW in ("Admin@123", "admin", "password"):
+            issues.append("  - Admin credentials are set to known-insecure default placeholders in production")
+        if not FBT_SECRET and not JWT_SECRET:
+            issues.append("  - Neither TRIDENT_FBT_SECRET nor TRIDENT_JWT_SECRET is set in production")
 
     if issues:
         message = "Security configuration problems detected:\n" + "\n".join(issues)
@@ -137,3 +174,15 @@ def get_session_secret() -> str:
     if IS_PRODUCTION:
         raise RuntimeError("[SECURITY] TRIDENT_SESSION_SECRET is not set in production.")
     return _DEV_SESSION_SECRET
+
+
+def get_fbt_secret() -> str:
+    """Returns the FBT secret for signing/verifying offer tokens.
+    Falls back to JWT_SECRET if TRIDENT_FBT_SECRET is not set, or dev placeholder in development."""
+    if FBT_SECRET:
+        return FBT_SECRET
+    if JWT_SECRET:
+        return JWT_SECRET
+    if IS_PRODUCTION:
+        raise RuntimeError("[SECURITY] TRIDENT_FBT_SECRET / TRIDENT_JWT_SECRET is not set in production.")
+    return _DEV_FBT_SECRET

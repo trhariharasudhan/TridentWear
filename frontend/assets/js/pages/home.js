@@ -6,6 +6,7 @@ import {
   initSite,
   pageUrl,
   productCardMarkup,
+  productUrl,
   resolveAssetUrl,
   startProgress,
   endProgress,
@@ -164,16 +165,36 @@ async function loadStats() {
 /* ─── Newsletter ─── */
 function initNewsletter() {
   const form = document.querySelector("[data-newsletter-form]");
-  if (!form) return;
+  const status = document.querySelector("[data-newsletter-status]");
+  if (!form || !status) return;
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const input = form.querySelector("input[type=email]");
     const btn   = form.querySelector("button[type=submit]");
-    const prev  = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-check"></i> Subscribed!';
-    btn.disabled  = true;
-    input.value   = "";
-    setTimeout(() => { btn.innerHTML = prev; btn.disabled = false; }, 3000);
+    const email = input.value.trim();
+
+    const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailPattern.test(email)) {
+      status.innerHTML = `<span style="color:#ef4444; font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> Please enter a valid email address.</span>`;
+      input.focus();
+      return;
+    }
+
+    const prev = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subscribing...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Welcome!';
+      status.innerHTML = `<span style="color:#10b981; font-weight:600;"><i class="fa-solid fa-circle-check"></i> Welcome to the Trident Crew! Check your inbox for early access benefits.</span>`;
+      input.value = "";
+      setTimeout(() => {
+        btn.innerHTML = prev;
+        btn.disabled = false;
+        status.innerHTML = "";
+      }, 5000);
+    }, 1000);
   });
 }
 
@@ -228,10 +249,10 @@ function loadRecentlyViewed() {
   // Only show up to 4 cards
   const toShow = items.slice(0, 4);
   grid.innerHTML = toShow.map(p => {
-    const productUrl = pageUrl(`/product?id=${p.id}`);
+    const prodHref = productUrl(p);
     const img = resolveAssetUrl(p.image || "assets/images/Logo.png");
     return `
-      <article class="product-card reveal" style="cursor:pointer;" data-recent-product-link="${escapeHtml(productUrl)}">
+      <article class="product-card reveal" style="cursor:pointer;" data-recent-product-link="${escapeHtml(prodHref)}">
         <div class="product-media" style="position:relative; overflow:hidden;">
           <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy" class="product-image">
         </div>
@@ -241,7 +262,7 @@ function loadRecentlyViewed() {
           <div class="product-footer">
             <strong class="product-price">${formatCurrency(p.price)}</strong>
           </div>
-          <a href="${productUrl}" class="btn btn-outline" style="width:100%;text-align:center;display:block;margin-top:0.75rem;padding:0.5rem;font-size:0.85rem;">View Again</a>
+          <a href="${prodHref}" class="btn btn-outline" style="width:100%;text-align:center;display:block;margin-top:0.75rem;padding:0.5rem;font-size:0.85rem;">View Again</a>
         </div>
       </article>`;
   }).join("");

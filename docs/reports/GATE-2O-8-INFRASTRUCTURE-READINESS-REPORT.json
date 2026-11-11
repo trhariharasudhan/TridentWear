@@ -1,0 +1,94 @@
+{
+  "gate": "Gate 2O.8",
+  "title": "Hybrid Infrastructure Setup & External Integration Readiness",
+  "timestamp": "2026-11-10T10:07:00+05:30",
+  "repository": "D:\\Projects\\TridentWear",
+  "branch": "main",
+  "initial_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "final_head": "9e5731b8f0a6dfc7aaadfaad26f8b33bb85067eb",
+  "classification": "APPROVED_WITH_LIMITATIONS",
+  "infrastructure_status": "PREPARED_INFRASTRUCTURE_BLOCKED",
+  "backup": {
+    "location": "D:\\backupcode\\TridentWear_Gate2O8_PreChange_Backup_20261110_100200",
+    "status": "VERIFIED_100_PERCENT_MATCH",
+    "files_copied": 330
+  },
+  "docker_environment": {
+    "client_version": "29.9.2",
+    "compose_version": "v5.6.1",
+    "desktop_version": "4.97.0",
+    "engine_status": "INSTALLED_BUT_STOPPED",
+    "daemon_error": "failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine",
+    "compose_manifest": "docker-compose.staging.yml",
+    "architecture_defined": {
+      "fastapi_backend": "Port 8000 (Internal/Localhost)",
+      "postgresql": "PostgreSQL 16 Alpine on 127.0.0.1:5432",
+      "redis": "Redis 7 Alpine on 127.0.0.1:6379",
+      "persistent_volume": "postgres_staging_data, redis_staging_data",
+      "health_checks": "Configured for all services"
+    }
+  },
+  "postgresql_integration": {
+    "alembic_chain_status": "100_PERCENT_LINEAR",
+    "total_migrations": 14,
+    "latest_revision": "20261109_0014",
+    "earliest_revision": "20260510_0001",
+    "local_service_status": "UNAVAILABLE (Port 5432 closed)",
+    "database_url_configured": false,
+    "adapter_parity": "Verified with SQLite/SQL isolation; all schema and CAS methods implemented"
+  },
+  "redis_integration": {
+    "local_service_status": "UNAVAILABLE (Port 6379 closed)",
+    "redis_url_setting": "REDIS_URL in config.py",
+    "implementation": "backend/app/core/redis_client.py",
+    "features": [
+      "Sliding window rate-limiting with ZREMRANGEBYSCORE/ZADD/ZCARD",
+      "Safe fallback to in-memory sliding window on RedisConnError/RedisError",
+      "Health probe reporting in /api/v1/health"
+    ],
+    "fallback_verified": true
+  },
+  "razorpay_sandbox_readiness": {
+    "status": "STRICTLY_NOT_VERIFIED",
+    "reason": "Mock credentials present in dev/staging; real live sandbox transactions require provisioning test keys from Razorpay dashboard",
+    "contract_tests_passed": "24/24"
+  },
+  "multi_worker_validation": {
+    "json_mode": {
+      "workers_supported": 1,
+      "restriction_reason": "Process-local MemoryCache with 3.0s TTL creates split-brain read window across worker processes",
+      "multiprocess_atomic_fencing": "PASSED (File locks prevent simultaneous stock overselling)"
+    },
+    "postgres_redis_mode": {
+      "workers_supported": "4+",
+      "prerequisites": "PostgreSQL 16 + Redis 7 + Alembic upgrade"
+    }
+  },
+  "test_execution": {
+    "total_tests_collected": 201,
+    "passed": 201,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 20.64,
+    "frontend_syntax_passed": "28/28 files"
+  },
+  "development_database_hashes": {
+    "orders.json": "1711b0ca48c83f758ed21fac0cdc19a561350c4d25d57066c7035fc5ecd419a8",
+    "coupons.json": "24eb32b0157d2e1545d5682005f0385770e8e9db96ecba784683447b43b96340",
+    "products.json": "a6dfb6a0d18a8ed45bb3bfdcfe347ce158263669c50c6f60e205ef628ae32051",
+    "users.json": "0951bf193a2aba84f944e5c736cb738a3766075761a7247039625a1bf8c480af",
+    "all_untouched": true
+  },
+  "git_state": {
+    "staged_files": 0,
+    "commits_created": 0,
+    "untracked_files_preserved": true
+  },
+  "infrastructure_blockers": [
+    "Docker Desktop engine is installed but stopped (manual startup required via Docker Desktop application)",
+    "PostgreSQL 16 service is not running on 127.0.0.1:5432",
+    "Redis 7 service is not running on 127.0.0.1:6379",
+    "Razorpay real test API keys (rzp_test_*) need to be generated and configured in .env"
+  ],
+  "next_recommended_gate": "Gate 2O.9 — Live Container Boot & Multi-Worker Smoke Test (upon starting Docker Desktop)"
+}

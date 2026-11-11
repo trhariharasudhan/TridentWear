@@ -15529,7 +15529,7 @@ body[data-page] main {
   color: var(--white);
   background:
     linear-gradient(180deg, rgba(15, 17, 24, 0.96), rgba(10, 11, 15, 1)),
-    url("/assets/images/hero-banner.jpg") center/cover;
+    url("../images/hero-banner.jpg") center/cover;
 }
 
 .brand-narrative-section::before {

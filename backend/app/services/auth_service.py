@@ -30,6 +30,51 @@ EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 PHONE_PATTERN = re.compile(r"^\d{10}$")
 REVOKED_TOKEN_IDS: set[str] = set()
 
+LOGIN_ATTEMPTS: dict[str, list[float]] = {}
+LOGIN_MAX_FAILED_ATTEMPTS = 5
+LOGIN_LOCKOUT_WINDOW = 900  # 15 minutes
+
+PASSWORD_RESET_ATTEMPTS: dict[str, list[float]] = {}
+PASSWORD_RESET_MAX_ATTEMPTS = 5
+PASSWORD_RESET_LOCKOUT_WINDOW = 900  # 15 minutes
+
+def check_login_rate_limit(key: str) -> None:
+    now = datetime.now(timezone.utc).timestamp()
+    attempts = LOGIN_ATTEMPTS.get(key, [])
+    valid_attempts = [t for t in attempts if now - t < LOGIN_LOCKOUT_WINDOW]
+    LOGIN_ATTEMPTS[key] = valid_attempts
+    if len(valid_attempts) >= LOGIN_MAX_FAILED_ATTEMPTS:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed login attempts. Please try again after 15 minutes."
+        )
+
+def record_failed_login(key: str) -> None:
+    now = datetime.now(timezone.utc).timestamp()
+    if key not in LOGIN_ATTEMPTS:
+        LOGIN_ATTEMPTS[key] = []
+    LOGIN_ATTEMPTS[key].append(now)
+
+def clear_failed_logins(key: str) -> None:
+    LOGIN_ATTEMPTS.pop(key, None)
+
+def check_password_reset_rate_limit(key: str) -> None:
+    now = datetime.now(timezone.utc).timestamp()
+    attempts = PASSWORD_RESET_ATTEMPTS.get(key, [])
+    valid_attempts = [t for t in attempts if now - t < PASSWORD_RESET_LOCKOUT_WINDOW]
+    PASSWORD_RESET_ATTEMPTS[key] = valid_attempts
+    if len(valid_attempts) >= PASSWORD_RESET_MAX_ATTEMPTS:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many password reset requests. Please try again after 15 minutes."
+        )
+
+def record_password_reset_request(key: str) -> None:
+    now = datetime.now(timezone.utc).timestamp()
+    if key not in PASSWORD_RESET_ATTEMPTS:
+        PASSWORD_RESET_ATTEMPTS[key] = []
+    PASSWORD_RESET_ATTEMPTS[key].append(now)
+
 # Default admin credentials loaded from environment variables.
 # ADMIN_EMAIL and ADMIN_PASSWORD_HASH must be set before production deployment.
 # The fallback hash below is for local development only (password: "Admin@123").
@@ -468,22 +513,26 @@ def register_user(payload: Any) -> Dict[str, Any]:
     inserted = db.insert("users", new_user)
 
     if not smtp_host:
-        return {"success": True, "message": f"Account created. (Dev Mode OTP: {otp})", "email": email, "dev_otp": otp}
+        if os.getenv("ENVIRONMENT", "development") != "production":
+            return {"success": True, "message": f"Account created. (Dev Mode OTP: {otp})", "email": email, "dev_otp": otp}
+        return {"success": True, "message": "Account created. Please check your email for the OTP.", "email": email}
 
     return {"success": True, "message": "Account created. Please check your email for the OTP.", "email": email}
 
 def login_user(payload: Any, request: Request) -> Dict[str, Any]:
-    email = validate_email(payload.email)
+    email = validate_email(payload.email).strip().lower()
+    check_login_rate_limit(email)
     password = payload.password.strip()
     user = find_user_by_email(email)
 
     if not user or not verify_password(password, user.get("password_hash", "")):
+        record_failed_login(email)
         is_admin_attempt = False
         admin_id_log = None
         if user and user.get("role") == "admin":
             is_admin_attempt = True
             admin_id_log = user.get("id")
-        elif email.strip().lower() == ADMIN_EMAIL.lower() or "admin" in email.strip().lower():
+        elif email == ADMIN_EMAIL.lower() or "admin" in email:
             is_admin_attempt = True
             
         if is_admin_attempt:
@@ -504,6 +553,7 @@ def login_user(payload: Any, request: Request) -> Dict[str, Any]:
     if user.get("role") != "admin" and not user.get("otp_verification_status", False):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Please verify your email OTP before logging in.")
 
+    clear_failed_logins(email)
     user = upgrade_password_hash_if_needed(user, password)
     
     from datetime import datetime, timezone
@@ -620,6 +670,8 @@ def setup_user_profile(payload: Any, request: Request) -> Dict[str, Any]:
 
 def request_password_reset(payload: Any) -> Dict[str, Any]:
     email = str(payload.email).strip().lower()
+    check_password_reset_rate_limit(email)
+    record_password_reset_request(email)
     
     success_response = {
         "success": True,
@@ -670,7 +722,8 @@ def request_password_reset(payload: Any) -> Dict[str, Any]:
             
     if not smtp_host:
         print(f"[TRIDENT_DEV_RESET] Password reset link for {email}: {reset_url}")
-        success_response["dev_reset_link"] = reset_url
+        if os.getenv("ENVIRONMENT", "development") != "production":
+            success_response["dev_reset_link"] = reset_url
         
     return success_response
 

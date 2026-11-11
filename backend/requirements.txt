@@ -17,3 +17,4 @@ slowapi==0.1.9
 email-validator==2.1.0
 httpx==0.25.2
 pillow==10.1.0
+redis>=5.0.1

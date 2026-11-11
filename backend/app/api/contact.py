@@ -14,6 +14,7 @@ EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 class ContactPayload(BaseModel):
     name: str
     email: str
+    subject: Optional[str] = None
     message: str
 
 class ChatMessagePayload(BaseModel):
@@ -25,6 +26,7 @@ class ChatMessagePayload(BaseModel):
 def create_contact(payload: ContactPayload) -> Dict[str, Any]:
     name = payload.name.strip()
     email = payload.email.strip().lower()
+    subject = payload.subject.strip() if payload.subject else "No Subject"
     message = payload.message.strip()
 
     if not EMAIL_PATTERN.match(email):
@@ -34,7 +36,7 @@ def create_contact(payload: ContactPayload) -> Dict[str, Any]:
     if len(message) < 10:
         raise HTTPException(status_code=400, detail="Message must be at least 10 characters.")
 
-    return create_contact_message(name, email, message)
+    return create_contact_message(name, email, message, subject)
 
 @router.post("/chat/send")
 def send_chat(payload: ChatMessagePayload, request: Request) -> Dict[str, Any]:
