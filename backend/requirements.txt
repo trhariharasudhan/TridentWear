@@ -18,3 +18,4 @@ email-validator==2.1.0
 httpx==0.25.2
 pillow==11.0.0
 redis>=5.0.1
+setuptools<81  # razorpay 1.4.1 imports pkg_resources (removed in setuptools 81; missing on fresh Python 3.12 venvs)
