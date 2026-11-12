@@ -1,310 +1,85 @@
-import { get } from "../shared/api.js?v=20260430-v3";
-import {
-  bindProductCardActions,
-  createSkeletonCards,
-  formatCurrency,
-  initSite,
-  pageUrl,
-  productCardMarkup,
-  productUrl,
-  resolveAssetUrl,
-  startProgress,
-  endProgress,
-  escapeHtml,
-} from "../shared/site.js?v=20260430-v3";
-import { createGlobalScrollManager } from "../utilities/scroll-throttle.js";
+import { mountChrome, $, $$, productCard, img, srcset, esc, icon, reveal, toast, inr, logoSvg, siteSettings } from '../ui.js';
+import { mountStudio } from '../studio.js';
+import { getProducts } from '../store.js';
+import { api } from '../api.js';
 
-/* ─── Hero Slider ─── */
-function initHeroSlider() {
-  const slides = document.querySelectorAll(".hero-slide");
-  const dots   = document.querySelectorAll(".hero-dot");
-  const prev   = document.querySelector("[data-hero-prev]");
-  const next   = document.querySelector("[data-hero-next]");
-  if (!slides.length) return;
+// Pieces that have real 3/4 and side photos (<slug>-q.webp, <slug>-s.webp) turn like a turntable on the rail.
+const ANGLES = new Set(['essential-oversized-tee-bone-white', 'oxford-button-down-sky', 'essential-oversized-tee-jet-black']);
+// Studio rail order. Pieces with a back photo show it when twisted; shirts show a mirrored inside.
+const RAIL = ['violet-signal-tee', 'oxford-button-down-sky', 'essential-oversized-tee-bone-white', 'twill-overshirt-black', 'essential-oversized-tee-jet-black',
+  'trident-wordmark-tee-black', 'linen-camp-shirt-stone', 'heavyweight-classic-tee-maroon', 'formal-slim-shirt-navy',
+  'essential-oversized-tee-olive', 'oxford-button-down-white', 'heavyweight-classic-tee-sand', 'linen-camp-shirt-olive'];
 
-  let current  = 0;
-  let timer    = null;
+await mountChrome({ page: 'home', overlayHeader: true });
 
-  function goTo(index) {
-    slides[current].classList.remove("is-active");
-    dots[current]?.classList.remove("is-active");
-    current = (index + slides.length) % slides.length;
-    slides[current].classList.add("is-active");
-    dots[current]?.classList.add("is-active");
-  }
+$$('.promise').forEach((p) => p.insertAdjacentHTML('afterbegin', icon[p.dataset.icon]));
+$$('[data-rail-step]').forEach((b) => (b.innerHTML = icon.arrow));
 
-  function autoplay() {
-    clearInterval(timer);
-    timer = setInterval(() => goTo(current + 1), 4500);
-  }
+const products = await getProducts().catch(() => []);
+const bySlug = new Map(products.map((p) => [p.slug, p]));
+const byId = new Map(products.map((p) => [p.id, p]));
+const site = await siteSettings();
+if (site.hero_line) $('.studio__line').textContent = site.hero_line;
+if (site.hero_text) $('.studio__brand p').textContent = site.hero_text;
+if (site.drop_title) $('[data-featured]').closest('section').querySelector('.h2').textContent = site.drop_title;
 
-  prev?.addEventListener("click", () => { goTo(current - 1); autoplay(); });
-  next?.addEventListener("click", () => { goTo(current + 1); autoplay(); });
-  dots.forEach((dot, i) => dot.addEventListener("click", () => { goTo(i); autoplay(); }));
-
-  // Pause on hover
-  document.querySelector(".hero-banner")?.addEventListener("mouseenter", () => clearInterval(timer));
-  document.querySelector(".hero-banner")?.addEventListener("mouseleave", autoplay);
-
-  autoplay();
-}
-
-/* ─── Featured Products (New Arrivals) ─── */
-async function loadFeaturedProducts() {
-  const grid = document.querySelector("[data-featured-grid]");
-  const spotlight = document.querySelector("[data-featured-drop-product]");
-  if (!grid && !spotlight) return;
-
-  if (grid) grid.innerHTML = createSkeletonCards(4);
-  startProgress();
-
-  try {
-    const data     = await get("/api/v1/products?featured=true");
-    const products = (Array.isArray(data) ? data : data.products || []).slice(0, 4);
-    if (!products.length) {
-      if (grid) grid.innerHTML = "";
-      if (spotlight) spotlight.closest("[data-featured-drop]")?.remove();
-      return;
-    }
-    if (grid) {
-      grid.innerHTML = products.map(productCardMarkup).join("");
-      bindProductCardActions(grid, products);
-    }
-    if (spotlight) {
-      const heroProduct = products[0];
-      spotlight.innerHTML = productCardMarkup(heroProduct);
-      bindProductCardActions(spotlight, [heroProduct]);
-    }
-  } catch {
-    if (grid) grid.innerHTML = "";
-    if (spotlight) spotlight.closest("[data-featured-drop]")?.remove();
-  } finally {
-    endProgress();
-  }
-}
-
-/* ─── Trending Products (horizontal scroll) ─── */
-async function loadTrendingProducts() {
-  const wrap = document.querySelector("[data-trending-grid]");
-  if (!wrap) return;
-
-  wrap.innerHTML = createSkeletonCards(6);
-
-  try {
-    const data     = await get("/api/v1/products");
-    const products = (Array.isArray(data) ? data : data.products || []).slice(0, 8);
-    if (!products.length) { wrap.closest(".trending-section")?.remove(); return; }
-    wrap.innerHTML = products.map(productCardMarkup).join("");
-    bindProductCardActions(wrap, products);
-  } catch {
-    wrap.closest(".trending-section")?.remove();
-  }
-}
-
-/* ─── Customer Count Ticker ─── */
-async function loadStats() {
-  const statNumbers = document.querySelectorAll("[data-count], [data-rating]");
-  if (!statNumbers.length) return;
-
-  // Get stats from API or use defaults
-  let statsData = {
-    customers: 15000,
-    orders: 25000,
-    rating: 4.8
-  };
-
-  try {
-    const data = await get("/api/v1/orders/stats");
-    if (data?.customers) statsData.customers = data.customers;
-    if (data?.orders) statsData.orders = data.orders;
-    if (data?.rating) statsData.rating = data.rating;
-  } catch { /* use defaults */ }
-
-  const animateNumber = (element, target, duration = 1800) => {
-    const isRating = element.hasAttribute("data-rating");
-    if (isRating) {
-      // For rating, just set it directly since it's typically 4-5
-      element.textContent = target;
-      return;
-    }
-
-    const start = performance.now();
-    const startVal = 0;
-
-    const animate = (now) => {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Ease-out cubic for smooth deceleration
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      const currentVal = Math.floor(easeProgress * target);
-      
-      element.textContent = currentVal;
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        element.textContent = target;
-      }
-    };
-
-    requestAnimationFrame(animate);
-  };
-
-  // Animate each stat
-  statNumbers.forEach((el) => {
-    if (el.hasAttribute("data-count")) {
-      const target = parseInt(el.getAttribute("data-count"));
-      animateNumber(el, target);
-    } else if (el.hasAttribute("data-rating")) {
-      animateNumber(el, parseFloat(el.getAttribute("data-rating")));
-    }
-  });
-}
-
-/* ─── Newsletter ─── */
-function initNewsletter() {
-  const form = document.querySelector("[data-newsletter-form]");
-  const status = document.querySelector("[data-newsletter-status]");
-  if (!form || !status) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const input = form.querySelector("input[type=email]");
-    const btn   = form.querySelector("button[type=submit]");
-    const email = input.value.trim();
-
-    const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-    if (!emailPattern.test(email)) {
-      status.innerHTML = `<span style="color:#ef4444; font-weight:600;"><i class="fa-solid fa-circle-exclamation"></i> Please enter a valid email address.</span>`;
-      input.focus();
-      return;
-    }
-
-    const prev = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subscribing...';
-    btn.disabled = true;
-
-    setTimeout(() => {
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> Welcome!';
-      status.innerHTML = `<span style="color:#10b981; font-weight:600;"><i class="fa-solid fa-circle-check"></i> Welcome to the Trident Crew! Check your inbox for early access benefits.</span>`;
-      input.value = "";
-      setTimeout(() => {
-        btn.innerHTML = prev;
-        btn.disabled = false;
-        status.innerHTML = "";
-      }, 5000);
-    }, 1000);
-  });
-}
-
-/* ─── Scroll Reveal ─── */
-function initScrollReveal() {
-  const targets = document.querySelectorAll("[data-animate]");
-  if (!targets.length) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("is-visible");
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.05, rootMargin: "0px 0px -20px 0px" });
-
-  targets.forEach(el => {
-    // Already in viewport? Reveal immediately with stagger
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight) {
-      const delay = parseInt(el.dataset.delay || 0);
-      setTimeout(() => el.classList.add("is-visible"), delay);
-    } else {
-      observer.observe(el);
-    }
-  });
-}
-
-/* ─── Hero Parallax ─── */
-function initHeroParallax() {
-  const bg = document.querySelector(".hero-bg-gradient");
-  if (!bg || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const scrollManager = createGlobalScrollManager();
-  scrollManager.onScroll((scrollY) => {
-    const offset = scrollY * 0.3;
-    bg.style.transform = `translateY(${offset}px) scale(1.1)`;
-  });
-}
-
-/* ─── Recently Viewed ─── */
-function loadRecentlyViewed() {
-  const section = document.getElementById("recently-viewed-section");
-  const grid = document.getElementById("recently-viewed-grid");
-  const clearBtn = document.getElementById("clear-recently-viewed");
-  if (!section || !grid) return;
-
-  const RV_KEY = "trident_recently_viewed";
-  const items = JSON.parse(localStorage.getItem(RV_KEY) || "[]");
-  if (!items.length) return;
-
-  // Only show up to 4 cards
-  const toShow = items.slice(0, 4);
-  grid.innerHTML = toShow.map(p => {
-    const prodHref = productUrl(p);
-    const img = resolveAssetUrl(p.image || "assets/images/Logo.png");
-    return `
-      <article class="product-card reveal" style="cursor:pointer;" data-recent-product-link="${escapeHtml(prodHref)}">
-        <div class="product-media" style="position:relative; overflow:hidden;">
-          <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy" class="product-image">
-        </div>
-        <div class="product-body">
-          <span class="product-type">${escapeHtml(p.category || "T-Shirt")}</span>
-          <h3 class="product-name">${escapeHtml(p.name)}</h3>
-          <div class="product-footer">
-            <strong class="product-price">${formatCurrency(p.price)}</strong>
-          </div>
-          <a href="${prodHref}" class="btn btn-outline" style="width:100%;text-align:center;display:block;margin-top:0.75rem;padding:0.5rem;font-size:0.85rem;">View Again</a>
-        </div>
-      </article>`;
-  }).join("");
-
-  section.style.display = "block";
-  grid.querySelectorAll("[data-recent-product-link]").forEach((card) => {
-    card.addEventListener("click", (event) => {
-      if (event.target.closest("a")) return;
-      window.location.href = card.dataset.recentProductLink;
-    });
-  });
-
-  clearBtn?.addEventListener("click", () => {
-    localStorage.removeItem(RV_KEY);
-    section.style.display = "none";
-  });
-}
-
-/* ─── Sticky mobile CTA — show after hero ─── */
-function initStickyCTA() {
-  const cta = document.getElementById("sticky-mob-cta");
-  if (!cta) return;
-  const hero = document.querySelector(".hero-premium");
-  const threshold = hero ? hero.offsetHeight * 0.8 : 400;
-  window.addEventListener("scroll", () => {
-    cta.style.transform = window.scrollY > threshold ? "translateY(0)" : "translateY(100%)";
-  }, { passive: true });
-  cta.style.transform = "translateY(100%)";
-  cta.style.transition = "transform 0.35s ease";
-}
-
-/* ─── Boot ─── */
-window.addEventListener("DOMContentLoaded", async () => {
-  document.body.classList.add("js-loaded");
-  await initSite();
-  // initHeroSlider(); // Disabled: No slider element exists on active homepage
-  initNewsletter();
-  initScrollReveal();
-  initStickyCTA();
-  initHeroParallax();
-  loadRecentlyViewed();
-  loadStats();
-  loadFeaturedProducts();
-  loadTrendingProducts();
+// ---------------------------------------------------------------- the studio rail
+$('[data-hero-mark]').outerHTML = await logoSvg();
+const railProducts = site.rail?.length ? site.rail.map((id) => byId.get(id)) : RAIL.map((slug) => bySlug.get(slug));
+const pieces = railProducts.filter(Boolean).map((p) => {
+  const front = img(p.image);
+  const views = ANGLES.has(p.slug) ? { q: front.replace('-front.webp', '-q.webp'), s: front.replace('-front.webp', '-s.webp') } : null;
+  if (views) { views.qset = srcset(views.q); views.sset = srcset(views.s); }
+  return { id: p.id, href: `product.html?id=${p.id}`, label: `${esc(p.name)}, ${esc(p.base_color)}, ${inr(p.price)}`,
+    front, srcset: srcset(front), back: p.gallery?.[1] ? img(p.gallery[1]) : '', color: p.color_hex, views, p };
 });
+const caption = $('[data-caption]');
+const studio = mountStudio($('[data-stage]'), pieces, {
+  onFocusChange: (i) => {
+    const { p } = pieces[i];
+    caption.innerHTML = `<b>${esc(p.name)}</b><span>${esc(p.base_color)} · ${inr(p.price)}</span><a href="product.html?id=${p.id}">View piece</a>`;
+  },
+});
+$$('[data-rail-step]').forEach((b) => b.addEventListener('click', () => studio.step(Number(b.dataset.railStep))));
+
+// ---------------------------------------------------------------- new drop
+const withPhotos = products.filter((p) => /-front\.webp$/.test(p.image || '') && p.stock > 0);
+const picks = ['violet-signal-tee', 'essential-oversized-tee-jet-black', 'oxford-button-down-sky', 'heavyweight-classic-tee-sand']
+  .map((s) => bySlug.get(s)).filter(Boolean);
+const chosen = (site.drop || []).map((id) => byId.get(id)).filter(Boolean);
+const drop = (chosen.length ? chosen : picks.length === 4 ? picks : [...products.filter((p) => p.featured), ...withPhotos]).slice(0, 4);
+$('[data-featured]').innerHTML = drop.map((p, i) => productCard(p, { lazy: i > 1 })).join('');
+
+// ---------------------------------------------------------------- fit check preview (tap a colour)
+const demo = $('[data-fit-demo]');
+const garment = $('[data-fit-garment]');
+const demoPieces = ['violet-signal-tee', 'essential-oversized-tee-bone-white', 'oxford-button-down-sky', 'heavyweight-classic-tee-maroon']
+  .map((s) => bySlug.get(s)).filter(Boolean);
+const showPiece = (p) => {
+  garment.classList.add('is-swap');
+  setTimeout(() => {
+    garment.src = img(p.image); garment.srcset = srcset(garment.src); garment.sizes = '320px';
+    garment.alt = `${p.name} previewed on a body outline`;
+    garment.onload = () => garment.classList.remove('is-swap');
+  }, 180);
+  $$('[data-fit-swatches] button', demo).forEach((b) => b.classList.toggle('is-on', Number(b.dataset.id) === p.id));
+};
+$('[data-fit-swatches]').innerHTML = demoPieces.map((p) => `<button type="button" data-id="${p.id}" aria-label="${esc(p.name)}, ${esc(p.base_color)}"><span style="background:${esc(p.color_hex)}"></span></button>`).join('');
+$('[data-fit-swatches]').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  const p = demoPieces.find((x) => x.id === Number(b.dataset.id)); if (p) showPiece(p);
+});
+if (demoPieces[0]) { garment.src = img(demoPieces[0].image); garment.srcset = srcset(garment.src); garment.sizes = '320px'; $('[data-fit-swatches] button')?.classList.add('is-on'); }
+
+// ---------------------------------------------------------------- newsletter (lands in the admin inbox)
+$('[data-news]').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = $('#news-email');
+  if (!input.checkValidity()) { input.classList.add('is-invalid'); toast('Enter a valid email address', { type: 'error' }); return; }
+  try {
+    await api.contact({ name: 'Newsletter subscriber', email: input.value, subject: 'Newsletter signup', message: 'Please add me to the Trident list.' });
+    input.value = ''; toast("You're on the list. We'll email you before the next drop.");
+  } catch (err) { toast(err.message, { type: 'error' }); }
+});
+
+reveal();

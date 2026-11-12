@@ -5,6 +5,7 @@ Pytest configuration and global fixtures for TridentWear test suite.
 import sys
 import os
 import shutil
+import json
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -34,6 +35,10 @@ def default_test_db_isolation(tmp_path, monkeypatch):
         dst = test_dir / f"{table}.json"
         if src.exists():
             shutil.copy2(src, dst)
+        elif table == "coupons":
+            from app.db.test_db import DEFAULT_COUPONS
+            with open(dst, "w", encoding="utf-8") as f:
+                json.dump(DEFAULT_COUPONS, f)
         else:
             with open(dst, "w", encoding="utf-8") as f:
                 f.write("[]")
@@ -53,3 +58,10 @@ def isolated_db():
     """
     with isolated_test_database(seed_data=True) as (test_dir, adapter):
         yield adapter, test_dir
+
+
+# Live-server smoke scripts: they call http://127.0.0.1:8020 at import time.
+# Run them only when a server is up:  TRIDENT_LIVE_TESTS=1 pytest backend/tests
+collect_ignore = []
+if os.getenv("TRIDENT_LIVE_TESTS", "").strip() not in ("1", "true", "yes"):
+    collect_ignore = ["test_admin.py", "test_basic.py", "test_payment_security.py", "test_phase5.py"]

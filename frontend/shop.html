@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Shop T-Shirts & Shirts · TridentWear</title>
+  <meta name="description" content="Shop heavyweight oversized tees, classic tees, oxford, linen and twill shirts from TridentWear.">
+  <meta name="theme-color" content="#f3f4f2">
+  <meta property="og:image" content="assets/brand/og-image.jpg">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" href="assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/tw.css">
+</head>
+<body data-page="shop">
+<main id="main" class="wrap">
+  <div class="page-head">
+    <nav class="crumbs"><a href="index.html">Home</a>/<span data-crumb>Shop</span></nav>
+    <h1 class="h1" data-title>Shop all</h1>
+  </div>
+  <div class="shop">
+    <aside class="filters" data-filters aria-label="Filters">
+      <div class="filter-group"><h4>Category</h4><div class="chips" data-f="cat"></div></div>
+      <div class="filter-group"><h4>Size</h4><div class="chips" data-f="size"></div></div>
+      <div class="filter-group"><h4>Colour</h4><div class="chips" data-f="color"></div></div>
+      <div class="filter-group"><h4>Fit</h4><div class="chips" data-f="fit"></div></div>
+      <div class="filter-group"><h4>Max price · <span data-price-label></span></h4><input class="range" type="range" min="500" max="2500" step="100" data-f="price"></div>
+      <button class="btn btn--ghost btn--sm" data-clear>Clear filters</button>
+      <button class="btn btn--sm filter-toggle" data-close-filters>Show results</button>
+    </aside>
+    <section>
+      <div class="toolbar">
+        <span class="muted" data-count></span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn--ghost btn--sm filter-toggle" data-open-filters>Filters</button>
+          <label class="sr-only" for="sort">Sort</label>
+          <select class="select" id="sort" data-sort>
+            <option value="featured">Featured</option><option value="new">Newest</option>
+            <option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid" data-grid></div>
+    </section>
+  </div>
+</main>
+<script type="module" src="assets/js/pages/shop.js"></script>
+</body>
+</html>

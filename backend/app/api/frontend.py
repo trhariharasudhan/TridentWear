@@ -1,162 +1,92 @@
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
+"""
+Serves the static storefront when the backend hosts the frontend (local dev,
+Docker, Render/Railway). On GitHub Pages the same files are served statically.
+
+New pages are flat `*.html` files in /frontend. Old pretty URLs from the
+previous frontend redirect to their new equivalents so existing links work.
+"""
 from pathlib import Path
-import jwt
-import os
+
+from fastapi import APIRouter, Request
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse
 
 router = APIRouter(tags=["frontend"])
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-FRONTEND_ROOT = BASE_DIR / "frontend"
+FRONTEND_ROOT = Path(__file__).resolve().parents[3] / "frontend"
 
-# ── Minimal server-side admin guard ───────────────────────────────────────────
-def _is_admin(request: Request) -> bool:
-    """Return True if the request carries a valid admin JWT or session marker.
-    This is a defence-in-depth check — JS also guards on the client side.
-    """
-    try:
-        from app.services.auth_service import get_session_user
-        user = get_session_user(request)
-        return bool(user and user.get("role") == "admin")
-    except Exception:
-        return False
+PAGES = {
+    "index", "shop", "product", "tryon", "cart", "checkout", "order", "account",
+    "wishlist", "admin", "about", "contact", "faq", "policies", "offline", "404",
+}
 
-def _load_component(name: str) -> str:
-    comp_path = FRONTEND_ROOT / "components" / f"{name}.html"
-    try:
-        return comp_path.read_text(encoding="utf-8")
-    except OSError:
-        return ""
+LEGACY_REDIRECTS = {
+    "/products": "/shop.html",
+    "/product": "/product.html",
+    "/cart": "/cart.html",
+    "/checkout": "/checkout.html",
+    "/login": "/account.html",
+    "/auth": "/account.html",
+    "/register": "/account.html#register",
+    "/profile": "/account.html",
+    "/wishlist": "/wishlist.html",
+    "/about": "/about.html",
+    "/faq": "/faq.html",
+    "/contact": "/contact.html",
+    "/track": "/order.html",
+    "/privacy": "/policies.html#privacy",
+    "/terms": "/policies.html#terms",
+    "/returns": "/policies.html#returns",
+    "/shipping": "/policies.html#shipping",
+    "/admin": "/admin.html",
+    "/tryon": "/tryon.html",
+    "/fit-check": "/tryon.html",
+}
 
-def html_response(filename: str) -> HTMLResponse:
-    file_paths = [
-        FRONTEND_ROOT / filename,
-        FRONTEND_ROOT / "pages" / filename,
-        FRONTEND_ROOT / "pages" / "shop" / filename,
-        FRONTEND_ROOT / "pages" / "account" / filename,
-        FRONTEND_ROOT / "pages" / "info" / filename,
-        FRONTEND_ROOT / "pages" / "admin" / filename,
-        FRONTEND_ROOT / "pages" / "legal" / filename,
-        FRONTEND_ROOT / "pages" / "support" / filename,
-        FRONTEND_ROOT / "pages" / "error" / filename,
-    ]
-    for path in file_paths:
-        if path.exists():
-            content = path.read_text(encoding="utf-8")
-            if "{{ component:header }}" in content:
-                content = content.replace("{{ component:header }}", _load_component("header"))
-            if "{{ component:footer }}" in content:
-                content = content.replace("{{ component:footer }}", _load_component("footer"))
-            return HTMLResponse(content=content)
-    
-    error_path = FRONTEND_ROOT / "pages" / "error" / "404.html"
-    if error_path.exists():
-        content = error_path.read_text(encoding="utf-8")
-        if "{{ component:header }}" in content:
-            content = content.replace("{{ component:header }}", _load_component("header"))
-        if "{{ component:footer }}" in content:
-            content = content.replace("{{ component:footer }}", _load_component("footer"))
-        return HTMLResponse(content=content, status_code=404)
-    return HTMLResponse(content="<h1>404 Not Found</h1>", status_code=404)
+
+def _page(name: str, status_code: int = 200) -> HTMLResponse:
+    path = FRONTEND_ROOT / f"{name}.html"
+    if not path.exists():
+        path, status_code = FRONTEND_ROOT / "404.html", 404
+    return HTMLResponse(path.read_text(encoding="utf-8"), status_code=status_code)
+
 
 @router.get("/")
-def serve_home(): return html_response("index.html")
+def home() -> HTMLResponse:
+    return _page("index")
 
-@router.get("/products")
-def serve_products_page(): return html_response("products.html")
 
-@router.get("/cart")
-def serve_cart_page(): return html_response("cart.html")
+@router.get("/sw.js")
+def service_worker() -> FileResponse:
+    # must be served from the root so its scope covers the whole site
+    return FileResponse(FRONTEND_ROOT / "sw.js", media_type="application/javascript",
+                        headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"})
 
-@router.get("/product")
-def serve_product_page(): return html_response("product.html")
 
-@router.get("/checkout")
-def serve_checkout_page(): return html_response("checkout.html")
+@router.get("/manifest.webmanifest")
+def manifest() -> FileResponse:
+    return FileResponse(FRONTEND_ROOT / "manifest.webmanifest", media_type="application/manifest+json")
 
-@router.get("/auth")
-def serve_auth_page(request: Request): return RedirectResponse(url="/login")
 
-@router.get("/login")
-def serve_login_page(): return html_response("login.html")
+@router.get("/robots.txt")
+def robots() -> PlainTextResponse:
+    return PlainTextResponse((FRONTEND_ROOT / "robots.txt").read_text(encoding="utf-8"))
 
-@router.get("/register")
-def serve_register_page(): return html_response("register.html")
 
-@router.get("/about")
-def serve_about_page(): return html_response("about.html")
+@router.get("/sitemap.xml")
+def sitemap() -> FileResponse:
+    return FileResponse(FRONTEND_ROOT / "sitemap.xml", media_type="application/xml")
 
-@router.get("/faq")
-def serve_faq_page(): return html_response("faq.html")
 
-@router.get("/contact")
-def serve_contact_page(): return html_response("contact.html")
+@router.get("/{page}.html")
+def html_page(page: str) -> HTMLResponse:
+    if page not in PAGES:
+        return _page("404", 404)
+    return _page(page)
 
-@router.get("/admin")
-def serve_admin_page(request: Request):
-    if not _is_admin(request):
-        return RedirectResponse(url="/login?next=%2Fadmin", status_code=302)
-    return html_response("admin.html")
 
-@router.get("/admin/chat")
-def serve_admin_chat_page(request: Request):
-    if not _is_admin(request):
-        return RedirectResponse(url="/login?next=%2Fadmin", status_code=302)
-    return html_response("chat.html")
-
-@router.get("/wishlist")
-def serve_wishlist_page(): return html_response("wishlist.html")
-
-@router.get("/privacy")
-def serve_privacy_page(): return html_response("privacy.html")
-
-@router.get("/terms")
-def serve_terms_page(): return html_response("terms.html")
-
-@router.get("/returns")
-def serve_returns_page(): return html_response("returns.html")
-
-@router.get("/shipping")
-def serve_shipping_page(): return html_response("shipping.html")
-
-@router.get("/track")
-def serve_track_page(): return html_response("track.html")
-
-@router.get("/chat")
-def serve_chat_page():
-    # Explicitly serve support chat — NOT admin/chat.html (which shares the filename)
-    support_chat = FRONTEND_ROOT / "pages" / "support" / "chat.html"
-    if support_chat.exists():
-        content = support_chat.read_text(encoding="utf-8")
-        if "{{ component:header }}" in content:
-            content = content.replace("{{ component:header }}", _load_component("header"))
-        if "{{ component:footer }}" in content:
-            content = content.replace("{{ component:footer }}", _load_component("footer"))
-        return HTMLResponse(content=content)
-    return html_response("chat.html")
-
-@router.get("/profile")
-def serve_profile_page(): return html_response("profile.html")
-
-@router.get("/profile-setup")
-def serve_profile_setup_page(): return html_response("profile-setup.html")
-
-@router.get("/verify")
-def serve_verify_page(): return html_response("verify.html")
-
-@router.get("/{page_name}.html")
-def legacy_html_routes(page_name: str, request: Request):
-    return html_response(f"{page_name}.html")
-
-@router.get("/robots.txt", include_in_schema=False)
-def serve_robots_txt():
-    robots_path = FRONTEND_ROOT / "robots.txt"
-    if robots_path.exists():
-        return PlainTextResponse(robots_path.read_text(encoding="utf-8"))
-    return PlainTextResponse("User-agent: *\nAllow: /\n")
-
-@router.get("/sitemap.xml", include_in_schema=False)
-def serve_sitemap():
-    sitemap_path = FRONTEND_ROOT / "sitemap.xml"
-    if sitemap_path.exists():
-        return Response(content=sitemap_path.read_text(encoding="utf-8"), media_type="application/xml")
-    return Response(content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>", media_type="application/xml")
+@router.get("/{legacy:path}")
+def legacy(legacy: str, request: Request):
+    target = LEGACY_REDIRECTS.get("/" + legacy.rstrip("/"))
+    if target:
+        qs = request.url.query
+        return RedirectResponse(url=target + (("?" + qs) if qs and "#" not in target else ""), status_code=301)
+    return _page("404", 404)

@@ -1,2551 +1,892 @@
 [
-    {
-        "id": 1,
-        "name": "Classic Black Crew Neck",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Black",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Crew Neck",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "White",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 7,
-        "name": "Navy Polo T-Shirt",
-        "category": "tshirt",
-        "price": 1099,
-        "description": "Classic polo collar tee in navy blue with premium cotton blend fabric.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 119,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Navy",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        },
-        "allocated_orders": {
-            "TRD-C88B268F": {
-                "quantity": 1,
-                "allocated_at": "2026-11-09T09:01:53.178979+00:00"
-            }
-        }
-    },
-    {
-        "id": 9,
-        "name": "Henley Buttoned Tee",
-        "category": "tshirt",
-        "price": 999,
-        "description": "Classic henley with 3-button placket in olive green. Premium comfort and style.",
-        "image": "/images/olive-shirt.png",
-        "tag": "New",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 79,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        },
-        "allocated_orders": {
-            "TRD-C88B268F": {
-                "quantity": 1,
-                "allocated_at": "2026-11-09T09:01:53.178979+00:00"
-            }
-        }
-    },
-    {
-        "id": 10,
-        "name": "Graphic Dragon Tee",
-        "category": "tshirt",
-        "price": 1299,
-        "description": "Bold graphic print featuring dragon design. Premium print quality with vibrant colors.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 110,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 13,
-        "name": "Typography Art Tee",
-        "category": "tshirt",
-        "price": 1099,
-        "description": "Bold typography design with artistic text placement. Modern urban style.",
-        "image": "/images/black-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 85,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 14,
-        "name": "Black & White Striped",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Classic horizontal stripes in black and white. Timeless design with modern fit.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 140,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "White",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 16,
-        "name": "Washed Blue Vintage",
-        "category": "tshirt",
-        "price": 1099,
-        "description": "Acid washed blue tee with vintage feel. Pre-treated for authentic worn-in look.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Navy",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 18,
-        "name": "Full Sleeve Thermal",
-        "category": "tshirt",
-        "price": 999,
-        "description": "Premium full sleeve thermal tee. Perfect for layering or winter wear.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Winter Essential",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 130,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 20,
-        "name": "Slim Fit Black",
-        "category": "tshirt",
-        "price": 849,
-        "description": "Body-hugging slim fit tee in premium black. Sharp tailored silhouette.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 160,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Black",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 21,
-        "name": "Regular Fit White",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Classic regular fit white tee. Comfortable everyday essential.",
-        "image": "/images/white-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 220,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "White",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 23,
-        "name": "Streetwear Oversized",
-        "category": "tshirt",
-        "price": 1199,
-        "description": "Ultimate streetwear oversized fit with dropped shoulders and premium weight.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 110,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 24,
-        "name": "New Arrival Minimalist",
-        "category": "tshirt",
-        "price": 949,
-        "description": "Fresh minimalist design with subtle branding. Latest season collection.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Arrival",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 74,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a premium streetwear drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Charcoal",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 8,
-        "name": "Deep V-Neck Charcoal",
-        "category": "tshirt",
-        "price": 849,
-        "description": "Stylish V-neck tee in charcoal with perfect layering fit.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 95,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Charcoal",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 11,
-        "name": "Plain White Relaxed Fit",
-        "category": "tshirt",
-        "price": 599,
-        "description": "Pure white plain tee with relaxed fit. Perfect for everyday wear.",
-        "image": "/images/white-tshirt.png",
-        "tag": "",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 250,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "White",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 12,
-        "name": "Printed Vintage Tee",
-        "category": "tshirt",
-        "price": 1199,
-        "description": "Vintage style print with retro aesthetic. Limited edition design.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Limited",
-        "sizes": [
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 60,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 15,
-        "name": "Color Block Grey-White",
-        "category": "tshirt",
-        "price": 999,
-        "description": "Modern color blocking with grey and white panels. Contemporary design.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "New",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 75,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "White",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 17,
-        "name": "Tie-Dye Rainbow",
-        "category": "tshirt",
-        "price": 1199,
-        "description": "Vibrant tie-dye with rainbow colors. Unique hand-dyed aesthetic.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 65,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 19,
-        "name": "Half Sleeve Classic",
-        "category": "tshirt",
-        "price": 749,
-        "description": "Premium half sleeve tee in classic black. Versatile all-season wear.",
-        "image": "/images/black-tshirt.png",
-        "tag": "",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 180,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 22,
-        "name": "Gym Wear Performance Tee",
-        "category": "tshirt",
-        "price": 1099,
-        "description": "Moisture-wicking performance tee for workouts. Lightweight and breathable.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Active",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Navy",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Olive",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false,
-        "material": "100% Cotton",
-        "gsm": 220,
-        "fit_type": "Oversized",
-        "neck_type": "Round Neck",
-        "design_type": "Graphic",
-        "cloth_type": "Half Sleeve T-Shirt",
-        "base_color": "Stone",
-        "fabric": "100% Cotton",
-        "design_color": "",
-        "print_method": [
-            "DTG",
-            "Embroidery"
-        ],
-        "wash_care_label": true,
-        "wash_care": [
-            "Machine wash cold with like colours",
-            "Do not bleach",
-            "Dry inside out in shade",
-            "Warm iron inside out; do not iron on print"
-        ],
-        "size_quantities": {},
-        "tag_metadata": {
-            "season": "All season",
-            "style": "Half Sleeve T-Shirt",
-            "material": "100% Cotton",
-            "model_size": "Model wears M",
-            "factory": "TridentWear India"
-        }
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 200,
-        "featured": true
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    },
-    {
-        "id": 1,
-        "name": "Classic Black Tee",
-        "category": "tshirt",
-        "price": 799,
-        "description": "Premium 220 GSM cotton crew neck tee in timeless black. Relaxed fit, pre-shrunk fabric.",
-        "image": "/images/black-tshirt.png",
-        "tag": "Bestseller",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 0,
-        "featured": true
-    },
-    {
-        "id": 2,
-        "name": "White Minimal Tee",
-        "category": "tshirt",
-        "price": 699,
-        "description": "Clean white tee with a minimal cut. 200 GSM bio-washed cotton for an ultra-soft feel.",
-        "image": "/images/white-tshirt.png",
-        "tag": "New Drop",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 199,
-        "featured": true,
-        "allocated_orders": {
-            "TRD-C88B268F": {
-                "quantity": 1,
-                "allocated_at": "2026-11-09T09:01:53.178979+00:00"
-            }
-        }
-    },
-    {
-        "id": 3,
-        "name": "Navy Formal Shirt",
-        "category": "shirt",
-        "price": 1299,
-        "description": "Slim-fit navy blue formal shirt with wrinkle-resistant fabric built for all-day structure.",
-        "image": "/images/navy-shirt.png",
-        "tag": "Premium",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 80,
-        "featured": true
-    },
-    {
-        "id": 4,
-        "name": "Olive Casual Shirt",
-        "category": "shirt",
-        "price": 1099,
-        "description": "Relaxed-fit olive button-up with breathable cotton blend and easy street-luxury styling.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Street Essential",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 120,
-        "featured": true
-    },
-    {
-        "id": 5,
-        "name": "Charcoal Oversized Tee",
-        "category": "tshirt",
-        "price": 899,
-        "description": "Oversized drop-shoulder tee in charcoal grey. Heavy cotton weight with a clean structured drape.",
-        "image": "/images/grey-tshirt.png",
-        "tag": "Trending",
-        "sizes": [
-            "M",
-            "L",
-            "XL",
-            "XXL"
-        ],
-        "stock": 100,
-        "featured": false
-    },
-    {
-        "id": 6,
-        "name": "Stone Linen Shirt",
-        "category": "shirt",
-        "price": 1199,
-        "description": "Lightweight linen-blend shirt in a clean stone tone with a refined mandarin collar finish.",
-        "image": "/images/olive-shirt.png",
-        "tag": "Summer Edit",
-        "sizes": [
-            "S",
-            "M",
-            "L",
-            "XL"
-        ],
-        "stock": 90,
-        "featured": false
-    }
+  {
+    "id": 1,
+    "slug": "essential-oversized-tee-jet-black",
+    "style_code": "TW-OS01",
+    "name": "Essential Oversized Tee",
+    "base_color": "Jet Black",
+    "color_hex": "#17181b",
+    "category": "tshirt",
+    "price": 899,
+    "mrp": 1299,
+    "tag": "Bestseller",
+    "featured": true,
+    "gsm": 240,
+    "fit_type": "Oversized",
+    "neck_type": "Round Neck",
+    "stock": 120,
+    "description": "Our signature 240 GSM heavyweight cotton tee with dropped shoulders and a boxy oversized cut. Bio-washed for a soft hand-feel that holds its shape wash after wash.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/essential-oversized-tee-jet-black-front.webp",
+    "gallery": [
+      "/images/products/essential-oversized-tee-jet-black-front.webp",
+      "/images/products/essential-oversized-tee-jet-black-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.747,
+        0.168
+      ],
+      "rs": [
+        0.253,
+        0.168
+      ],
+      "hip": [
+        0.5,
+        0.853
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 2,
+    "slug": "essential-oversized-tee-bone-white",
+    "style_code": "TW-OS01",
+    "name": "Essential Oversized Tee",
+    "base_color": "Bone White",
+    "color_hex": "#ece7dc",
+    "category": "tshirt",
+    "price": 899,
+    "mrp": 1299,
+    "tag": "Bestseller",
+    "featured": true,
+    "gsm": 240,
+    "fit_type": "Oversized",
+    "neck_type": "Round Neck",
+    "stock": 140,
+    "description": "Our signature 240 GSM heavyweight cotton tee in a warm off-white. Dropped shoulders and a boxy oversized cut.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/essential-oversized-tee-bone-white-front.webp",
+    "gallery": [
+      "/images/products/essential-oversized-tee-bone-white-front.webp",
+      "/images/products/essential-oversized-tee-bone-white-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.752,
+        0.157
+      ],
+      "rs": [
+        0.247,
+        0.157
+      ],
+      "hip": [
+        0.5,
+        0.865
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 3,
+    "slug": "essential-oversized-tee-charcoal",
+    "style_code": "TW-OS01",
+    "name": "Essential Oversized Tee",
+    "base_color": "Charcoal",
+    "color_hex": "#45474c",
+    "category": "tshirt",
+    "price": 899,
+    "mrp": 1299,
+    "tag": "",
+    "featured": false,
+    "gsm": 240,
+    "fit_type": "Oversized",
+    "neck_type": "Round Neck",
+    "stock": 90,
+    "description": "Heavyweight 240 GSM oversized tee in deep charcoal. Built for everyday rotation with a structured drape and ribbed collar that doesn't sag.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/essential-oversized-tee-charcoal-front.webp",
+    "gallery": [
+      "/images/products/essential-oversized-tee-charcoal-front.webp",
+      "/images/products/essential-oversized-tee-charcoal-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.748,
+        0.155
+      ],
+      "rs": [
+        0.251,
+        0.155
+      ],
+      "hip": [
+        0.5,
+        0.867
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 4,
+    "slug": "essential-oversized-tee-olive",
+    "style_code": "TW-OS01",
+    "name": "Essential Oversized Tee",
+    "base_color": "Olive Drab",
+    "color_hex": "#5a5e41",
+    "category": "tshirt",
+    "price": 899,
+    "mrp": 1299,
+    "tag": "New",
+    "featured": true,
+    "gsm": 240,
+    "fit_type": "Oversized",
+    "neck_type": "Round Neck",
+    "stock": 80,
+    "description": "Military-inspired olive in our 240 GSM heavyweight oversized block. Pairs with denim, cargos or anything in between.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/essential-oversized-tee-olive-front.webp",
+    "gallery": [
+      "/images/products/essential-oversized-tee-olive-front.webp",
+      "/images/products/essential-oversized-tee-olive-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.746,
+        0.145
+      ],
+      "rs": [
+        0.253,
+        0.145
+      ],
+      "hip": [
+        0.5,
+        0.879
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 5,
+    "slug": "trident-wordmark-tee-black",
+    "style_code": "TW-GR01",
+    "name": "Flagship Oversized Tee",
+    "base_color": "Jet Black",
+    "color_hex": "#141518",
+    "category": "tshirt",
+    "price": 1199,
+    "mrp": 1599,
+    "tag": "Drop 01",
+    "featured": true,
+    "gsm": 240,
+    "fit_type": "Oversized",
+    "neck_type": "Round Neck",
+    "design_type": "Graphic",
+    "stock": 70,
+    "description": "The flagship oversized 240 GSM tee in black. Dropped shoulders, a wide rib collar and a clean, unbranded finish.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/trident-wordmark-tee-black-front.webp",
+    "gallery": [
+      "/images/products/trident-wordmark-tee-black-front.webp",
+      "/images/products/trident-wordmark-tee-black-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.747,
+        0.168
+      ],
+      "rs": [
+        0.253,
+        0.168
+      ],
+      "hip": [
+        0.5,
+        0.853
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 6,
+    "slug": "trident-wordmark-tee-white",
+    "style_code": "TW-GR01",
+    "name": "Flagship Oversized Tee",
+    "base_color": "Bone White",
+    "color_hex": "#efebe3",
+    "category": "tshirt",
+    "price": 1199,
+    "mrp": 1599,
+    "tag": "Drop 01",
+    "featured": false,
+    "gsm": 240,
+    "fit_type": "Oversized",
+    "neck_type": "Round Neck",
+    "design_type": "Graphic",
+    "stock": 65,
+    "description": "The flagship oversized 240 GSM tee in white. Dropped shoulders, a wide rib collar and a clean, unbranded finish.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/trident-wordmark-tee-white-front.webp",
+    "gallery": [
+      "/images/products/trident-wordmark-tee-white-front.webp",
+      "/images/products/trident-wordmark-tee-white-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.752,
+        0.157
+      ],
+      "rs": [
+        0.247,
+        0.157
+      ],
+      "hip": [
+        0.5,
+        0.865
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 7,
+    "slug": "violet-signal-tee",
+    "style_code": "TW-GR02",
+    "name": "Violet Signal Tee",
+    "base_color": "Deep Violet",
+    "color_hex": "#3a2a6e",
+    "category": "tshirt",
+    "price": 1299,
+    "mrp": 1699,
+    "tag": "Limited",
+    "featured": true,
+    "gsm": 240,
+    "fit_type": "Oversized",
+    "neck_type": "Round Neck",
+    "design_type": "Graphic",
+    "stock": 40,
+    "description": "Signature brand violet with an amber front signal graphic and full back print. Limited run of 300 pieces.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/violet-signal-tee-front.webp",
+    "gallery": [
+      "/images/products/violet-signal-tee-front.webp",
+      "/images/products/violet-signal-tee-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.762,
+        0.159
+      ],
+      "rs": [
+        0.237,
+        0.159
+      ],
+      "hip": [
+        0.5,
+        0.863
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 8,
+    "slug": "heavyweight-classic-tee-navy",
+    "style_code": "TW-CL01",
+    "name": "Heavyweight Classic Tee",
+    "base_color": "Midnight Navy",
+    "color_hex": "#1e273a",
+    "category": "tshirt",
+    "price": 749,
+    "mrp": 999,
+    "tag": "",
+    "featured": false,
+    "gsm": 220,
+    "fit_type": "Regular",
+    "neck_type": "Round Neck",
+    "stock": 150,
+    "description": "A regular-fit essential in 220 GSM combed cotton. Set-in sleeves and clean lines.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/heavyweight-classic-tee-navy-front.webp",
+    "gallery": [
+      "/images/products/heavyweight-classic-tee-navy-front.webp",
+      "/images/products/heavyweight-classic-tee-navy-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.752,
+        0.13
+      ],
+      "rs": [
+        0.246,
+        0.13
+      ],
+      "hip": [
+        0.5,
+        0.895
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 9,
+    "slug": "heavyweight-classic-tee-sand",
+    "style_code": "TW-CL01",
+    "name": "Heavyweight Classic Tee",
+    "base_color": "Sand",
+    "color_hex": "#cbb895",
+    "category": "tshirt",
+    "price": 749,
+    "mrp": 999,
+    "tag": "",
+    "featured": false,
+    "gsm": 220,
+    "fit_type": "Regular",
+    "neck_type": "Round Neck",
+    "stock": 110,
+    "description": "Regular-fit 220 GSM tee in a muted sand tone. The everyday layer that goes with everything.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/heavyweight-classic-tee-sand-front.webp",
+    "gallery": [
+      "/images/products/heavyweight-classic-tee-sand-front.webp",
+      "/images/products/heavyweight-classic-tee-sand-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.744,
+        0.12
+      ],
+      "rs": [
+        0.254,
+        0.12
+      ],
+      "hip": [
+        0.5,
+        0.905
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 10,
+    "slug": "heavyweight-classic-tee-maroon",
+    "style_code": "TW-CL01",
+    "name": "Heavyweight Classic Tee",
+    "base_color": "Maroon",
+    "color_hex": "#5c1f2a",
+    "category": "tshirt",
+    "price": 749,
+    "mrp": 999,
+    "tag": "",
+    "featured": false,
+    "gsm": 220,
+    "fit_type": "Regular",
+    "neck_type": "Round Neck",
+    "stock": 8,
+    "description": "Regular-fit 220 GSM combed cotton tee in deep maroon.",
+    "fabric": "100% Cotton",
+    "material": "100% Cotton",
+    "cloth_type": "Half Sleeve T-Shirt",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/heavyweight-classic-tee-maroon-front.webp",
+    "gallery": [
+      "/images/products/heavyweight-classic-tee-maroon-front.webp",
+      "/images/products/heavyweight-classic-tee-maroon-back.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.737,
+        0.142
+      ],
+      "rs": [
+        0.262,
+        0.142
+      ],
+      "hip": [
+        0.5,
+        0.882
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 11,
+    "slug": "oxford-button-down-sky",
+    "style_code": "TW-SH01",
+    "name": "Oxford Button-Down Shirt",
+    "base_color": "Sky Blue",
+    "color_hex": "#a8c0da",
+    "category": "shirt",
+    "price": 1499,
+    "mrp": 1999,
+    "tag": "Bestseller",
+    "featured": true,
+    "gsm": 140,
+    "fabric": "100% Cotton Oxford",
+    "fit_type": "Regular",
+    "neck_type": "Button-Down Collar",
+    "cloth_type": "Full Sleeve Shirt",
+    "stock": 75,
+    "description": "Classic cotton oxford with a button-down collar, chest pocket and a back box pleat. Office to weekend.",
+    "material": "100% Cotton Oxford",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/oxford-button-down-sky-front.webp",
+    "gallery": [
+      "/images/products/oxford-button-down-sky-front.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.71,
+        0.122
+      ],
+      "rs": [
+        0.29,
+        0.122
+      ],
+      "hip": [
+        0.5,
+        0.908
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 12,
+    "slug": "oxford-button-down-white",
+    "style_code": "TW-SH01",
+    "name": "Oxford Button-Down Shirt",
+    "base_color": "Crisp White",
+    "color_hex": "#f1f0ec",
+    "category": "shirt",
+    "price": 1499,
+    "mrp": 1999,
+    "tag": "",
+    "featured": false,
+    "gsm": 140,
+    "fabric": "100% Cotton Oxford",
+    "fit_type": "Regular",
+    "neck_type": "Button-Down Collar",
+    "cloth_type": "Full Sleeve Shirt",
+    "stock": 85,
+    "description": "The white oxford every wardrobe needs. Button-down collar and a chest pocket.",
+    "material": "100% Cotton Oxford",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/oxford-button-down-white-front.webp",
+    "gallery": [
+      "/images/products/oxford-button-down-white-front.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.71,
+        0.122
+      ],
+      "rs": [
+        0.29,
+        0.122
+      ],
+      "hip": [
+        0.5,
+        0.908
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 13,
+    "slug": "formal-slim-shirt-navy",
+    "style_code": "TW-SH02",
+    "name": "Formal Slim Shirt",
+    "base_color": "Midnight Navy",
+    "color_hex": "#22304a",
+    "category": "shirt",
+    "price": 1599,
+    "mrp": 2199,
+    "tag": "",
+    "featured": false,
+    "gsm": 120,
+    "fabric": "Cotton Poplin",
+    "fit_type": "Slim",
+    "neck_type": "Spread Collar",
+    "cloth_type": "Full Sleeve Shirt",
+    "stock": 60,
+    "description": "Slim-fit poplin shirt with a sharp spread collar and a clean chest pocket. Wrinkle-resistant finish.",
+    "material": "Cotton Poplin",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/formal-slim-shirt-navy-front.webp",
+    "gallery": [
+      "/images/products/formal-slim-shirt-navy-front.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.71,
+        0.122
+      ],
+      "rs": [
+        0.29,
+        0.122
+      ],
+      "hip": [
+        0.5,
+        0.908
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 14,
+    "slug": "twill-overshirt-black",
+    "style_code": "TW-SH03",
+    "name": "Utility Twill Overshirt",
+    "base_color": "Jet Black",
+    "color_hex": "#1b1b1e",
+    "category": "shirt",
+    "price": 1899,
+    "mrp": 2499,
+    "tag": "New",
+    "featured": true,
+    "gsm": 260,
+    "fabric": "Cotton Twill",
+    "fit_type": "Relaxed",
+    "neck_type": "Point Collar",
+    "cloth_type": "Overshirt",
+    "stock": 45,
+    "description": "Heavy 260 GSM cotton twill overshirt with twin flap pockets. Wear it buttoned up or open over a tee.",
+    "material": "Cotton Twill",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/twill-overshirt-black-front.webp",
+    "gallery": [
+      "/images/products/twill-overshirt-black-front.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.71,
+        0.122
+      ],
+      "rs": [
+        0.29,
+        0.122
+      ],
+      "hip": [
+        0.5,
+        0.908
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 15,
+    "slug": "linen-camp-shirt-stone",
+    "style_code": "TW-SH04",
+    "name": "Linen Camp Collar Shirt",
+    "base_color": "Stone",
+    "color_hex": "#d5cab5",
+    "category": "shirt",
+    "price": 1399,
+    "mrp": 1899,
+    "tag": "Summer",
+    "featured": true,
+    "gsm": 150,
+    "fabric": "Linen-Cotton Blend",
+    "fit_type": "Relaxed",
+    "neck_type": "Camp Collar",
+    "cloth_type": "Half Sleeve Shirt",
+    "stock": 70,
+    "description": "Breathable linen-cotton camp collar shirt with a relaxed boxy cut. Built for Indian summers.",
+    "material": "Linen-Cotton Blend",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/linen-camp-shirt-stone-front.webp",
+    "gallery": [
+      "/images/products/linen-camp-shirt-stone-front.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.71,
+        0.139
+      ],
+      "rs": [
+        0.29,
+        0.139
+      ],
+      "hip": [
+        0.5,
+        0.889
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  },
+  {
+    "id": 16,
+    "slug": "linen-camp-shirt-olive",
+    "style_code": "TW-SH04",
+    "name": "Linen Camp Collar Shirt",
+    "base_color": "Olive",
+    "color_hex": "#676a4b",
+    "category": "shirt",
+    "price": 1399,
+    "mrp": 1899,
+    "tag": "Summer",
+    "featured": false,
+    "gsm": 150,
+    "fabric": "Linen-Cotton Blend",
+    "fit_type": "Relaxed",
+    "neck_type": "Camp Collar",
+    "cloth_type": "Half Sleeve Shirt",
+    "stock": 55,
+    "description": "Breathable linen-cotton camp collar shirt in olive with a patch pocket.",
+    "material": "Linen-Cotton Blend",
+    "design_type": "Solid",
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL"
+    ],
+    "image": "/images/products/linen-camp-shirt-olive-front.webp",
+    "gallery": [
+      "/images/products/linen-camp-shirt-olive-front.webp"
+    ],
+    "tryon": {
+      "ls": [
+        0.71,
+        0.154
+      ],
+      "rs": [
+        0.29,
+        0.154
+      ],
+      "hip": [
+        0.5,
+        0.872
+      ]
+    },
+    "print_method": [],
+    "wash_care_label": true,
+    "wash_care": [
+      "Machine wash cold, inside out",
+      "Do not bleach",
+      "Dry flat in shade",
+      "Do not iron on print or embroidery"
+    ]
+  }
 ]

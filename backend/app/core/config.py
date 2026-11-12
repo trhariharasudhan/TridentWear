@@ -186,3 +186,8 @@ def get_fbt_secret() -> str:
     if IS_PRODUCTION:
         raise RuntimeError("[SECURITY] TRIDENT_FBT_SECRET / TRIDENT_JWT_SECRET is not set in production.")
     return _DEV_FBT_SECRET
+
+
+def allow_client_test_mode(requested: bool) -> bool:
+    """Clients may only request test_mode (mock payments, no stock deduction) outside production."""
+    return bool(requested) and os.getenv("ENVIRONMENT", "development").strip().lower() != "production"

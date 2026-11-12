@@ -1,587 +1,138 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <base href="/TridentWear/" />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="TridentWear — Premium T-Shirts crafted in India. Bold fits, clean drops, zero compromise. Shop the latest collection now."
-    />
-    <meta
-      name="keywords"
-      content="premium tshirts, streetwear india, graphic tees, oversized tshirts, tridentwear"
-    />
-    <link rel="canonical" href="/" />
-    <meta property="og:title" content="TridentWear — Wear The Standard" />
-    <meta
-      property="og:description"
-      content="Premium Indian streetwear. Every drop is a statement."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/assets/images/hero-banner.jpg" />
-    <meta property="og:site_name" content="TridentWear" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="TridentWear — Wear The Standard" />
-    <meta
-      name="twitter:description"
-      content="Premium Indian streetwear. Heavyweight cotton essentials, clean fits, and fast support."
-    />
-    <meta name="twitter:image" content="/assets/images/hero-banner.jpg" />
-    <title>TridentWear — Wear The Standard</title>
-    <link rel="icon" type="image/png" href="/assets/images/Logo.png" />
-    <link rel="apple-touch-icon" href="/assets/images/Logo.png" />
-    <link rel="preload" as="image" href="/assets/images/hero-banner.jpg" />
-    <link rel="preload" as="image" href="/assets/images/black-tshirt.png" />
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="/assets/css/styles.css?v=20260430-v3" />
-    <link rel="stylesheet" href="/assets/css/premium.css?v=20260430-v3" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    />
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "TridentWear",
-      "url": "https://trhariharasudhan.github.io/TridentWear/",
-      "logo": "https://trhariharasudhan.github.io/TridentWear/assets/images/Logo.png",
-      "sameAs": [
-        "https://instagram.com/tridentwear.in",
-        "https://twitter.com/tridentwear"
-      ],
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "email": "support@tridentwear.in",
-        "contactType": "customer service",
-        "areaServed": "IN",
-        "availableLanguage": "en"
-      }
-    }
-    </script>
-  </head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>TridentWear — Heavyweight T-shirts & shirts, made in India</title>
+  <meta name="description" content="TridentWear makes 240 GSM T-shirts and cotton shirts in India, cut clean with no logos on the fabric. Try any piece on with AI Fit Check before you buy.">
+  <meta name="theme-color" content="#23262d">
+  <meta property="og:title" content="TridentWear — Heavyweight T-shirts & shirts">
+  <meta property="og:description" content="240 GSM tees and cotton shirts, made in India. Try them on with AI Fit Check.">
+  <meta property="og:image" content="assets/brand/og-image.jpg">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" href="assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" as="image" href="assets/images/products/violet-signal-tee-front-480.webp" fetchpriority="high">
+  <link rel="stylesheet" href="assets/css/tw.css">
+</head>
+<body data-page="home">
+<main id="main">
 
-  <body data-page="home">
-    <!-- ── Announcement Bar ── -->
-    <div class="announce-bar" id="announce-bar">
-      <div class="announce-inner">
-        <span>🚚 <strong>Free Shipping</strong> ₹799+</span>
-        <span class="announce-sep">|</span>
-        <span
-          >🎉 Use code <strong>TRIDENTFIRST</strong> for 20% off your first
-          order</span
-        >
-        <span class="announce-sep">|</span>
-        <span>🇮🇳 Proudly Made in India</span>
+  <!-- Studio rail: real garments on wire hangers. Drag to browse (it loops), twist a piece to see the back. -->
+  <section class="studio" aria-labelledby="hero-title">
+    <p class="studio__line">Heavyweight tees &nbsp;//&nbsp; Oxford shirts &nbsp;//&nbsp; Linen camp shirts &nbsp;//&nbsp; Made in India</p>
+    <div class="studio__stage" data-stage tabindex="0" aria-roledescription="carousel" aria-label="The rail. Drag or use the arrow keys to browse; drag a piece sideways to see its back.">
+      <div class="studio__rail" aria-hidden="true"></div>
+      <div class="studio__floor" data-floor aria-hidden="true"></div>
+      <div class="studio__track" data-track></div>
+    </div>
+    <div class="wrap studio__foot">
+      <div class="studio__caption" data-caption aria-live="polite"></div>
+      <div class="studio__brand">
+        <h1 id="hero-title"><span data-hero-mark></span>TridentWear</h1>
+        <p>240 GSM tees and cotton shirts, cut clean. Try anything on with your camera first.</p>
+        <div class="studio__cta">
+          <a class="btn" href="shop.html">Shop the drop</a>
+          <a class="btn btn--ghost" href="tryon.html">Try it on <span class="tag tag--violet" style="height:22px">AI</span></a>
+        </div>
+      </div>
+      <div class="studio__nav">
+        <button type="button" data-rail-step="-1" aria-label="Previous piece"></button>
+        <button type="button" data-rail-step="1" aria-label="Next piece"></button>
       </div>
     </div>
+  </section>
 
-    <!-- ── Header ── -->
-    {{ component:header }}
-
-    <main>
-      <!-- ════════════════════════════════════
-           PREMIUM LUXURY HERO
-      ════════════════════════════════════ -->
-      <section class="hero-premium" aria-label="Hero">
-        <div class="hero-bg-gradient"></div>
-        <div class="hero-noise"></div>
-        <div class="container hero-premium-content">
-          <div class="hero-text-wrap" data-animate="fade-up">
-            <span
-              class="eyebrow"
-              style="
-                color: var(--secondary);
-                margin-bottom: 1rem;
-                display: inline-block;
-              "
-              >SS/26 Collection Live</span
-            >
-            <h1 class="hero-headline-premium">WEAR THE<br />STANDARD.</h1>
-            <p class="hero-sub-premium">
-              Heavyweight essentials crafted for those who refuse to blend in.
-              100% Premium Cotton. Zero Compromise.
-            </p>
-            <div class="hero-cta-group">
-              <a class="btn btn-premium-primary" href="/products">
-                Shop The Drop
-                <i class="fa-solid fa-arrow-right" style="margin-left: 8px"></i>
-              </a>
-              <a class="btn btn-premium-secondary" href="/about">
-                Our Manifesto
-              </a>
-            </div>
-            <div
-              class="hero-premium-proof"
-              aria-label="Brand quality highlights"
-            >
-              <span><strong>220 GSM</strong> cotton</span>
-              <span><strong>30-day</strong> returns</span>
-              <span><strong>COD</strong> available</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ════════════════════════════════════
-           PREMIUM MARQUEE
-      ════════════════════════════════════ -->
-      <div class="premium-marquee">
-        <div class="marquee-content">
-          <span>STREETWEAR</span><span class="dot">•</span>
-          <span>HEAVYWEIGHT ESSENTIALS</span><span class="dot">•</span>
-          <span>PREMIUM CRAFTSMANSHIP</span><span class="dot">•</span>
-          <span>MADE IN INDIA</span><span class="dot">•</span>
-          <span>OVERSIZED FITS</span><span class="dot">•</span>
-          <span>STREETWEAR</span><span class="dot">•</span>
-          <span>HEAVYWEIGHT ESSENTIALS</span><span class="dot">•</span>
-          <span>PREMIUM CRAFTSMANSHIP</span><span class="dot">•</span>
-          <span>MADE IN INDIA</span><span class="dot">•</span>
-          <span>OVERSIZED FITS</span><span class="dot">•</span>
-        </div>
+  <!-- New drop -->
+  <section class="section cv">
+    <div class="wrap">
+      <div class="section-head">
+        <div><h2 class="h2">Drop 01 is live</h2><p class="muted">Oversized tees, classic tees and Oxford shirts.</p></div>
+        <a class="btn btn--ghost btn--sm" href="shop.html">Shop all</a>
       </div>
-
-      <!-- ════════════════════════════════════
-           TRUST STRIP
-      ════════════════════════════════════ -->
-      <div class="trust-strip" data-animate="fade-up">
-        <div class="container">
-          <div class="trust-strip-inner">
-            <div class="trust-item">
-              <i class="fa-solid fa-fire"></i>
-              <span>Trusted by 15,000+ Mavericks</span>
-            </div>
-            <div class="trust-item">
-              <i class="fa-solid fa-truck-fast"></i>
-              <span>Lightning Delivery ₹799+</span>
-            </div>
-            <div class="trust-item">
-              <i class="fa-solid fa-shield-halved"></i>
-              <span>Zero-Shrink Guarantee</span>
-            </div>
-            <div class="trust-item">
-              <i class="fa-solid fa-rotate-left"></i>
-              <span>No-Questions 30-Day Returns</span>
-            </div>
-            <div class="trust-item">
-              <i class="fa-brands fa-whatsapp"></i>
-              <span>Direct WhatsApp Support</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ════════════════════════════════════
-           STATS BAR
-      ════════════════════════════════════ -->
-      <section class="stats-section" aria-label="Brand stats">
-        <div class="stats-bar">
-          <div class="container">
-            <div class="stats-bar-content">
-              <div class="stats-bar-item">
-                <div>
-                  <div class="stats-bar-number">
-                    <span data-count="15000">15000</span>+
-                  </div>
-                  <div>Happy Customers</div>
-                </div>
-              </div>
-              <span class="stats-bar-divider">|</span>
-              <div class="stats-bar-item">
-                <div>
-                  <div class="stats-bar-number">
-                    <span data-count="25000">25000</span>+
-                  </div>
-                  <div>Orders Shipped</div>
-                </div>
-              </div>
-              <span class="stats-bar-divider">|</span>
-              <div class="stats-bar-item">
-                <div>
-                  <div class="stats-bar-number">
-                    <span data-rating="4.8">4.8</span>★
-                  </div>
-                  <div>Average Rating</div>
-                </div>
-              </div>
-              <span class="stats-bar-divider">|</span>
-              <div class="stats-bar-item">
-                <div>
-                  <div class="stats-bar-number">100%</div>
-                  <div>Made in India</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ════════════════════════════════════
-           FEATURED DROP
-      ════════════════════════════════════ -->
-      <section
-        class="featured-drop-section"
-        aria-labelledby="featured-drop-heading"
-      >
-        <div class="container">
-          <div
-            class="featured-drop-shell"
-            data-featured-drop
-            data-animate="fade-up"
-          >
-            <div class="featured-drop-copy">
-              <span class="eyebrow">Featured Drop</span>
-              <h2 class="section-title" id="featured-drop-heading">
-                The Standard, Cut in Black
-              </h2>
-              <p class="section-copy">
-                A daily uniform with heavyweight structure, clean drape, and the
-                kind of quiet confidence that does not need a loud print.
-              </p>
-              <div class="featured-drop-meta">
-                <span
-                  ><i class="fa-solid fa-shirt" aria-hidden="true"></i> Premium
-                  cotton</span
-                >
-                <span
-                  ><i class="fa-solid fa-box" aria-hidden="true"></i> Ready to
-                  ship</span
-                >
-              </div>
-              <a class="btn btn-premium-primary" href="/products"
-                >Explore The Drop
-                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i
-              ></a>
-            </div>
-            <div class="featured-drop-product" data-featured-drop-product>
-              <div class="skeleton-card">
-                <div class="skeleton skeleton-media"></div>
-                <div class="skeleton-body">
-                  <div class="skeleton skeleton-line long"></div>
-                  <div class="skeleton skeleton-line price"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ════════════════════════════════════
-           SHOP BY CATEGORY
-      ════════════════════════════════════ -->
-      <section class="category-section" aria-labelledby="cat-heading">
-        <div class="container">
-          <div class="section-head-row" data-animate="fade-up">
-            <div>
-              <span class="eyebrow">Browse</span>
-              <h2 class="section-title" id="cat-heading">Explore By Fit</h2>
-            </div>
-            <a class="btn-link" href="/products"
-              >All Products <i class="fa-solid fa-arrow-right"></i
-            ></a>
-          </div>
-          <div
-            class="cat-grid premium-glass-grid"
-            data-animate="fade-up"
-            data-delay="80"
-          >
-            <a class="cat-glass-card" href="/products?filter=regular-fit">
-              <div
-                class="cat-glass-bg"
-                style="
-                  background-image: url(&quot;https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80&quot;);
-                "
-              ></div>
-              <div class="cat-glass-content">
-                <span class="cat-card-name">Regular Fit</span>
-                <span class="cat-card-sub">Everyday essentials</span>
-              </div>
-            </a>
-            <a class="cat-glass-card" href="/products?filter=oversized-fit">
-              <div
-                class="cat-glass-bg"
-                style="
-                  background-image: url(&quot;https://images.unsplash.com/photo-1618354691373-d851c5c3a990?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80&quot;);
-                "
-              ></div>
-              <div class="cat-glass-content">
-                <span class="cat-card-name">Oversized Fit</span>
-                <span class="cat-card-sub">Relaxed streetwear</span>
-              </div>
-            </a>
-            <a class="cat-glass-card" href="/products?filter=graphic">
-              <div
-                class="cat-glass-bg"
-                style="
-                  background-image: url(&quot;https://images.unsplash.com/photo-1576566588028-4147f3842f27?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80&quot;);
-                "
-              ></div>
-              <div class="cat-glass-content">
-                <span class="cat-card-name">Graphic Tees</span>
-                <span class="cat-card-sub">Statement pieces</span>
-              </div>
-            </a>
-            <a class="cat-glass-card" href="/products?filter=drop-shoulder">
-              <div
-                class="cat-glass-bg"
-                style="
-                  background-image: url(&quot;https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80&quot;);
-                "
-              ></div>
-              <div class="cat-glass-content">
-                <span class="cat-card-name">Drop Shoulder</span>
-                <span class="cat-card-sub">Street-ready drops</span>
-              </div>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <!-- ════════════════════════════════════
-           CINEMATIC SHOWCASE
-      ════════════════════════════════════ -->
-      <section
-        class="cinematic-showcase-section"
-        aria-labelledby="showcase-heading"
-      >
-        <div class="container cinematic-showcase">
-          <div class="cinematic-showcase-media" data-animate="fade-up">
-            <img
-              src="/assets/images/black-tshirt.png"
-              alt="Folded black TridentWear premium T-shirt"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-          <div
-            class="cinematic-showcase-copy"
-            data-animate="fade-up"
-            data-delay="80"
-          >
-            <span class="eyebrow">Daily Uniform</span>
-            <h2 class="section-title" id="showcase-heading">
-              Heavyweight feel. Minimal signal. Maximum repeat wear.
-            </h2>
-            <p class="section-copy">
-              Built around clean silhouettes and dependable fabric, every piece
-              is designed to move from campus, commute, studio, and street
-              without feeling overdone.
-            </p>
-            <a class="btn btn-premium-secondary" href="/products"
-              >Shop Essentials</a
-            >
-          </div>
-        </div>
-      </section>
-
-      <!-- ════════════════════════════════════
-           NEW ARRIVALS
-      ════════════════════════════════════ -->
-      <section
-        class="home-products-section section-tight"
-        aria-labelledby="arrivals-heading"
-      >
-        <div class="container">
-          <div class="section-head-row" data-animate="fade-up">
-            <div>
-              <span class="eyebrow">The Collection</span>
-              <h2 class="section-title" id="arrivals-heading">
-                Everyday <span class="accent">Essentials</span>
-              </h2>
-            </div>
-            <a class="btn-link" href="/products"
-              >Shop All <i class="fa-solid fa-arrow-right"></i
-            ></a>
-          </div>
-          <div
-            class="product-grid"
-            data-featured-grid
-            data-animate="fade-up"
-            data-delay="80"
-          >
-            <!-- populated by home.js loadFeaturedProducts() -->
-          </div>
-        </div>
-      </section>
-
-      <!-- ════════════════════════════════════
-           RECENTLY VIEWED
-      ════════════════════════════════════ -->
-      <section
-        class="home-products-section section-tight"
-        id="recently-viewed-section"
-        style="display: none"
-      >
-        <div class="container">
-          <div class="section-head-row">
-            <div>
-              <span class="eyebrow">Your History</span>
-              <h2 class="section-title">
-                Recently <span class="accent">Viewed</span>
-              </h2>
-            </div>
-            <button class="btn-link" id="clear-recently-viewed" style="background: none; border: none; cursor: pointer; font-size: 0.95rem; font-weight: 600; text-transform: uppercase; color: var(--gray);">
-              Clear All
-            </button>
-          </div>
-          <div class="product-grid" id="recently-viewed-grid"></div>
-        </div>
-      </section>
-
-      <!-- ════════════════════════════════════
-           OFFER BANNERS
-      ════════════════════════════════════ -->
-      <section class="offer-banner-section" aria-label="Offers">
-        <div class="container">
-          <div class="offer-banners" data-animate="fade-up">
-            <div class="offer-card offer-card-a">
-              <div class="offer-card-content">
-                <div class="offer-tag">Limited Time</div>
-                <div class="offer-title">First Order<br />20% Off</div>
-                <p class="offer-copy">Use code TRIDENTFIRST at checkout</p>
-                <a
-                  class="btn btn-hero-outline"
-                  href="/products"
-                  style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    font-size: 0.85rem;
-                  "
-                >
-                  Claim Now <i class="fa-solid fa-arrow-right"></i>
-                </a>
-              </div>
-            </div>
-            <div class="offer-card offer-card-b">
-              <div class="offer-card-content">
-                <div class="offer-tag" style="background: rgba(0, 0, 0, 0.1)">
-                  Bundle Deal
-                </div>
-                <div class="offer-title">Buy 2 Get<br />Extra 10% Off</div>
-                <p class="offer-copy">Use code TRIDENT10 at checkout</p>
-                <a
-                  class="btn btn-hero-primary"
-                  href="/products"
-                  style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    font-size: 0.85rem;
-                    border-radius: var(--radius);
-                    padding: 0.7rem 1.5rem;
-                  "
-                >
-                  Shop Bundle <i class="fa-solid fa-bag-shopping"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      <!-- ════════════════════════════════════
-           NEWSLETTER SECTION
-      ════════════════════════════════════ -->
-      <section class="newsletter-section" aria-labelledby="newsletter-heading" data-animate="fade-up">
-        <div class="container">
-          <div class="newsletter-shell">
-            <div class="newsletter-content">
-              <span class="eyebrow">Stay Tuned</span>
-              <h2 class="section-title" id="newsletter-heading" style="margin-top:0.25rem;">Join The <span class="accent">Crew</span></h2>
-              <p class="section-copy" style="margin-top:0.5rem; color:rgba(255,255,255,0.7);">
-                Get early access to new drops, exclusive offers, and limited collections.
-              </p>
-              <form class="newsletter-form" data-newsletter-form novalidate>
-                <div class="newsletter-input-group">
-                  <input class="field newsletter-input" type="email" placeholder="Enter your email address" required aria-label="Email address" autocomplete="email" />
-                  <button class="btn btn-primary newsletter-btn" type="submit">Subscribe</button>
-                </div>
-                <div class="newsletter-status" data-newsletter-status></div>
-                <p class="newsletter-privacy">
-                  By subscribing, you agree to our <a href="/privacy">Privacy Policy</a> and consent to receive updates.
-                </p>
-              </form>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- ── Footer top strip ── -->
-    <div class="footer-top-strip">
-      <div class="container">
-        <span>
-          <span
-            style="
-              font-weight: 800;
-              letter-spacing: 0.05em;
-              color: var(--secondary);
-            "
-            >IN</span
-          >
-          Proudly Made in India &mdash; Wear the Pride
-        </span>
+      <div class="grid" data-featured>
+        <div class="skeleton" style="aspect-ratio:4/5"></div><div class="skeleton" style="aspect-ratio:4/5"></div><div class="skeleton" style="aspect-ratio:4/5"></div><div class="skeleton" style="aspect-ratio:4/5"></div>
       </div>
     </div>
+  </section>
 
-    {{ component:footer }}
-
-    <!-- ── Back to top ── -->
-    <button
-      class="back-to-top"
-      type="button"
-      data-back-to-top
-      aria-label="Back to top"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <polyline points="18 15 12 9 6 15" />
-      </svg>
-    </button>
-
-    <!-- ── Bottom Navigation (Mobile) ── -->
-    <nav class="bottom-nav" aria-label="Mobile navigation">
-      <a href="/" class="bottom-nav-item is-active" data-nav="home">
-        <span class="bottom-nav-icon"><i class="fa-solid fa-house"></i></span>
-        <span class="bottom-nav-label">Home</span>
+  <!-- Categories -->
+  <section class="section section--tight cv">
+    <div class="wrap cats">
+      <a class="cat" href="shop.html?cat=tshirt">
+        <img class="cat__img" src="assets/images/products/trident-wordmark-tee-black-back-480.webp" srcset="assets/images/products/trident-wordmark-tee-black-back-480.webp 480w, assets/images/products/trident-wordmark-tee-black-back.webp 900w" sizes="(max-width: 900px) 62vw, 420px" alt="" loading="lazy" width="900" height="1080">
+        <div class="cat__foot"><div><span class="display">T-shirts</span><p>240 GSM, oversized and classic fits</p></div><span class="btn btn--sm">Shop tees</span></div>
       </a>
-      <a href="/products" class="bottom-nav-item" data-nav="shop">
-        <span class="bottom-nav-icon"
-          ><i class="fa-solid fa-bag-shopping"></i
-        ></span>
-        <span class="bottom-nav-label">Shop</span>
-      </a>
-      <a href="/cart" class="bottom-nav-item" data-nav="cart">
-        <span class="bottom-nav-icon"
-          ><i class="fa-solid fa-cart-shopping"></i
-        ></span>
-        <span class="bottom-nav-label">Cart</span>
-      </a>
-      <a href="/wishlist" class="bottom-nav-item" data-nav="wishlist">
-        <span class="bottom-nav-icon"><i class="fa-solid fa-heart"></i></span>
-        <span class="bottom-nav-label">Wishlist</span>
-      </a>
-    </nav>
-
-    <!-- ── Sticky Mobile CTA ── -->
-    <div class="sticky-mob-cta" id="sticky-mob-cta">
-      <a href="/products" class="btn sticky-mob-btn">
-        <i class="fa-solid fa-bag-shopping"></i> Shop Your Identity
+      <a class="cat cat--dark" href="shop.html?cat=shirt">
+        <img class="cat__img" src="assets/images/products/oxford-button-down-sky-front-480.webp" srcset="assets/images/products/oxford-button-down-sky-front-480.webp 480w, assets/images/products/oxford-button-down-sky-front.webp 900w" sizes="(max-width: 900px) 62vw, 420px" alt="" loading="lazy" width="900" height="1080">
+        <div class="cat__foot"><div><span class="display">Shirts</span><p>Oxford, linen and twill</p></div><span class="btn btn--light btn--sm">Shop shirts</span></div>
       </a>
     </div>
+  </section>
 
-    <script type="module" src="/assets/js/pages/home.js?v=20260430-v3"></script>
-  </body>
+  <!-- AI Fit Check -->
+  <section class="section section--dark cv" id="fit-check">
+    <div class="wrap fitcheck">
+      <div>
+        <h2 class="h2">See it on you before you buy</h2>
+        <p class="lead" style="margin-top:16px">Fit Check tracks your shoulders and hips through your camera and drapes the piece on you, live. It runs in your browser, so the video never leaves your phone.</p>
+        <ol class="steps">
+          <li><div><b>Pick a tee or shirt</b><span class="muted">Every colour in the store works.</span></div></li>
+          <li><div><b>Turn on your camera</b><span class="muted">Or upload a full-length photo.</span></div></li>
+          <li><div><b>Save your fit check</b><span class="muted">Share it, or add the size you tried to your bag.</span></div></li>
+        </ol>
+        <a class="btn btn--amber" href="tryon.html">Open Fit Check</a>
+      </div>
+      <div class="fit-demo" data-fit-demo>
+        <span class="fit-demo__live"><i></i>Preview</span>
+        <svg class="fit-demo__body" viewBox="0 0 200 300" fill="currentColor" aria-hidden="true"><circle cx="100" cy="50" r="30"/><path d="M36 300V152c0-32 24-54 64-54s64 22 64 54v148Z"/></svg>
+        <img class="fit-demo__garment" alt="" data-fit-garment>
+        <div class="fit-demo__pts" aria-hidden="true"><i style="left:29%;top:40%"></i><i style="left:71%;top:40%"></i><i style="left:35%;top:80%"></i><i style="left:65%;top:80%"></i></div>
+        <div class="fit-demo__bar" data-fit-swatches role="group" aria-label="Try a colour"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fabric -->
+  <section class="section cv">
+    <div class="wrap fabric">
+      <figure class="fabric__img" style="margin:0">
+        <img src="assets/images/products/essential-oversized-tee-olive-front.webp" alt="Close-up of the olive oversized tee showing the heavyweight knit" loading="lazy" width="900" height="1080">
+        <figcaption>Essential Oversized Tee, olive</figcaption>
+      </figure>
+      <div>
+        <h2 class="h2">What you're paying for</h2>
+        <dl class="facts">
+          <div><dt>240 GSM</dt><dd>Heavy combed cotton. It hangs straight off the shoulder instead of clinging.</dd></div>
+          <div><dt>Bio-washed</dt><dd>An enzyme wash makes it soft on the first wear, not the tenth.</dd></div>
+          <div><dt>Pre-shrunk</dt><dd>Washed before it's cut, so your size stays your size.</dd></div>
+          <div><dt>Clean finish</dt><dd>No logos on the fabric. Just the cut, the weight and the colour.</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promises -->
+  <section class="section section--tight cv">
+    <div class="wrap promises">
+      <div class="promise" data-icon="truck"><b>Free shipping</b><span class="muted">On every order, anywhere in India.</span></div>
+      <div class="promise" data-icon="swap"><b>7-day exchanges</b><span class="muted">Wrong size? Swap it for free.</span></div>
+      <div class="promise" data-icon="shield"><b>Secure payments</b><span class="muted">UPI, cards and netbanking through Razorpay.</span></div>
+      <div class="promise" data-icon="cash"><b>Cash on delivery</b><span class="muted">Pay when it reaches your door.</span></div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="section section--tight cv">
+    <div class="wrap">
+      <div class="news">
+        <div><h2 class="h2">Get the next drop first</h2><p>Early access, restock alerts and member codes. One email per drop.</p></div>
+        <form data-news novalidate><label class="sr-only" for="news-email">Email</label><input class="input" id="news-email" type="email" placeholder="you@example.com" required><button class="btn btn--amber">Join the list</button></form>
+      </div>
+    </div>
+  </section>
+</main>
+<script type="module" src="assets/js/pages/home.js"></script>
+</body>
 </html>

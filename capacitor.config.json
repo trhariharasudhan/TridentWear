@@ -1,0 +1,8 @@
+{
+  "appId": "in.tridentwear.app",
+  "appName": "TridentWear",
+  "webDir": "frontend/dist",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false },
+  "plugins": { "SplashScreen": { "launchShowDuration": 900, "backgroundColor": "#12141d", "showSpinner": false } }
+}

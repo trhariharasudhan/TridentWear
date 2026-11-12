@@ -106,6 +106,16 @@ CANVA_TSHIRT_SPEC: Dict[str, Any] = {
     },
 }
 
+
+def _frontend_catalog_path():
+    """Static catalog mirror used by the GitHub Pages build. Never touched by tests:
+    writing it during pytest polluted the git-tracked file (bug fixed in v2)."""
+    from app.core.db_switch import is_test_mode
+    if is_test_mode():
+        import os, tempfile
+        return Path(os.getenv("TRIDENT_DB_DIR") or tempfile.gettempdir()) / "frontend_products_mirror.json"
+    return FRONTEND_PRODUCTS_PATH
+
 def normalize_image_path(value: str) -> str:
     image_value = str(value or "").strip()
     if not image_value:
@@ -177,16 +187,55 @@ def normalize_product(raw_product: Dict[str, Any], index: int = 0) -> Dict[str, 
         "wash_care": wash_care,
         "size_quantities": raw_product.get("size_quantities") if isinstance(raw_product.get("size_quantities"), dict) else {},
     }
+    # Storefront extras (optional; passed through when present)
+    for key in ("slug", "style_code", "color_hex"):
+        if raw_product.get(key):
+            normalized[key] = str(raw_product[key]).strip()
+    for key in ("mrp", "rating"):
+        try:
+            if raw_product.get(key) is not None:
+                normalized[key] = float(raw_product[key]) if key == "rating" else int(float(raw_product[key]))
+        except (TypeError, ValueError):
+            pass
+    if raw_product.get("review_count") is not None:
+        try:
+            normalized["review_count"] = max(int(raw_product["review_count"]), 0)
+        except (TypeError, ValueError):
+            pass
+    gallery = raw_product.get("gallery")
+    if isinstance(gallery, list) and gallery:
+        normalized["gallery"] = [normalize_image_path(str(g)) for g in gallery if str(g).strip()]
+    if isinstance(raw_product.get("tryon"), dict):
+        normalized["tryon"] = raw_product["tryon"]
     normalized["tag_metadata"] = normalize_tag_metadata(raw_product, normalized)
     return normalized
 
 def product_sort_key(product: Dict[str, Any]) -> Any:
     return (product["category"] != "tshirt", not product["featured"], product["id"])
 
+def _seed_catalog() -> List[Dict[str, Any]]:
+    """Catalog used to seed an empty products table.
+
+    Previously SQL mode always seeded the 6 legacy DEFAULT_PRODUCTS, so a fresh
+    Postgres store showed the wrong catalog (no MRP, gallery or try-on anchors).
+    Outside tests, seed from the git-tracked catalog (db/products.json), falling
+    back to the static storefront mirror, then the legacy defaults."""
+    from app.core.db_switch import is_test_mode, get_default_db_dir
+    if not is_test_mode():
+        for path in (get_default_db_dir() / "products.json", FRONTEND_PRODUCTS_PATH):
+            try:
+                rows = json.loads(Path(path).read_text(encoding="utf-8"))
+                if isinstance(rows, list) and rows:
+                    return rows
+            except (OSError, ValueError):
+                continue
+    return DEFAULT_PRODUCTS
+
+
 def load_products() -> List[Dict[str, Any]]:
     raw_products = db.read("products", {})
     if not raw_products:
-        for p in DEFAULT_PRODUCTS:
+        for p in _seed_catalog():
             db.insert("products", p)
         raw_products = db.read("products", {})
     products = [normalize_product(product, index) for index, product in enumerate(raw_products)]
@@ -199,7 +248,7 @@ def save_products(products: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     
     all_prods = load_products()
     try:
-        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+        with open(_frontend_catalog_path(), "w") as f:
             json.dump(all_prods, f, indent=2)
     except Exception:
         pass
@@ -230,7 +279,7 @@ def deduct_stock(order_items: List[Dict[str, Any]], order_id: Optional[str] = No
         res = db.deduct_order_stock(oid, order_items)
         try:
             all_prods = load_products()
-            with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+            with open(_frontend_catalog_path(), "w") as f:
                 json.dump(all_prods, f, indent=2)
         except Exception:
             pass
@@ -248,7 +297,7 @@ def deduct_stock(order_items: List[Dict[str, Any]], order_id: Optional[str] = No
     # Sync with frontend json
     try:
         all_prods = load_products()
-        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+        with open(_frontend_catalog_path(), "w") as f:
             json.dump(all_prods, f, indent=2)
     except Exception:
         pass
@@ -257,7 +306,18 @@ def deduct_stock(order_items: List[Dict[str, Any]], order_id: Optional[str] = No
 # Admin Product Management Logic
 IMAGES_DIR = FRONTEND_ROOT / "assets" / "images"
 UPLOADS_DIR = IMAGES_DIR / "uploads"
+
+
+def _uploads_dir() -> Path:
+    """Uploads go to a temp dir under pytest so test runs never write into the repo."""
+    from app.core.db_switch import is_test_mode
+    if is_test_mode():
+        import os, tempfile
+        return Path(os.getenv("TRIDENT_DB_DIR") or tempfile.gettempdir()) / "uploads"
+    return UPLOADS_DIR
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+ALLOWED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP", "GIF"}
+MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
 def save_uploaded_image(upload: Any) -> str:
     import shutil
@@ -266,11 +326,26 @@ def save_uploaded_image(upload: Any) -> str:
     if extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported image type.")
 
+    # Verify the bytes really are an image of the claimed type (extension alone is spoofable)
+    from io import BytesIO
+    from PIL import Image, UnidentifiedImageError
+    raw = upload.file.read(MAX_UPLOAD_BYTES + 1)
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Image is larger than 8MB.")
+    try:
+        with Image.open(BytesIO(raw)) as probe:
+            fmt = (probe.format or "").upper()
+            probe.verify()
+    except (UnidentifiedImageError, OSError, SyntaxError):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File is not a valid image.")
+    if fmt not in ALLOWED_IMAGE_FORMATS:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported image type.")
+
     filename = f"{uuid.uuid4().hex}{extension}"
-    destination = UPLOADS_DIR / filename
+    destination = _uploads_dir() / filename
     destination.parent.mkdir(parents=True, exist_ok=True)
     with destination.open("wb") as target:
-        shutil.copyfileobj(upload.file, target)
+        target.write(raw)
     return f"/images/uploads/{filename}"
 
 def delete_uploaded_image(image_url: str) -> None:
@@ -359,7 +434,7 @@ async def process_create_product(name, category, price, description, tag, sizes,
     # Sync with frontend json
     try:
         all_prods = load_products()
-        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+        with open(_frontend_catalog_path(), "w") as f:
             json.dump(all_prods, f, indent=2)
     except Exception:
         pass
@@ -391,7 +466,7 @@ async def process_update_product(product_id: int, name, category, price, descrip
     # Sync with frontend json
     try:
         all_prods = load_products()
-        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+        with open(_frontend_catalog_path(), "w") as f:
             json.dump(all_prods, f, indent=2)
     except Exception:
         pass
@@ -410,7 +485,7 @@ def process_delete_product(product_id: int) -> Dict[str, Any]:
     # Sync with frontend json
     try:
         all_prods = load_products()
-        with open(FRONTEND_PRODUCTS_PATH, "w") as f:
+        with open(_frontend_catalog_path(), "w") as f:
             json.dump(all_prods, f, indent=2)
     except Exception:
         pass

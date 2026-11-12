@@ -9,7 +9,7 @@ from fastapi import Request, HTTPException
 from app.services.order_service import create_payment_order_record, create_pending_payment_order, send_order_email, now_iso
 from app.services.product_service import deduct_stock
 from app.services.auth_service import get_session_user
-from app.core.config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, IS_PRODUCTION
+from app.core.config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, IS_PRODUCTION, allow_client_test_mode
 from app.core.db_switch import db
 from app.db.database import InsufficientStockError, CouponConflictError
 
@@ -175,7 +175,7 @@ def process_razorpay_create(
             amount=authoritative_amount_paise,
             currency="INR",
             receipt=res["order_id"],
-            test_mode=bool(order_data.get("test_mode", False)),
+            test_mode=allow_client_test_mode(order_data.get("test_mode", False)),
         )
         if actual_rz_id != razorpay_order_id:
             db.update("orders", {"order_id": res["order_id"]}, {"razorpay_order_id": actual_rz_id})
@@ -511,7 +511,7 @@ def process_razorpay_verify(
     order_data_payload: Optional[Dict[str, Any]] = None,
     request: Request = None,
 ) -> Dict[str, Any]:
-    test_mode = bool(order_data_payload.get("test_mode", False)) if order_data_payload else False
+    test_mode = allow_client_test_mode(order_data_payload.get("test_mode", False)) if order_data_payload else False
 
     # 1. Cryptographic HMAC signature check
     _verify_razorpay_signature(
@@ -537,7 +537,20 @@ def process_razorpay_verify(
         raise HTTPException(status_code=400, detail="Payment ID has already been used for another order.")
 
     # 5. Authoritative Gateway Verification
-    gateway_payment = fetch_gateway_payment(razorpay_payment_id, test_mode=bool(order.get("test_mode", False)))
+    if test_mode and not IS_PRODUCTION and not (RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET):
+        # Local development without Razorpay keys: simulate a captured payment so the
+        # full checkout flow can be exercised. Never reachable in production because
+        # test_mode is forced False there (allow_client_test_mode) and IS_PRODUCTION blocks it.
+        log.warning("[DEV] Simulated gateway capture for %s (no Razorpay keys configured).", razorpay_order_id)
+        gateway_payment = {
+            "order_id": razorpay_order_id,
+            "currency": "INR",
+            "status": "captured",
+            "amount": int(round(float(order.get("total", 0.0)) * 100)),
+        }
+        db.update("orders", {"order_id": order["order_id"]}, {"payment_simulated": True})
+    else:
+        gateway_payment = fetch_gateway_payment(razorpay_payment_id, test_mode=bool(order.get("test_mode", False)))
 
     # Verify order association
     if gateway_payment.get("order_id") and gateway_payment["order_id"] != razorpay_order_id:

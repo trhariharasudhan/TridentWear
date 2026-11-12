@@ -25,6 +25,6 @@ ENV PYTHONUNBUFFERED=1
 # Expose port
 EXPOSE 8000
 
-# Run from backend/ directory so relative imports resolve correctly
-WORKDIR /app/backend
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Migrations (postgres mode) + uvicorn. PORT / WEB_CONCURRENCY are honoured for Render/Railway.
+WORKDIR /app
+CMD ["sh", "/app/scripts/docker/entrypoint.sh"]

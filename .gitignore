@@ -75,6 +75,7 @@ test.py
 
 # Allow tracking of structured test files
 !backend/tests/test_*.py
+!backend/app/**/test_*.py
 !tests/e2e/test_*.js
 !tests/integration/test_*.js
 
@@ -93,3 +94,12 @@ venv/
 .pytest_cache/
 logs/
 backend/logs/
+# Admin-uploaded product images (runtime data)
+frontend/assets/images/uploads/
+frontend/dist/
+scripts/art/out/
+
+# Raw AI photo downloads (processed versions live in frontend/assets/images/products)
+_photos_raw/
+scripts/photos/cut/
+scripts/photos/bricolage.ttf

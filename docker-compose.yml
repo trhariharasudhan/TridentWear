@@ -1,17 +1,47 @@
-version: "3.9"
-
+# Local full stack: Postgres 16 + TridentWear API/storefront.
+#   docker compose up --build        -> http://localhost:8000
+# Migrations run automatically on start (scripts/docker/entrypoint.sh).
+# Secrets come from backend/.env (copy backend/.env.example). Values below override DB settings only.
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tridentwear
+      POSTGRES_USER: tridentwear
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tridentwear_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tridentwear -d tridentwear"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   web:
     build: .
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
     env_file:
       - backend/.env
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DB_MODE: postgres
+      DATABASE_URL: postgresql://tridentwear:${POSTGRES_PASSWORD:-tridentwear_dev}@db:5432/tridentwear
     volumes:
-      - ./db:/app/db
+      - uploads:/app/frontend/assets/images/uploads
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  pgdata:
+  uploads:

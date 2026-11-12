@@ -1,951 +1,347 @@
-import { del, get, post, postForm, put, putForm, resolveAssetUrl } from "../shared/api.js?v=20260430-v3";
-import { normalizeProduct } from "../shared/catalog.js?v=20260430-v3";
-import { createLoaderMarkup, escapeHtml, formatCurrency, getCurrentUser, initSite, pageUrl, showToast } from "../shared/site.js?v=20260430-v3";
+// Admin dashboard: analytics, products, orders, customers, coupons, reviews.
+// All data calls hit /api/v1/admin/* (or the demo adapter). The server enforces admin role.
+import { $, $$, esc, icon, inr, img, toast, busy, modal, fmtDate, logoSvg } from '../ui.js';
+import { session, getProducts } from '../store.js';
+import { api, getMode } from '../api.js';
 
-let products = [];
-let editingProductId = null;
-let orders = [];
-let analytics = null;
-let reviews = [];
-let reviewFilter = "";
-const ORDER_STATUSES = ["placed", "confirmed", "packed", "shipped", "delivered", "cancelled"];
-const PAYMENT_STATUSES = ["pending", "cod_pending", "paid", "failed", "refunded"];
+const root = $('[data-admin]');
+const logo = await logoSvg();
+const asList = (x, key) => (Array.isArray(x) ? x : x?.[key] || x?.items || []);
+const user = await session.load();
 
-function fields() {
-  return {
-    name: document.querySelector("#admin-name"),
-    category: document.querySelector("#admin-category"),
-    price: document.querySelector("#admin-price"),
-    description: document.querySelector("#admin-description"),
-    tag: document.querySelector("#admin-tag"),
-    sizes: document.querySelector("#admin-sizes"),
-    stock: document.querySelector("#admin-stock"),
-    fabric: document.querySelector("#admin-fabric"),
-    gsm: document.querySelector("#admin-gsm"),
-    fitType: document.querySelector("#admin-fit-type"),
-    neckType: document.querySelector("#admin-neck-type"),
-    printMethod: document.querySelector("#admin-print-method"),
-    featured: document.querySelector("#admin-featured"),
-    image: document.querySelector("#admin-image"),
+if (!user || user.role !== 'admin') {
+  root.innerHTML = `<div class="wrap"><div class="empty" style="min-height:80vh"><a class="brand" href="index.html">${logo}<b class="wordmark">TridentWear</b></a>
+    <h1 class="h2">Admin access only</h1><p class="muted">${user ? 'Your account does not have admin rights.' : 'Please sign in with an admin account.'}</p>
+    <a class="btn" href="account.html?next=admin.html">Sign in</a>
+    ${(await getMode()) === 'demo' ? '<p class="dev-hint">Preview mode admin: <b>admin@tridentwear.in</b> / <b>Admin@123</b></p>' : ''}</div></div>`;
+  throw new Error('not admin');
+}
+
+const SECTIONS = [
+  ['dashboard', 'Dashboard', icon.grid], ['products', 'Products', icon.bag], ['orders', 'Orders', icon.box],
+  ['customers', 'Customers', icon.user], ['coupons', 'Coupons', icon.spark], ['reviews', 'Reviews', icon.heart],
+  ['storefront', 'Storefront', icon.home],
+];
+root.innerHTML = `<div class="adm">
+  <aside class="adm-side"><a class="brand" href="index.html">${logo}<b class="wordmark">Admin</b></a>
+    ${SECTIONS.map(([k, l, i]) => `<button data-go="${k}">${i}${l}</button>`).join('')}
+    <div class="spacer"></div><a href="index.html">${icon.home}View store</a><button data-logout>${icon.logout}Sign out</button></aside>
+  <main class="adm-main" data-main></main></div>`;
+$('[data-logout]').addEventListener('click', async () => { await session.logout(); location.href = 'account.html'; });
+let main = $('[data-main]');
+const go = (k) => {
+  // fresh node per section so delegated listeners never stack
+  const fresh = main.cloneNode(false); main.replaceWith(fresh); main = fresh;
+  $$('[data-go]').forEach((b) => b.classList.toggle('is-on', b.dataset.go === k));
+  history.replaceState(null, '', `#${k}`);
+  main.innerHTML = '<div class="skeleton" style="height:320px"></div>';
+  ({ dashboard, products, orders, customers, coupons, reviews, storefront })[k]().catch((e) => { main.innerHTML = `<p class="form-error">${esc(e.message)}</p>`; });
+};
+$$('[data-go]').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)));
+const top = (title, actions = '') => `<div class="adm-top"><div><h1 class="h2">${title}</h1></div><div style="display:flex;gap:8px">${actions}</div></div>`;
+const statusPill = (s) => `<span class="status status--${esc(String(s || '').toLowerCase())}">${esc(String(s || '—').replace('_', ' '))}</span>`;
+
+// ------------------------------------------------------------------ dashboard
+async function dashboard() {
+  const a = await api.admin.analytics();
+  const days = a.revenue_by_day || [];
+  const max = Math.max(1, ...days.map((d) => d.revenue));
+  const W = 700, H = 200, bw = W / Math.max(days.length, 1);
+  const chart = `<svg class="chart" viewBox="0 0 ${W} ${H + 24}" preserveAspectRatio="none" role="img" aria-label="Revenue, last 14 days">
+    ${days.map((d, i) => { const h = (d.revenue / max) * H; return `<rect x="${i * bw + 6}" y="${H - h}" width="${bw - 12}" height="${Math.max(h, 1)}" rx="4"><title>${d.date}: ${inr(d.revenue)} · ${d.orders} orders</title></rect><text x="${i * bw + bw / 2}" y="${H + 16}" text-anchor="middle">${d.date.slice(8)}</text>`; }).join('')}</svg>`;
+  const topMax = Math.max(1, ...(a.top_products || []).map((t) => t.sold));
+  main.innerHTML = `${top('Dashboard', '<button class="btn btn--sm" data-refresh>Refresh</button>')}
+    <div class="kpis">
+      <div class="kpi"><span>Revenue</span><b>${inr(a.total_revenue)}</b><small>${a.paid_orders ?? '—'} paid / COD orders</small></div>
+      <div class="kpi"><span>Orders</span><b>${a.total_orders}</b><small>all statuses</small></div>
+      <div class="kpi"><span>Avg order</span><b>${inr(a.average_order_value)}</b><small>${a.customers} customers</small></div>
+      <div class="kpi"><span>Inventory</span><b>${a.total_stock_units}</b><small>${inr(a.inventory_value)} at retail</small></div>
+    </div>
+    <div class="adm-grid">
+      <div class="card-box"><h3>Revenue · last 14 days</h3>${days.length ? chart : '<p class="muted">No sales yet.</p>'}</div>
+      <div class="card-box"><h3>Orders by status</h3><div class="bar-list">${Object.entries(a.status_breakdown || {}).map(([k, v]) => `<div><span>${statusPill(k)}</span><b>${v}</b></div>`).join('') || '<p class="muted">No orders yet.</p>'}</div></div>
+      <div class="card-box"><h3>Top sellers</h3><div class="bar-list">${(a.top_products || []).map((t) => `<div><span>${esc(t.name)}</span><b>${t.sold}</b><i><em style="width:${(t.sold / topMax) * 100}%"></em></i></div>`).join('') || '<p class="muted">No sales yet.</p>'}</div></div>
+      <div class="card-box"><h3>Low stock · ${a.low_stock_count}</h3><div class="bar-list">${(a.low_stock_list || []).slice(0, 8).map((p) => `<div><span>${esc(p.name)}</span><b class="${p.stock ? 'stock-low' : 'stock-out'}">${p.stock || 'Out'}</b></div>`).join('') || '<p class="muted">All good.</p>'}</div></div>
+    </div>`;
+  $('[data-refresh]').addEventListener('click', () => go('dashboard'));
+}
+
+// ------------------------------------------------------------------ products
+async function products() {
+  const list = await getProducts(true);
+  main.innerHTML = `${top('Products', '<button class="btn btn--sm" data-new>+ Add product</button>')}
+    <div class="filters-row"><input class="input" placeholder="Search products" data-q><select class="select" data-cat><option value="">All categories</option><option value="tshirt">T-Shirts</option><option value="shirt">Shirts</option></select></div>
+    <div class="table-wrap"><table class="t"><thead><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Tag</th><th></th></tr></thead><tbody data-rows></tbody></table></div>`;
+  const rows = () => {
+    const q = $('[data-q]').value.toLowerCase(); const c = $('[data-cat]').value;
+    $('[data-rows]').innerHTML = list.filter((p) => (!c || p.category === c) && `${p.name} ${p.base_color}`.toLowerCase().includes(q)).map((p) => `<tr>
+      <td><img class="thumb" src="${img(p.image)}" alt=""></td>
+      <td><b>${esc(p.name)}</b><div class="muted" style="font-size:12px">${esc(p.base_color || '')} · #${p.id}${p.featured ? ' · ★ featured' : ''}</div></td>
+      <td>${p.category === 'shirt' ? 'Shirt' : 'T-Shirt'}</td>
+      <td>${inr(p.price)}${p.mrp ? `<div class="muted" style="font-size:12px;text-decoration:line-through">${inr(p.mrp)}</div>` : ''}</td>
+      <td class="${p.stock <= 0 ? 'stock-out' : p.stock <= 10 ? 'stock-low' : ''}">${p.stock}</td>
+      <td>${esc(p.tag || '')}</td>
+      <td><div class="row-actions"><button data-edit="${p.id}">Edit</button><button class="danger" data-del="${p.id}">Delete</button></div></td></tr>`).join('');
   };
-}
-
-function setFormState(product = null) {
-  const f = fields();
-  const title = document.querySelector("[data-admin-form-title]");
-  const submit = document.querySelector("[data-admin-submit]");
-  const cancel = document.querySelector("[data-admin-cancel]");
-  const preview = document.querySelector("[data-preview-image]");
-
-  if (!product) {
-    editingProductId = null;
-    title.textContent = "Add New Product";
-    submit.textContent = "Save Product";
-    cancel.hidden = true;
-    f.name.value = "";
-    f.category.value = "tshirt";
-    f.price.value = "";
-    f.description.value = "";
-    f.tag.value = "";
-    f.sizes.value = "S, M, L, XL";
-    f.stock.value = "100";
-    f.fabric.value = "100% Cotton";
-    f.gsm.value = "150";
-    f.fitType.value = "Unisex";
-    f.neckType.value = "Round Neck";
-    f.printMethod.value = "DTG, Embroidery";
-    f.featured.checked = false;
-    f.image.value = "";
-    preview.hidden = true;
-    preview.src = "";
-    return;
-  }
-
-  editingProductId = product.id;
-  title.textContent = `Edit ${product.name}`;
-  submit.textContent = "Update Product";
-  cancel.hidden = false;
-  f.name.value = product.name;
-  f.category.value = product.category;
-  f.price.value = product.price;
-  f.description.value = product.description;
-  f.tag.value = product.tag || "";
-  f.sizes.value = product.sizes.join(", ");
-  f.stock.value = product.stock;
-  f.fabric.value = product.fabric || product.material || "100% Cotton";
-  f.gsm.value = product.gsm || 150;
-  f.fitType.value = product.fit_type || "Unisex";
-  f.neckType.value = product.neck_type || "Round Neck";
-  f.printMethod.value = (product.print_method || ["DTG", "Embroidery"]).join(", ");
-  f.featured.checked = Boolean(product.featured);
-  f.image.value = "";
-  preview.hidden = false;
-    preview.src = resolveAssetUrl(product.image);
-}
-
-function bindPreview() {
-  const input = document.querySelector("#admin-image");
-  const preview = document.querySelector("[data-preview-image]");
-
-  input.addEventListener("change", () => {
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-    preview.hidden = false;
-    preview.src = URL.createObjectURL(file);
-  });
-}
-
-function renderSummary() {
-  const lowStock = products.filter((product) => Number(product.stock || 0) <= 10).length;
-  document.querySelector("[data-summary-total]").textContent = String(products.length);
-  document.querySelector("[data-summary-low-stock]").textContent = String(lowStock);
-  document.querySelector("[data-summary-featured]").textContent = String(products.filter((product) => product.featured).length);
-  const orderEl = document.querySelector("[data-summary-orders]");
-  if (orderEl) orderEl.textContent = String(orders.length);
-}
-
-function renderAdminOverview() {
-  const pending = orders.filter((order) => ["placed", "confirmed", "packed", "pending", "processing"].includes(String(order.status || "").toLowerCase())).length;
-  const shipped = orders.filter((order) => ["shipped", "delivered"].includes(String(order.status || "").toLowerCase())).length;
-  const revenue = analytics?.total_revenue ?? orders.reduce((sum, order) => sum + Number(order.subtotal || 0), 0);
-  const pendingEl = document.querySelector("[data-admin-orders-pending]");
-  const shippedEl = document.querySelector("[data-admin-orders-shipped]");
-  const revenueEl = document.querySelector("[data-admin-revenue]");
-  const analyticsEl = document.querySelector("[data-admin-analytics]");
-  if (pendingEl) pendingEl.textContent = String(pending);
-  if (shippedEl) shippedEl.textContent = String(shipped);
-  if (revenueEl) revenueEl.textContent = formatCurrency(revenue);
-  if (analyticsEl) {
-    const top = analytics?.top_products?.[0];
-    analyticsEl.innerHTML = top
-      ? `<strong>${top.name}</strong><span>${top.sold} units sold. Add conversion and cohort charts when traffic analytics are connected.</span>`
-      : `<strong>Waiting for order volume</strong><span>Conversion, returning customers, and drop velocity will appear here as data grows.</span>`;
-  }
-}
-
-function statusBadge(value, type = "status") {
-  const text = String(value || "pending").replace(/_/g, " ");
-  return `<span class="admin-status-badge ${type}-${String(value || "pending").toLowerCase()}">${escapeHtml(text)}</span>`;
-}
-
-function renderOrders() {
-  const list = document.querySelector("[data-admin-order-list]");
-  if (!list) return;
-  if (!orders.length) {
-    list.innerHTML = `<div class="helper-note info">No orders yet. Test checkout will appear here when submitted.</div>`;
-    return;
-  }
-
-  list.innerHTML = orders.map((order) => {
-    const status = String(order.status || "placed").toLowerCase();
-    const paymentStatus = String(order.payment_status || (order.method === "COD" ? "cod_pending" : "pending")).toLowerCase();
-    const isManualReview = order.fulfillment_status === "manual_review_required" || order.manual_review_required;
-    const itemsCount = (order.items || []).length;
-    const itemsList = (order.items || []).map(i => `${escapeHtml(i.name || 'Item')} × ${i.qty || 1} (${escapeHtml(i.size || 'M')})`).join(", ");
-
-    return `
-      <article class="admin-order-card" data-order-id="${escapeHtml(order.order_id)}">
-        <div class="admin-order-head">
-          <div>
-            <strong>${escapeHtml(order.order_id || "Order")}</strong>
-            <span>${escapeHtml(order.customer?.name || "Customer")} - ${formatCurrency(order.subtotal || order.total || 0)}</span>
-            ${order.coupon_code ? `<div style="font-size:0.8rem; color:#a29bfe; margin-top:0.25rem;">🎟️ Coupon: <strong>${escapeHtml(order.coupon_code)}</strong> ${order.discount_amount ? `(-${formatCurrency(order.discount_amount)})` : ""} ${order.fbt_offer_id ? `&bull; FBT Offer: ${escapeHtml(order.fbt_offer_id.slice(0,8))}...` : ""}</div>` : ""}
-            ${itemsCount ? `<div style="font-size:0.8rem; color:#888; margin-top:0.25rem;">Items (${itemsCount}): ${itemsList}</div>` : ""}
-          </div>
-          <div class="admin-badge-row">
-            ${order.test_mode ? `<span class="admin-test-badge">TEST</span>` : ""}
-            ${isManualReview ? `<span class="admin-status-badge payment-failed" style="background:#ff4757; color:#fff;">MANUAL REVIEW</span>` : ""}
-            ${statusBadge(status)}
-            ${statusBadge(paymentStatus, "payment")}
-          </div>
-        </div>
-        <div class="admin-order-fields">
-          <label>Status
-            <select class="status-select" data-order-status>
-              ${ORDER_STATUSES.map((item) => `<option value="${item}" ${item === status ? "selected" : ""}>${item}</option>`).join("")}
-            </select>
-          </label>
-          <label>Payment
-            <select class="status-select" data-payment-status>
-              ${PAYMENT_STATUSES.map((item) => `<option value="${item}" ${item === paymentStatus ? "selected" : ""}>${item.replace(/_/g, " ")}</option>`).join("")}
-            </select>
-          </label>
-          <label>Courier <input class="field compact-field" data-courier value="${escapeHtml(order.courier || "")}" placeholder="Delhivery"></label>
-          <label>Tracking <input class="field compact-field" data-tracking value="${escapeHtml(order.tracking_id || "")}" placeholder="AWB / tracking ID"></label>
-          <label>ETA <input class="field compact-field" data-eta value="${escapeHtml(order.estimated_delivery || "")}" placeholder="YYYY-MM-DD"></label>
-        </div>
-        <div class="admin-actions">
-          <button class="btn btn-outline" type="button" data-save-order="${escapeHtml(order.order_id)}">Save Order</button>
-        </div>
-      </article>
-    `;
-  }).join("");
-
-  list.querySelectorAll("[data-save-order]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const card = button.closest("[data-order-id]");
-      const orderId = button.dataset.saveOrder;
-      button.disabled = true;
-      try {
-        await put(`/api/v1/admin/orders/${orderId}`, {
-          status: card.querySelector("[data-order-status]").value,
-          payment_status: card.querySelector("[data-payment-status]").value,
-          courier: card.querySelector("[data-courier]").value,
-          tracking_id: card.querySelector("[data-tracking]").value,
-          estimated_delivery: card.querySelector("[data-eta]").value,
-        });
-        showToast("Order updated.");
-        await loadAdminMetrics();
-      } catch (error) {
-        showToast(error.message, "error");
-      } finally {
-        button.disabled = false;
-      }
-    });
-  });
-}
-
-function renderReviews(payload = {}) {
-  const list = document.querySelector("[data-admin-review-list]");
-  if (!list) return;
-  reviews = payload.reviews || [];
-  const counts = payload.counts || {};
-  document.querySelectorAll("[data-review-status]").forEach((button) => {
-    const status = button.dataset.reviewStatus;
-    const suffix = status && counts[status] != null ? ` (${counts[status]})` : "";
-    button.textContent = `${status ? status.charAt(0).toUpperCase() + status.slice(1) : "All"}${suffix}`;
-    button.classList.toggle("is-active", status === reviewFilter);
-  });
-  if (!reviews.length) {
-    list.innerHTML = `<div class="helper-note info">No reviews in this view.</div>`;
-    return;
-  }
-  list.innerHTML = reviews.map((review) => `
-    <article class="admin-review-card" data-review-id="${review.id}">
-      <div class="admin-order-head">
-        <div>
-          <strong>${"★".repeat(Number(review.rating || 0))}${"☆".repeat(5 - Number(review.rating || 0))}</strong>
-          <span>${escapeHtml(review.user_name || "Customer")} on product #${escapeHtml(review.product_id)}</span>
-        </div>
-        ${statusBadge(String(review.status || "pending").replace("_moderation", ""))}
-      </div>
-      <p class="section-copy">${escapeHtml(review.review || "")}</p>
-      <textarea class="textarea admin-notes-field" data-review-notes placeholder="Moderation notes">${escapeHtml(review.moderation_notes || "")}</textarea>
-      <div class="admin-actions">
-        <button class="btn btn-outline" type="button" data-review-action="approved">Approve</button>
-        <button class="btn btn-outline" type="button" data-review-action="rejected">Reject</button>
-        <button class="btn btn-danger" type="button" data-review-delete>Delete</button>
-      </div>
-    </article>
-  `).join("");
-
-  list.querySelectorAll("[data-review-action]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const card = button.closest("[data-review-id]");
-      try {
-        await put(`/api/v1/admin/reviews/${card.dataset.reviewId}`, {
-          status: button.dataset.reviewAction,
-          moderation_notes: card.querySelector("[data-review-notes]").value,
-        });
-        showToast(`Review ${button.dataset.reviewAction}.`);
-        await loadReviews();
-      } catch (error) {
-        showToast(error.message, "error");
-      }
-    });
-  });
-
-  list.querySelectorAll("[data-review-delete]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const card = button.closest("[data-review-id]");
-      if (!window.confirm("Delete this review?")) return;
-      try {
-        await del(`/api/v1/admin/reviews/${card.dataset.reviewId}`);
-        showToast("Review deleted.");
-        await loadReviews();
-      } catch (error) {
-        showToast(error.message, "error");
-      }
-    });
-  });
-}
-
-function renderProducts() {
-  const list = document.querySelector("[data-admin-product-list]");
-  if (!list) return;
-  if (!products.length) {
-    list.innerHTML = `<div class="helper-note warning">No products found yet. Use the form to add the first drop.</div>`;
-    return;
-  }
-
-  list.innerHTML = products
-    .map(
-      (product) => `
-        <article class="admin-product-card">
-          <div class="admin-product-top">
-            <div>
-              <strong>${escapeHtml(product.name)}</strong>
-              <div class="section-copy">T-Shirt - ${formatCurrency(product.price)}</div>
-              <div class="section-copy">${(product.card_tags || []).map(t => escapeHtml(t)).join(" / ")}</div>
-              <div class="admin-stock-line ${Number(product.stock || 0) <= 10 ? "is-low" : ""}">
-                <span>${escapeHtml(String(product.stock))} stock</span>
-                <span>${product.featured ? "Featured" : "Standard"}</span>
-              </div>
-            </div>
-            <img class="admin-thumb" src="${resolveAssetUrl(product.image)}" alt="${escapeHtml(product.name)}">
-          </div>
-          <p class="section-copy">${escapeHtml(product.description)}</p>
-          <div class="admin-actions">
-            <button class="btn btn-outline" type="button" data-edit-product="${product.id}">Edit</button>
-            <button class="btn btn-danger" type="button" data-delete-product="${product.id}">Delete</button>
-          </div>
-        </article>
-      `,
-    )
-    .join("");
-
-  list.querySelectorAll("[data-edit-product]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const product = products.find((entry) => entry.id === Number(button.dataset.editProduct));
-      if (product) {
-        setFormState(product);
-      }
-    });
-  });
-
-  list.querySelectorAll("[data-delete-product]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const product = products.find((entry) => entry.id === Number(button.dataset.deleteProduct));
-      if (!product || !window.confirm(`Delete ${product.name}?`)) {
-        return;
-      }
-
-      try {
-        await del(`/api/v1/admin/products/${product.id}`);
-        showToast(`${product.name} deleted.`);
-        await loadProducts();
-      } catch (error) {
-        showToast(error.message, "error");
-      }
-    });
-  });
-}
-
-function populateCategoryDropdown() {
-  const select = document.getElementById("admin-category");
-  if (!select) return;
-
-  const uniqueCategories = new Set(["tshirt", "shirt"]);
-  products.forEach((p) => {
-    if (p.category) uniqueCategories.add(p.category);
-  });
-
-  const currentValue = select.value || "tshirt";
-
-  select.innerHTML = Array.from(uniqueCategories)
-    .map((cat) => {
-      const label = cat === "tshirt" ? "T-Shirt" : cat === "shirt" ? "Shirt" : cat.charAt(0).toUpperCase() + cat.slice(1);
-      return `<option value="${escapeHtml(cat)}">${escapeHtml(label)}</option>`;
-    })
-    .join("");
-
-  if (Array.from(uniqueCategories).includes(currentValue)) {
-    select.value = currentValue;
-  }
-}
-
-async function updateSupportBadge() {
-  const badge = document.querySelector("[data-admin-chat-badge]");
-  if (!badge) return;
-  try {
-    const threads = await get("/api/v1/admin/chat");
-    let pendingCount = 0;
-    Object.keys(threads).forEach((tid) => {
-      const messages = threads[tid];
-      if (messages && messages.length) {
-        const lastMsg = messages[messages.length - 1];
-        if (lastMsg.role === "user" && !lastMsg.read) {
-          pendingCount++;
-        }
-      }
-    });
-
-    if (pendingCount > 0) {
-      badge.textContent = String(pendingCount);
-      badge.style.display = "inline-block";
-      badge.style.background = "var(--primary, #6244c5)";
-    } else {
-      const totalThreads = Object.keys(threads).length;
-      if (totalThreads > 0) {
-        badge.textContent = String(totalThreads);
-        badge.style.display = "inline-block";
-        badge.style.background = "var(--gray, #6c757d)";
-      } else {
-        badge.style.display = "none";
-      }
-    }
-  } catch (err) {
-    console.error("Failed to load chat stats for badge:", err);
-  }
-}
-
-async function loadProducts() {
-  const list = document.querySelector("[data-admin-product-list]");
-  list.innerHTML = createLoaderMarkup("Loading product manager...");
-  const data = await get("/api/v1/products");
-  products = (Array.isArray(data) ? data : data.products || []).map(normalizeProduct);
-  populateCategoryDropdown();
-  renderSummary();
-  renderProducts();
-}
-
-async function loadAdminMetrics() {
-  try {
-    orders = await get("/api/v1/admin/orders");
-  } catch (_) {
-    orders = [];
-  }
-  try {
-    analytics = await get("/api/v1/admin/analytics");
-  } catch (_) {
-    analytics = null;
-  }
-  renderSummary();
-  renderAdminOverview();
-  renderOrders();
-}
-
-async function loadReviews() {
-  const query = reviewFilter ? `?status=${reviewFilter}` : "";
-  const data = await get(`/api/v1/admin/reviews${query}`);
-  renderReviews(data || {});
-}
-
-function bindReviewTabs() {
-  document.querySelectorAll("[data-review-status]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      reviewFilter = button.dataset.reviewStatus || "";
-      await loadReviews();
-    });
-  });
-}
-
-function buildFormData() {
-  const f = fields();
-  const formData = new FormData();
-  formData.append("name", f.name.value.trim());
-  formData.append("category", f.category.value);
-  formData.append("price", f.price.value.trim());
-  formData.append("description", f.description.value.trim());
-  formData.append("tag", f.tag.value.trim());
-  formData.append("sizes", f.sizes.value.trim());
-  formData.append("stock", f.stock.value.trim());
-  formData.append("fabric", f.fabric.value.trim());
-  formData.append("gsm", f.gsm.value.trim());
-  formData.append("fit_type", f.fitType.value.trim());
-  formData.append("neck_type", f.neckType.value.trim());
-  formData.append("print_method", f.printMethod.value.trim());
-  formData.append("wash_care_label", "true");
-  formData.append("featured", f.featured.checked ? "true" : "false");
-  if (f.image.files?.[0]) {
-    formData.append("image", f.image.files[0]);
-  }
-  return formData;
-}
-
-function bindForm() {
-  const form = document.querySelector("[data-admin-form]");
-  const cancel = document.querySelector("[data-admin-cancel]");
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const submit = document.querySelector("[data-admin-submit]");
-    submit.disabled = true;
-    submit.textContent = editingProductId ? "Updating..." : "Saving...";
-
-    try {
-      if (editingProductId) {
-        await putForm(`/api/v1/admin/products/${editingProductId}`, buildFormData());
-        showToast("Product updated.");
-      } else {
-        await postForm("/api/v1/admin/products", buildFormData());
-        showToast("Product created.");
-      }
-      setFormState();
-      await loadProducts();
-    } catch (error) {
-      showToast(error.message, "error");
-    } finally {
-      submit.disabled = false;
-      submit.textContent = editingProductId ? "Update Product" : "Save Product";
+  rows();
+  $('[data-q]').addEventListener('input', rows); $('[data-cat]').addEventListener('change', rows);
+  $('[data-new]').addEventListener('click', () => productForm());
+  main.addEventListener('click', async (e) => {
+    const ed = e.target.closest('[data-edit]'); const del = e.target.closest('[data-del]');
+    if (ed) productForm(list.find((p) => p.id === Number(ed.dataset.edit)));
+    if (del) {
+      const p = list.find((x) => x.id === Number(del.dataset.del));
+      if (!confirm(`Delete "${p.name} — ${p.base_color}"? This cannot be undone.`)) return;
+      try { await api.admin.deleteProduct(p.id); toast('Product deleted'); go('products'); } catch (ex) { toast(ex.message, { type: 'error' }); }
     }
   });
-
-  cancel.addEventListener("click", () => setFormState());
 }
 
-// ─── COUPON MANAGER STATE & CRUD ───────────────────────────────────────
-let coupons = [];
-let editingCouponCode = null;
-
-function couponFields() {
-  return {
-    originalCode: document.querySelector("#coupon-original-code"),
-    code: document.querySelector("#coupon-code-field"),
-    discount: document.querySelector("#coupon-discount-field"),
-    expiry: document.querySelector("#coupon-expiry-field"),
-    limit: document.querySelector("#coupon-limit-field"),
-    active: document.querySelector("#coupon-active-field"),
-  };
-}
-
-function setCouponFormState(coupon = null) {
-  const f = couponFields();
-  const title = document.querySelector("[data-admin-coupon-form-title]");
-  const submit = document.querySelector("[data-admin-coupon-submit]");
-  const cancel = document.querySelector("[data-admin-coupon-cancel]");
-  
-  if (!coupon) {
-    editingCouponCode = null;
-    if (title) title.textContent = "Add Promo Coupon";
-    if (submit) submit.textContent = "Save Coupon";
-    if (cancel) cancel.hidden = true;
-    if (f.originalCode) f.originalCode.value = "";
-    if (f.code) { f.code.value = ""; f.code.disabled = false; }
-    if (f.discount) f.discount.value = "";
-    if (f.expiry) f.expiry.value = "";
-    if (f.limit) f.limit.value = "1000";
-    if (f.active) f.active.checked = true;
-    return;
-  }
-  
-  editingCouponCode = coupon.code;
-  if (title) title.textContent = `Edit Coupon ${coupon.code}`;
-  if (submit) submit.textContent = "Update Coupon";
-  if (cancel) cancel.hidden = false;
-  if (f.originalCode) f.originalCode.value = coupon.code;
-  if (f.code) { f.code.value = coupon.code; f.code.disabled = true; }
-  if (f.discount) f.discount.value = coupon.discount_pct;
-  if (f.expiry) {
-    try {
-      f.expiry.value = coupon.expires_at.split("T")[0];
-    } catch (_) {
-      f.expiry.value = coupon.expires_at || "";
-    }
-  }
-  if (f.limit) f.limit.value = coupon.usage_limit;
-  if (f.active) f.active.checked = Boolean(coupon.is_active);
-}
-
-function renderCoupons() {
-  const list = document.querySelector("[data-admin-coupon-list]");
-  if (!list) return;
-  if (!coupons.length) {
-    list.innerHTML = `<div class="helper-note info">No coupons found. Add one above.</div>`;
-    return;
-  }
-  
-  list.innerHTML = coupons.map(c => {
-    const limit = c.usage_limit;
-    const count = c.usage_count;
-    const discount = c.discount_pct;
-    const activeStr = c.is_active ? "Active" : "Disabled";
-    const statusClass = c.is_active ? "payment-paid" : "payment-failed";
-    
-    return `
-      <article class="admin-product-card" data-coupon-code="${escapeHtml(c.code)}">
-        <div class="admin-product-top">
-          <div>
-            <strong>${escapeHtml(c.code)}</strong>
-            <div class="section-copy" style="margin-top:0.25rem;">Discount: <strong>${escapeHtml(String(discount))}%</strong></div>
-            <div class="section-copy">Expires: <strong>${escapeHtml(String(c.expires_at))}</strong></div>
-            <div class="admin-stock-line ${count >= limit ? 'is-low' : ''}" style="margin-top:0.5rem;">
-              <span>Usage: ${escapeHtml(String(count))} / ${escapeHtml(String(limit))}</span>
-              <span class="admin-status-badge ${statusClass}">${activeStr}</span>
-            </div>
-          </div>
-        </div>
-        <div class="admin-actions" style="margin-top: 1rem;">
-          <button class="btn btn-outline" type="button" data-edit-coupon="${escapeHtml(c.code)}">Edit</button>
-          <button class="btn btn-outline" type="button" data-toggle-coupon="${escapeHtml(c.code)}" data-active="${c.is_active}">${c.is_active ? 'Disable' : 'Enable'}</button>
-          <button class="btn btn-danger" type="button" data-delete-coupon="${escapeHtml(c.code)}">Delete</button>
-        </div>
-      </article>
-    `;
-  }).join("");
-  
-  list.querySelectorAll("[data-edit-coupon]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const code = btn.dataset.editCoupon;
-      const coupon = coupons.find(c => c.code === code);
-      if (coupon) setCouponFormState(coupon);
-    });
-  });
-  
-  list.querySelectorAll("[data-toggle-coupon]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const code = btn.dataset.toggleCoupon;
-      const isCurrentlyActive = btn.dataset.active === "true";
-      btn.disabled = true;
-      try {
-        const payload = { is_active: !isCurrentlyActive };
-        await put(`/api/v1/admin/coupons/${code}`, payload);
-        showToast(`Coupon "${code}" ${!isCurrentlyActive ? 'enabled' : 'disabled'}.`);
-        await loadCoupons();
-      } catch (err) {
-        showToast(err.message, "error");
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  });
-  
-  list.querySelectorAll("[data-delete-coupon]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const code = btn.dataset.deleteCoupon;
-      if (!window.confirm(`Delete coupon "${code}"?`)) return;
-      btn.disabled = true;
-      try {
-        await del(`/api/v1/admin/coupons/${code}`);
-        showToast(`Coupon "${code}" deleted.`);
-        setCouponFormState();
-        await loadCoupons();
-      } catch (err) {
-        showToast(err.message, "error");
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  });
-}
-
-async function loadCoupons() {
-  const list = document.querySelector("[data-admin-coupon-list]");
-  if (!list) return;
-  try {
-    const data = await get("/api/v1/admin/coupons");
-    coupons = Array.isArray(data) ? data : [];
-    renderCoupons();
-  } catch (err) {
-    console.error("Failed to load coupons:", err);
-    list.innerHTML = `<div class="helper-note danger">Failed to load coupons.</div>`;
-  }
-}
-
-function bindCouponForm() {
-  const form = document.querySelector("[data-admin-coupon-form]");
-  if (!form) return;
-  const cancel = document.querySelector("[data-admin-coupon-cancel]");
-  
-  cancel?.addEventListener("click", () => setCouponFormState());
-  
-  form.addEventListener("submit", async (e) => {
+function productForm(p = null) {
+  const v = (k, d = '') => esc(p?.[k] ?? d);
+  const m = modal(`<h3 class="h3">${p ? 'Edit product' : 'Add product'}</h3>
+    <form class="form-grid" style="margin-top:16px" data-pf>
+      <label class="field full"><span>Name</span><input class="input" name="name" required value="${v('name')}"></label>
+      <label class="field"><span>Category</span><select class="select" name="category">${[['tshirt', 'T-Shirt'], ['shirt', 'Shirt']].map(([k, l]) => `<option value="${k}" ${p?.category === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      <label class="field"><span>Tag</span><input class="input" name="tag" value="${v('tag')}" placeholder="New, Bestseller…"></label>
+      <label class="field"><span>Price (₹)</span><input class="input" name="price" type="number" min="1" required value="${v('price')}"></label>
+      <label class="field"><span>MRP (₹, optional)</span><input class="input" name="mrp" type="number" min="0" value="${v('mrp')}"></label>
+      <label class="field"><span>Colour name</span><input class="input" name="base_color" value="${v('base_color')}" placeholder="Jet Black"></label>
+      <label class="field"><span>Swatch colour</span><input class="input" name="color_hex" type="color" value="${v('color_hex', '#17181b')}" style="padding:4px"></label>
+      <label class="field"><span>Stock</span><input class="input" name="stock" type="number" min="0" required value="${v('stock', 0)}"></label>
+      <label class="field"><span>Sizes</span><input class="input" name="sizes" value="${esc((p?.sizes || ['S', 'M', 'L', 'XL', 'XXL']).join(', '))}"></label>
+      <label class="field"><span>Fabric</span><input class="input" name="fabric" value="${v('fabric', '100% Cotton')}"></label>
+      <label class="field"><span>GSM</span><input class="input" name="gsm" type="number" min="80" max="400" value="${v('gsm', 220)}"></label>
+      <label class="field"><span>Fit</span><select class="select" name="fit_type">${['Oversized', 'Regular', 'Slim', 'Relaxed'].map((f) => `<option ${p?.fit_type === f ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
+      <label class="field"><span>Neck / collar</span><input class="input" name="neck_type" value="${v('neck_type', 'Round Neck')}"></label>
+      <label class="field full"><span>Description</span><textarea class="textarea" name="description">${v('description')}</textarea></label>
+      <label class="img-drop full"><img src="${img(p?.image)}" alt="" data-prev><div><b>Product image</b><div class="muted" style="font-size:12.5px">PNG/WEBP with transparent background works best for AI Fit Check. Max 8MB.</div></div><input type="file" name="image" accept="image/png,image/jpeg,image/webp" hidden></label>
+      <label class="check full"><input type="checkbox" name="featured_cb" ${p?.featured ? 'checked' : ''}> Feature on home page</label>
+      <p class="form-error full" data-err></p>
+      <button class="btn full">${p ? 'Save changes' : 'Create product'}</button>
+    </form>`, { wide: true });
+  const form = $('[data-pf]', m.el);
+  form.image.addEventListener('change', () => { const f = form.image.files[0]; if (f) $('[data-prev]', m.el).src = URL.createObjectURL(f); });
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submit = document.querySelector("[data-admin-coupon-submit]");
-    if (!submit) return;
-    
-    submit.disabled = true;
-    submit.textContent = editingCouponCode ? "Updating..." : "Saving...";
-    
-    const f = couponFields();
-    const payload = {
-      code: f.code.value.trim().toUpperCase(),
-      discount_pct: Number(f.discount.value),
-      expires_at: f.expiry.value,
-      usage_limit: Number(f.limit.value),
-      is_active: f.active.checked,
-    };
-    
+    if (!form.checkValidity()) { $('[data-err]', m.el).textContent = 'Please fill the required fields.'; return; }
+    const fd = new FormData(form);
+    fd.set('featured', form.featured_cb.checked ? 'true' : 'false'); fd.delete('featured_cb');
+    if (!form.image.files.length) fd.delete('image');
+    const btn = $('button.btn', form); busy(btn, true);
     try {
-      if (editingCouponCode) {
-        await put(`/api/v1/admin/coupons/${editingCouponCode}`, {
-          discount_pct: payload.discount_pct,
-          expires_at: payload.expires_at,
-          usage_limit: payload.usage_limit,
-          is_active: payload.is_active,
-        });
-        showToast(`Coupon "${editingCouponCode}" updated.`);
-      } else {
-        await post("/api/v1/admin/coupons", payload);
-        showToast(`Coupon "${payload.code}" created.`);
-      }
-      setCouponFormState();
-      await loadCoupons();
-    } catch (err) {
-      showToast(err.message, "error");
-    } finally {
-      submit.disabled = false;
-      submit.textContent = editingCouponCode ? "Update Coupon" : "Save Coupon";
-    }
+      p ? await api.admin.updateProduct(p.id, fd) : await api.admin.createProduct(fd);
+      m.close(); toast(p ? 'Product updated' : 'Product created'); go('products');
+    } catch (ex) { busy(btn, false); $('[data-err]', m.el).textContent = ex.message; }
   });
 }
 
-// ─── USER DIRECTORY & MANAGEMENT ───────────────────────────────────────
-let users = [];
-
-async function loadUsers() {
-  const tbody = document.querySelector("#admin-user-table-body");
-  if (!tbody) return;
-  try {
-    const data = await get("/api/v1/admin/users");
-    users = Array.isArray(data) ? data : [];
-    renderUsers();
-  } catch (err) {
-    console.error("Failed to load users:", err);
-    tbody.innerHTML = `<tr><td colspan="7" style="padding: 1rem; text-align: center; color: #ff4757;" class="helper-note danger">Failed to load users.</td></tr>`;
-  }
-}
-
-function renderUsers() {
-  const tbody = document.querySelector("#admin-user-table-body");
-  if (!tbody) return;
-
-  const searchVal = document.querySelector("#user-search-field")?.value.trim().toLowerCase() || "";
-  const roleVal = document.querySelector("#user-filter-role")?.value || "";
-  const statusVal = document.querySelector("#user-filter-status")?.value || "";
-
-  const filtered = users.filter(u => {
-    const matchesSearch = !searchVal || 
-      (u.name && u.name.toLowerCase().includes(searchVal)) || 
-      (u.email && u.email.toLowerCase().includes(searchVal));
-    
-    const matchesRole = !roleVal || u.role === roleVal;
-
-    let matchesStatus = true;
-    if (statusVal === "active") {
-      matchesStatus = u.is_active === true;
-    } else if (statusVal === "blocked") {
-      matchesStatus = u.is_active === false;
-    }
-
-    return matchesSearch && matchesRole && matchesStatus;
+// ------------------------------------------------------------------ orders
+const ORDER_STATUSES = ['placed', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled'];
+async function orders() {
+  const list = asList(await api.admin.orders(), 'orders').sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  main.innerHTML = `${top('Orders', `<button class="btn btn--ghost btn--sm" data-csv>Export CSV</button>`)}
+    <div class="filters-row"><input class="input" placeholder="Search order ID, name, phone" data-q>
+      <select class="select" data-st><option value="">All statuses</option>${ORDER_STATUSES.map((s) => `<option>${s}</option>`).join('')}</select></div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr></thead><tbody data-rows></tbody></table></div>`;
+  const filtered = () => {
+    const q = $('[data-q]').value.toLowerCase(); const s = $('[data-st]').value;
+    return list.filter((o) => (!s || o.status === s) && `${o.order_id} ${o.customer?.name} ${o.customer?.phone} ${o.customer?.email}`.toLowerCase().includes(q));
+  };
+  const rows = () => {
+    const l = filtered();
+    $('[data-rows]').innerHTML = l.length ? l.map((o) => `<tr>
+      <td><b>${esc(o.order_id)}</b>${o.test_mode ? ' <span class="tag tag--line" style="height:18px">test</span>' : ''}</td><td>${fmtDate(o.created_at)}</td>
+      <td>${esc(o.customer?.name || '')}<div class="muted" style="font-size:12px">${esc(o.customer?.phone || '')}</div></td>
+      <td>${(o.items || []).reduce((s, i) => s + (i.qty || 1), 0)}</td><td>${inr(o.total ?? o.subtotal)}</td>
+      <td>${statusPill(o.payment_status)}</td><td>${statusPill(o.status)}</td>
+      <td><div class="row-actions"><button data-manage="${esc(o.order_id)}">Manage</button></div></td></tr>`).join('')
+      : '<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">No orders yet.</td></tr>';
+  };
+  rows();
+  $('[data-q]').addEventListener('input', rows); $('[data-st]').addEventListener('change', rows);
+  $('[data-csv]').addEventListener('click', () => {
+    const head = ['order_id', 'created_at', 'name', 'phone', 'email', 'city', 'pincode', 'items', 'total', 'payment_status', 'status', 'tracking_id'];
+    const lines = filtered().map((o) => [o.order_id, o.created_at, o.customer?.name, o.customer?.phone, o.customer?.email, o.shipping?.city, o.shipping?.pincode,
+      (o.items || []).map((i) => `${i.name} ${i.size} x${i.qty}`).join(' | '), o.total ?? o.subtotal, o.payment_status, o.status, o.tracking_id || '']
+      .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([[head.join(','), ...lines].join('\n')], { type: 'text/csv' }));
+    a.download = `tridentwear-orders-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
   });
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="padding: 1.5rem; text-align: center; color: #888;">No users found matching filters.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(u => {
-    const isCurrentUser = u.id === getCurrentUser()?.id;
-    const statusText = u.is_active ? "Active" : "Blocked";
-    const statusBadgeStyle = u.is_active 
-      ? "background: rgba(46, 213, 115, 0.15); color: #2ed573; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;" 
-      : "background: rgba(255, 71, 87, 0.15); color: #ff4757; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;";
-    
-    const blockBtnLabel = u.is_active ? "Block" : "Unblock";
-    const blockBtnClass = u.is_active ? "btn btn-outline danger" : "btn btn-primary";
-    
-    let lastLogin = "Never";
-    if (u.last_login_at) {
-      try {
-        lastLogin = new Date(u.last_login_at).toLocaleString();
-      } catch (e) {
-        lastLogin = u.last_login_at;
-      }
-    }
-
-    return `
-      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <td style="padding: 1rem; color: #fff; font-weight: 500;">
-          ${escapeHtml(u.name)} ${isCurrentUser ? '<span style="font-size:0.7rem; opacity:0.6; margin-left:0.25rem;">(You)</span>' : ''}
-        </td>
-        <td style="padding: 1rem;">${escapeHtml(u.email)}</td>
-        <td style="padding: 1rem;">${escapeHtml(u.phone || "N/A")}</td>
-        <td style="padding: 1rem;">
-          <select class="select" data-user-role-select="${u.id}" ${isCurrentUser ? "disabled" : ""} style="padding: 0.2rem 0.5rem; font-size: 0.8rem; background: rgba(0,0,0,0.5); width: auto;">
-            <option value="customer" ${u.role === "customer" ? "selected" : ""}>Customer</option>
-            <option value="admin" ${u.role === "admin" ? "selected" : ""}>Admin</option>
-          </select>
-        </td>
-        <td style="padding: 1rem;">
-          <span style="${statusBadgeStyle}">${statusText}</span>
-        </td>
-        <td style="padding: 1rem; color: #888; font-size: 0.8rem;">${lastLogin}</td>
-        <td style="padding: 1rem; text-align: right;">
-          <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
-            <button class="btn btn-outline" type="button" data-user-orders-btn="${u.id}" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; border-radius: 4px;">
-              <i class="fa-solid fa-shopping-bag"></i> Orders
-            </button>
-            <button class="${blockBtnClass}" type="button" data-user-toggle-status-btn="${u.id}" ${isCurrentUser ? "disabled" : ""} style="padding: 0.3rem 0.6rem; font-size: 0.75rem; border-radius: 4px;">
-              ${blockBtnLabel}
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("");
-
-  bindUserEvents();
+  main.addEventListener('click', (e) => { const b = e.target.closest('[data-manage]'); if (b) orderModal(list.find((o) => o.order_id === b.dataset.manage)); });
 }
 
-function bindUserEvents() {
-  document.querySelectorAll("[data-user-toggle-status-btn]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const userId = Number(btn.dataset.userToggleStatusBtn);
-      const userObj = users.find(u => u.id === userId);
-      if (!userObj) return;
+function orderModal(o) {
+  const m = modal(`<h3 class="h3">${esc(o.order_id)}</h3><p class="muted" style="margin:4px 0 16px">${fmtDate(o.created_at)} · ${statusPill(o.payment_status)} ${o.razorpay_payment_id ? `· ${esc(o.razorpay_payment_id)}` : ''}</p>
+    <div class="adm-grid" style="grid-template-columns:1fr 1fr">
+      <div class="card-box"><h3>Items</h3>${(o.items || []).map((i) => `<div class="mini-line" style="margin-bottom:8px"><div class="line__img"><img src="${img(i.image)}" alt=""><em>${i.qty}</em></div><div>${esc(i.name)}<div class="muted" style="font-size:12px">Size ${esc(i.size)}</div></div><b>${inr(i.price * i.qty)}</b></div>`).join('')}
+        <div class="totals" style="margin-top:10px"><div><span>Subtotal</span><span>${inr(o.subtotal)}</span></div>${o.discount_amount ? `<div><span>Discount ${esc(o.coupon_code || '')}</span><span>−${inr(o.discount_amount)}</span></div>` : ''}<div class="grand"><span>Total</span><span>${inr(o.total ?? o.subtotal)}</span></div></div></div>
+      <div class="card-box"><h3>Ship to</h3><p style="margin:0;font-size:14px"><b>${esc(o.customer?.name)}</b><br>${esc(o.shipping?.address)}<br>${esc(o.shipping?.city)} ${esc(o.shipping?.state || '')} ${esc(o.shipping?.pincode || '')}<br>${esc(o.customer?.phone)}<br>${esc(o.customer?.email)}</p></div>
+    </div>
+    <form class="form-grid" style="margin-top:16px" data-of>
+      <label class="field"><span>Order status</span><select class="select" name="status">${ORDER_STATUSES.map((s) => `<option ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+      <label class="field"><span>Payment status</span><select class="select" name="payment_status">${['pending', 'paid', 'cod_pending', 'failed', 'refunded'].map((s) => `<option ${o.payment_status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+      <label class="field"><span>Courier</span><input class="input" name="courier" value="${esc(o.courier || '')}" placeholder="Delhivery, Blue Dart…"></label>
+      <label class="field"><span>Tracking ID</span><input class="input" name="tracking_id" value="${esc(o.tracking_id || '')}"></label>
+      <label class="field full"><span>Estimated delivery</span><input class="input" name="estimated_delivery" value="${esc(o.estimated_delivery || '')}" placeholder="e.g. 18 Nov 2026"></label>
+      <p class="form-error full" data-err></p><button class="btn full">Update order</button></form>`, { wide: true });
+  $('[data-of]', m.el).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    Object.keys(f).forEach((k) => f[k] === '' && delete f[k]);
+    if (f.status === 'cancelled' && !confirm('Cancel this order? Stock is restored and the customer will see it as cancelled.')) return;
+    const btn = $('button.btn', e.target); busy(btn, true);
+    try { await api.admin.updateOrder(o.order_id, f); m.close(); toast('Order updated'); go('orders'); }
+    catch (ex) { busy(btn, false); $('[data-err]', m.el).textContent = ex.message; }
+  });
+}
 
-      const newStatus = !userObj.is_active;
-      const actionText = newStatus ? "unblock" : "block";
-      if (!window.confirm(`Are you sure you want to ${actionText} user "${userObj.name}"?`)) {
-        return;
+// ------------------------------------------------------------------ customers
+async function customers() {
+  const list = asList(await api.admin.users(), 'users');
+  main.innerHTML = `${top('Customers')}<div class="table-wrap"><table class="t"><thead><tr><th>Name</th><th>Email / phone</th><th>Role</th><th>Joined</th><th>Status</th><th></th></tr></thead><tbody>
+    ${list.map((u) => `<tr><td><b>${esc(u.name || '—')}</b></td><td>${esc(u.email || '')}<div class="muted" style="font-size:12px">${esc(u.phone || '')}</div></td>
+      <td>${u.role === 'admin' ? '<span class="tag tag--violet">admin</span>' : 'customer'}</td><td>${fmtDate(u.created_at)}</td>
+      <td>${u.is_active === false ? statusPill('cancelled').replace('cancelled', 'disabled') : statusPill('paid').replace('paid', 'active')}</td>
+      <td><div class="row-actions">${u.id === user.id ? '<span class="muted" style="font-size:12px">you</span>' : `
+        <button data-toggle="${u.id}" data-active="${u.is_active !== false}">${u.is_active === false ? 'Enable' : 'Disable'}</button>
+        <button data-role="${u.id}" data-cur="${esc(u.role)}">${u.role === 'admin' ? 'Make customer' : 'Make admin'}</button>`}</div></td></tr>`).join('')}
+    </tbody></table></div>`;
+  main.addEventListener('click', async (e) => {
+    const t = e.target.closest('[data-toggle]'); const r = e.target.closest('[data-role]');
+    try {
+      if (t) { await api.admin.setUserStatus(Number(t.dataset.toggle), t.dataset.active !== 'true'); toast('Customer updated'); go('customers'); }
+      if (r) {
+        const role = r.dataset.cur === 'admin' ? 'customer' : 'admin';
+        if (role === 'admin' && !confirm('Give this user full admin access?')) return;
+        await api.admin.setUserRole(Number(r.dataset.role), role); toast('Role updated'); go('customers');
       }
+    } catch (ex) { toast(ex.message, { type: 'error' }); }
+  });
+}
 
-      btn.disabled = true;
-      try {
-        await put(`/api/v1/admin/users/${userId}/status`, { is_active: newStatus });
-        showToast(`User status updated.`);
-        await loadUsers();
-      } catch (err) {
-        showToast(err.message, "error");
-        btn.disabled = false;
-      }
+// ------------------------------------------------------------------ coupons
+async function coupons() {
+  const list = asList(await api.admin.coupons(), 'coupons');
+  main.innerHTML = `${top('Coupons', '<button class="btn btn--sm" data-new>+ New coupon</button>')}
+    <div class="table-wrap"><table class="t"><thead><tr><th>Code</th><th>Discount</th><th>Used</th><th>Expires</th><th>Status</th><th></th></tr></thead><tbody>
+    ${list.map((c) => `<tr><td><b>${esc(c.code)}</b></td><td>${c.discount_pct}%</td><td>${c.usage_count || 0} / ${c.usage_limit}</td><td>${esc(c.expires_at || '')}</td>
+      <td>${c.is_active ? statusPill('paid').replace('paid', 'active') : statusPill('cancelled').replace('cancelled', 'paused')}</td>
+      <td><div class="row-actions"><button data-flip="${esc(c.code)}" data-on="${c.is_active}">${c.is_active ? 'Pause' : 'Activate'}</button><button class="danger" data-del="${esc(c.code)}">Delete</button></div></td></tr>`).join('')}
+    </tbody></table></div>`;
+  $('[data-new]').addEventListener('click', () => {
+    const m = modal(`<h3 class="h3">New coupon</h3><form class="form-grid" style="margin-top:14px" data-cf>
+      <label class="field"><span>Code</span><input class="input" name="code" required pattern="[A-Za-z0-9]{3,20}" style="text-transform:uppercase"></label>
+      <label class="field"><span>Discount %</span><input class="input" name="discount_pct" type="number" min="1" max="90" required value="10"></label>
+      <label class="field"><span>Expires on</span><input class="input" name="expires_at" type="date" required value="${new Date(Date.now() + 90 * 864e5).toISOString().slice(0, 10)}"></label>
+      <label class="field"><span>Usage limit</span><input class="input" name="usage_limit" type="number" min="1" value="500"></label>
+      <p class="form-error full" data-err></p><button class="btn full">Create coupon</button></form>`);
+    $('[data-cf]', m.el).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = Object.fromEntries(new FormData(e.target));
+      try { await api.admin.createCoupon({ code: f.code.toUpperCase(), discount_pct: Number(f.discount_pct), expires_at: f.expires_at, usage_limit: Number(f.usage_limit), is_active: true }); m.close(); toast('Coupon created'); go('coupons'); }
+      catch (ex) { $('[data-err]', m.el).textContent = ex.message; }
     });
   });
-
-  document.querySelectorAll("[data-user-role-select]").forEach(select => {
-    select.addEventListener("change", async () => {
-      const userId = Number(select.dataset.userRoleSelect);
-      const userObj = users.find(u => u.id === userId);
-      if (!userObj) return;
-
-      const newRole = select.value;
-      if (!window.confirm(`Change role of user "${userObj.name}" to "${newRole}"?`)) {
-        select.value = userObj.role;
-        return;
-      }
-
-      select.disabled = true;
-      try {
-        await put(`/api/v1/admin/users/${userId}/role`, { role: newRole });
-        showToast(`User role updated to ${newRole}.`);
-        await loadUsers();
-      } catch (err) {
-        showToast(err.message, "error");
-        select.value = userObj.role;
-        select.disabled = false;
-      }
-    });
-  });
-
-  document.querySelectorAll("[data-user-orders-btn]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const userId = Number(btn.dataset.userOrdersBtn);
-      viewUserOrders(userId);
-    });
+  main.addEventListener('click', async (e) => {
+    const f = e.target.closest('[data-flip]'); const d = e.target.closest('[data-del]');
+    try {
+      if (f) { await api.admin.updateCoupon(f.dataset.flip, { is_active: f.dataset.on !== 'true' }); go('coupons'); }
+      if (d && confirm(`Delete coupon ${d.dataset.del}?`)) { await api.admin.deleteCoupon(d.dataset.del); toast('Coupon deleted'); go('coupons'); }
+    } catch (ex) { toast(ex.message, { type: 'error' }); }
   });
 }
 
-async function viewUserOrders(userId) {
-  const userObj = users.find(u => u.id === userId);
-  if (!userObj) return;
+// ------------------------------------------------------------------ reviews
+async function reviews() {
+  const list = asList(await api.admin.reviews(), 'reviews');
+  const prods = new Map((await getProducts()).map((p) => [p.id, p]));
+  main.innerHTML = `${top('Reviews')}<div class="table-wrap"><table class="t"><thead><tr><th>Product</th><th>Rating</th><th>Review</th><th>By</th><th>Status</th><th></th></tr></thead><tbody>
+    ${list.length ? list.map((r) => `<tr><td>${esc(prods.get(r.product_id)?.name || '#' + r.product_id)}</td><td class="stars">${'★'.repeat(r.rating)}</td>
+      <td style="max-width:360px">${esc(r.review || r.comment || '')}</td><td>${esc(r.user_name || r.name || '')}</td><td>${statusPill(r.status === 'approved' ? 'paid' : r.status === 'rejected' ? 'cancelled' : 'pending').replace(/>(paid|cancelled|pending)</, `>${esc(r.status || 'pending')}<`)}</td>
+      <td><div class="row-actions"><button data-mod="${r.id}" data-s="approved">Approve</button><button data-mod="${r.id}" data-s="rejected">Reject</button><button class="danger" data-rdel="${r.id}">Delete</button></div></td></tr>`).join('')
+      : '<tr><td colspan="6" class="muted" style="text-align:center;padding:30px">No reviews yet.</td></tr>'}</tbody></table></div>`;
+  main.addEventListener('click', async (e) => {
+    const m = e.target.closest('[data-mod]'); const d = e.target.closest('[data-rdel]');
+    try {
+      if (m) { await api.admin.moderateReview(Number(m.dataset.mod), m.dataset.s); toast(`Review ${m.dataset.s}`); go('reviews'); }
+      if (d && confirm('Delete this review?')) { await api.admin.deleteReview(Number(d.dataset.rdel)); go('reviews'); }
+    } catch (ex) { toast(ex.message, { type: 'error' }); }
+  });
+}
 
-  const modal = document.querySelector("#user-orders-modal");
-  const modalTitle = document.querySelector("#user-orders-modal-title");
-  const modalBody = document.querySelector("#user-orders-modal-body");
-  if (!modal || !modalBody) return;
+go(SECTIONS.some(([k]) => `#${k}` === location.hash) ? location.hash.slice(1) : 'dashboard');
 
-  modalTitle.textContent = `Order History for ${userObj.name}`;
-  modalBody.innerHTML = `<div style="text-align: center; padding: 2rem;">Loading orders...</div>`;
-  modal.style.display = "flex";
 
-  try {
-    const data = await get(`/api/v1/admin/users/${userId}/orders`);
-    const ordersList = Array.isArray(data) ? data : [];
-    if (ordersList.length === 0) {
-      modalBody.innerHTML = `<div style="text-align: center; padding: 2rem; color: #888;">No orders found for this user.</div>`;
-      return;
+// ------------------------------------------------------------------ storefront (no-deploy site settings)
+async function storefront() {
+  const [site, all] = await Promise.all([api.site().catch(() => ({})), getProducts()]);
+  const S = { announcements: [], hero_line: '', hero_text: '', drop_title: '', rail: [], drop: [], contact: {}, ...site };
+  let rail = [...(S.rail || [])], drop = [...(S.drop || [])];
+  const thumb = (p, list, kind) => {
+    const n = list.indexOf(p.id);
+    return `<button type="button" class="pick ${n >= 0 ? 'is-on' : ''}" data-pick="${kind}" data-id="${p.id}" title="${esc(p.name)} · ${esc(p.base_color)}">
+      <img src="${img(p.image)}" alt="" loading="lazy">${n >= 0 ? `<em>${n + 1}</em>` : ''}<span>${esc(p.name)}<small>${esc(p.base_color)}</small></span></button>`;
+  };
+  const order = (list) => list.map((id, i) => { const p = all.find((x) => x.id === id); return p ? `<span class="order-chip">${i + 1}. ${esc(p.name)} <small>${esc(p.base_color)}</small>
+      <button type="button" data-mv="${id}" data-dir="-1" aria-label="Move left">‹</button><button type="button" data-mv="${id}" data-dir="1" aria-label="Move right">›</button></span>` : ''; }).join('');
+  const render = () => {
+    main.innerHTML = `${top('Storefront', '<a class="btn btn--ghost btn--sm" href="index.html" target="_blank" rel="noopener">View store</a><button class="btn btn--sm" data-save>Save changes</button>')}
+    <p class="muted" style="margin:-8px 0 22px">Changes go live on the store within a minute. Nothing here needs a deploy.</p>
+    <form class="adm-form" data-site>
+      <section class="card-box"><h3>Announcement bar</h3><p class="muted">One message per line, up to 6. Codes written in capitals (like TRIDENTFIRST) show in bold.</p>
+        <textarea class="textarea" name="announcements" rows="4">${esc((S.announcements || []).join('\n'))}</textarea></section>
+      <section class="card-box"><h3>Hero</h3>
+        <label class="field"><span>Top line</span><input class="input" name="hero_line" maxlength="140" value="${esc(S.hero_line)}"></label>
+        <label class="field"><span>Description under the logo</span><textarea class="textarea" name="hero_text" maxlength="220" rows="2">${esc(S.hero_text)}</textarea></label></section>
+      <section class="card-box"><h3>The rail <small class="muted" data-rail-count>${rail.length ? `${rail.length} pieces` : 'Using the default rail'}</small></h3>
+        <p class="muted">Click pieces to hang them, in order. Leave empty to use the default rail. At least 4.</p>
+        <div class="order-list" data-rail-order>${order(rail)}</div>
+        <div class="pick-grid">${all.map((p) => thumb(p, rail, 'rail')).join('')}</div>
+        ${rail.length ? '<button type="button" class="linkish" data-clear="rail">Use the default rail</button>' : ''}</section>
+      <section class="card-box"><h3>Home page drop</h3>
+        <label class="field"><span>Section title</span><input class="input" name="drop_title" maxlength="60" value="${esc(S.drop_title)}"></label>
+        <p class="muted">Pick up to 4 products. Leave empty for the default picks.</p>
+        <div class="pick-grid">${all.map((p) => thumb(p, drop, 'drop')).join('')}</div></section>
+      <section class="card-box"><h3>Contact details</h3><div class="form-grid">
+        ${[['email', 'Email'], ['phone', 'Phone'], ['whatsapp', 'WhatsApp (digits with country code)'], ['instagram', 'Instagram link'], ['address', 'Address']].map(([k, l]) => `<label class="field ${k === 'address' ? 'full' : ''}"><span>${l}</span><input class="input" name="c_${k}" value="${esc(S.contact?.[k] || '')}"></label>`).join('')}
+      </div></section>
+      <p class="form-error" data-err></p>
+    </form>`;
+  };
+  render();
+  main.addEventListener('click', async (e) => {
+    const pick = e.target.closest('[data-pick]');
+    if (pick) {
+      const id = Number(pick.dataset.id); const list = pick.dataset.pick === 'rail' ? rail : drop;
+      const i = list.indexOf(id);
+      if (i >= 0) list.splice(i, 1);
+      else if (pick.dataset.pick === 'drop' && drop.length >= 4) { toast('The drop shows 4 products. Remove one first.', { type: 'error' }); return; }
+      else list.push(id);
+      keep(); render(); return;
     }
-
-    modalBody.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 1rem;">
-        ${ordersList.map(o => {
-          const date = new Date(o.created_at).toLocaleDateString();
-          return `
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 1rem;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap;">
-                <strong>Order ID: ${escapeHtml(o.order_id)}</strong>
-                <span style="color: var(--primary, #6244c5); font-weight: 500;">${formatCurrency(o.total)}</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; color: #888; font-size: 0.8rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
-                <span>Placed on ${date}</span>
-                <span>Payment: <strong style="color: #ccc;">${o.payment_method.toUpperCase()} (${o.payment_status})</strong></span>
-              </div>
-              <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.5rem; margin-top: 0.5rem;">
-                <span style="font-size: 0.8rem; color: #aaa;">Status: <strong style="color:#fff;">${o.status.toUpperCase()}</strong></span>
-              </div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    `;
-  } catch (err) {
-    console.error(err);
-    modalBody.innerHTML = `<div style="text-align: center; padding: 2rem; color: #ff4757;">Failed to load user orders.</div>`;
-  }
-}
-
-function bindUserFilters() {
-  const searchInput = document.querySelector("#user-search-field");
-  const roleSelect = document.querySelector("#user-filter-role");
-  const statusSelect = document.querySelector("#user-filter-status");
-
-  searchInput?.addEventListener("input", () => renderUsers());
-  roleSelect?.addEventListener("change", () => renderUsers());
-  statusSelect?.addEventListener("change", () => renderUsers());
-
-  const modal = document.querySelector("#user-orders-modal");
-  const closeBtn = document.querySelector("#close-user-orders-modal");
-
-  closeBtn?.addEventListener("click", () => {
-    if (modal) modal.style.display = "none";
-  });
-
-  window.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.style.display = "none";
+    const mv = e.target.closest('[data-mv]');
+    if (mv) { const id = Number(mv.dataset.mv), i = rail.indexOf(id), j = i + Number(mv.dataset.dir); if (j >= 0 && j < rail.length) { [rail[i], rail[j]] = [rail[j], rail[i]]; keep(); render(); } return; }
+    if (e.target.closest('[data-clear]')) { keep(); rail = []; render(); return; }
+    if (e.target.closest('[data-save]')) {
+      const f = $('[data-site]'); const btn = e.target.closest('[data-save]'); busy(btn, true);
+      const fd = Object.fromEntries(new FormData(f));
+      const body = {
+        announcements: fd.announcements.split('\n').map((x) => x.trim()).filter(Boolean),
+        hero_line: fd.hero_line, hero_text: fd.hero_text, drop_title: fd.drop_title, rail, drop,
+        contact: Object.fromEntries(Object.entries(fd).filter(([k]) => k.startsWith('c_')).map(([k, v]) => [k.slice(2), v])),
+      };
+      try { Object.assign(S, await api.admin.saveSite(body)); sessionStorage.removeItem('tw_site'); toast('Storefront saved. It is live now.'); }
+      catch (ex) { $('[data-err]').textContent = ex.message; toast(ex.message, { type: 'error' }); }
+      finally { busy(btn, false); }
     }
   });
-}
-
-async function initAdminPage() {
-  await initSite();
-  const user = getCurrentUser();
-  if (!user || user.role !== "admin") {
-    window.location.href = pageUrl(`/login?next=${encodeURIComponent("/admin")}`);
-    return;
+  // keep typed text when re-rendering after a pick
+  function keep() {
+    const f = $('[data-site]'); if (!f) return;
+    const fd = Object.fromEntries(new FormData(f));
+    S.announcements = fd.announcements.split('\n'); S.hero_line = fd.hero_line; S.hero_text = fd.hero_text; S.drop_title = fd.drop_title;
+    S.contact = Object.fromEntries(Object.entries(fd).filter(([k]) => k.startsWith('c_')).map(([k, v]) => [k.slice(2), v]));
   }
-
-  bindForm();
-  bindPreview();
-  bindReviewTabs();
-  setFormState();
-  
-  bindCouponForm();
-  setCouponFormState();
-
-  bindUserFilters();
-
-  try {
-    await loadProducts();
-    await loadAdminMetrics();
-    await loadReviews();
-    await updateSupportBadge();
-    await loadCoupons();
-    await loadUsers();
-  } catch (error) {
-    const adminList = document.querySelector("[data-admin-product-list]");
-    if (adminList) {
-      adminList.innerHTML = `<div class="helper-note danger">${escapeHtml(error.message || "Failed to load admin data.")}</div>`;
-    }
-  }
-}
-
-if (document.readyState === "loading") {
-  window.addEventListener("DOMContentLoaded", initAdminPage);
-} else {
-  initAdminPage();
 }

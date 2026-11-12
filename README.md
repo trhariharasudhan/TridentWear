@@ -20,7 +20,7 @@ A complete, production-ready e-commerce platform built with **FastAPI** backend 
 |-------|-----------|
 | **Frontend** | HTML5, CSS3, Vanilla JavaScript |
 | **Backend** | FastAPI, Uvicorn ASGI |
-| **Database** | JSON (users, products, orders, contacts, chat) |
+| **Database** | PostgreSQL 16 via SQLAlchemy + Alembic (`DB_MODE=postgres`) · JSON files for quick local dev (`DB_MODE=json`, default) |
 | **Authentication** | JWT (7-day expiry), Bcrypt hashing |
 | **Icons** | FontAwesome 6.5.2 |
 | **Styling** | CSS Grid, Flexbox, Responsive Design |
@@ -67,6 +67,27 @@ TridentWear/
 ├── package.json               # Node dev tools validation script definitions
 └── requirements.txt            # Root python environment dependencies (pinned)
 ```
+
+## 🗄️ Database (PostgreSQL)
+
+Production and Docker use PostgreSQL. Tables are created by Alembic migrations and the
+16-product catalog is seeded automatically from `db/products.json` on first start.
+
+```bash
+# Option A — Docker (Postgres + app, migrations run automatically)
+copy backend\.env.example backend\.env      # set ADMIN_PASSWORD, secrets
+docker compose up --build                     # http://localhost:8000
+
+# Option B — your own Postgres (Windows PowerShell)
+$env:DB_MODE="postgres"
+$env:DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/tridentwear"
+alembic upgrade head
+python -m uvicorn app.main:app --port 8020 --app-dir backend
+```
+
+`DATABASE_URL` accepts `postgresql://`, `postgres://` (Render/Railway) and `postgresql+psycopg://`.
+Note: in `DB_MODE=json` the server writes to `db/products.json` (stock changes), so set
+`TRIDENT_DB_DIR` to a scratch folder if you don't want test orders to touch the tracked catalog.
 
 ## 🚀 Quick Start
 

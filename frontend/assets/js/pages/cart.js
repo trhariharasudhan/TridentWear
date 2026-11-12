@@ -1,158 +1,50 @@
-import { post, resolveAssetUrl } from "../shared/api.js?v=20260430-v3";
-import { getCartSubtotal, loadCart, removeCartItem, updateCartItemQuantity } from "../shared/cart.js?v=20260430-v3";
-import { createEmptyMarkup, endGlobalLoader, escapeHtml, formatCurrency, initSite, showToast, startGlobalLoader } from "../shared/site.js?v=20260430-v3";
+import { mountChrome, $, esc, icon, inr, lineHtml, toast, busy, productCard } from '../ui.js';
+import { cart, getProducts } from '../store.js';
+import { api } from '../api.js';
 
-let appliedCartCoupon = null;
+await mountChrome({ page: 'cart' });
+const root = $('[data-cart]');
+const COUPON_KEY = 'tw_coupon';
 
-function renderSummary(items) {
-  const summary = document.querySelector("[data-cart-summary]");
-  if (!summary) return;
-  const subtotal = getCartSubtotal(items);
-  const discountRow = appliedCartCoupon
-    ? `<div class="summary-row" style="color:var(--success,#22c55e);"><span>Coupon (${appliedCartCoupon.code})</span><strong>-${formatCurrency(appliedCartCoupon.discount_amount)}</strong></div>`
-    : "";
-  const finalTotal = appliedCartCoupon ? appliedCartCoupon.final_total : subtotal;
-  summary.innerHTML = `
-    <div class="summary-row">
-      <span>Subtotal</span>
-      <strong class="summary-price">${formatCurrency(subtotal)}</strong>
-    </div>
-    <div class="summary-row">
-      <span>Items</span>
-      <strong>${items.length}</strong>
-    </div>
-    ${discountRow}
-    <div class="summary-row" style="border-top:1px solid rgba(255,255,255,.1);padding-top:0.5rem;margin-top:0.25rem;">
-      <span style="font-weight:700;">Total</span>
-      <strong class="summary-price">${formatCurrency(finalTotal)}</strong>
-    </div>
-  `;
-}
-
-function bindCartActions() {
-  document.querySelectorAll("[data-qty-change]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const { id, size, delta } = button.dataset;
-      const item = loadCart().find((entry) => String(entry.id) === id && entry.size === size);
-      if (!item) {
-        return;
-      }
-      updateCartItemQuantity(Number(id), size, Number(item.qty) + Number(delta));
-      renderCart();
-    });
-  });
-
-  document.querySelectorAll("[data-remove-item]").forEach((button) => {
-    button.addEventListener("click", () => {
-      removeCartItem(Number(button.dataset.id), button.dataset.size);
-      renderCart();
-    });
-  });
-}
-
-function renderCart() {
-  const items = loadCart();
-  const list = document.querySelector("[data-cart-list]");
-  const checkoutBtn = document.querySelector("[data-checkout-link]");
-
-  if (!items.length) {
-    if (list) list.innerHTML = createEmptyMarkup("Your cart is empty", "Add a few premium pieces and come back here.");
-    if (checkoutBtn) checkoutBtn.style.pointerEvents = "none";
-    if (checkoutBtn) checkoutBtn.classList.add("disabled");
-    renderSummary(items);
+async function render() {
+  const { lines, subtotal, savings } = await cart.detailed();
+  if (!lines.length) {
+    const picks = (await getProducts()).filter((p) => p.featured).slice(0, 4);
+    root.style.display = 'block';
+    root.innerHTML = `<div class="empty">${icon.bag}<h2 class="h2">Your bag is empty</h2><p class="muted">Start with a heavyweight essential.</p><a class="btn" href="shop.html">Shop now</a></div>
+      <div class="grid" style="margin-top:30px">${picks.map((p) => productCard(p)).join('')}</div>`;
     return;
   }
-
-  if (checkoutBtn) checkoutBtn.style.pointerEvents = "auto";
-  if (checkoutBtn) checkoutBtn.classList.remove("disabled");
-
-  if (list) {
-    list.innerHTML = items
-      .map(
-        (item) => `
-          <article class="cart-item">
-            <div class="cart-item-media">
-              <img src="${resolveAssetUrl(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async">
-            </div>
-            <div>
-              <div class="cart-item-title-row">
-                <div>
-                  <strong>${escapeHtml(item.name)}</strong>
-                  <div class="label">Size ${escapeHtml(item.size)}</div>
-                </div>
-                <strong class="cart-item-price">${formatCurrency(item.price)}</strong>
-              </div>
-              <div class="cart-row-actions">
-                <div class="quantity-control">
-                  <button class="qty-button" type="button" data-qty-change data-id="${item.id}" data-size="${escapeHtml(item.size)}" data-delta="-1" aria-label="Decrease quantity">-</button>
-                  <span>${item.qty}</span>
-                  <button class="qty-button" type="button" data-qty-change data-id="${item.id}" data-size="${escapeHtml(item.size)}" data-delta="1" aria-label="Increase quantity">+</button>
-                </div>
-                <button class="btn btn-outline" type="button" data-remove-item data-id="${item.id}" data-size="${escapeHtml(item.size)}">Remove</button>
-              </div>
-            </div>
-          </article>
-        `,
-      )
-      .join("");
-  }
-
-  renderSummary(items);
-  bindCartActions();
-}
-
-function bindCartCoupon() {
-  const btn = document.getElementById("cart-coupon-apply");
-  const input = document.getElementById("cart-coupon-code");
-  const msg = document.getElementById("cart-coupon-msg");
-  if (!btn || !input) return;
-  btn.addEventListener("click", async () => {
-    const code = input.value.trim();
-    if (!code) { showToast("Enter a coupon code.", "error"); return; }
-    btn.disabled = true;
-    btn.textContent = "Checking…";
+  const coupon = JSON.parse(sessionStorage.getItem(COUPON_KEY) || 'null');
+  const discount = coupon ? Math.round(subtotal * coupon.discount_pct) / 100 : 0;
+  root.innerHTML = `
+    <section>${lines.map(lineHtml).join('')}
+      <a class="linkish" href="shop.html" style="display:inline-block;margin-top:18px">← Continue shopping</a></section>
+    <aside class="summary">
+      <h2 class="h3">Order summary</h2>
+      <div class="coupon"><label class="sr-only" for="coupon">Coupon</label><input class="input" id="coupon" placeholder="Coupon code" value="${esc(coupon?.code || '')}"><button class="btn btn--sm" data-apply>${coupon ? 'Remove' : 'Apply'}</button></div>
+      <p class="muted" style="margin:-8px 0 0;font-size:12.5px">${coupon ? `<b style="color:var(--ok)">${esc(coupon.code)}</b> applied — ${coupon.discount_pct}% off` : 'New here? Try <b>TRIDENTFIRST</b> for 20% off.'}</p>
+      <div class="totals">
+        <div><span>Subtotal (${cart.count()} items)</span><span>${inr(subtotal)}</span></div>
+        ${savings ? `<div style="color:var(--ok)"><span>MRP savings</span><span>−${inr(savings)}</span></div>` : ''}
+        ${discount ? `<div style="color:var(--ok)"><span>Coupon</span><span>−${inr(discount)}</span></div>` : ''}
+        <div><span>Shipping</span><span>Free</span></div>
+        <div class="grand"><span>Total</span><span>${inr(subtotal - discount)}</span></div>
+      </div>
+      <a class="btn btn--block" href="checkout.html">Checkout securely</a>
+      <div class="secure-note">${icon.shield} Payments secured by Razorpay · COD available</div>
+    </aside>`;
+  $('[data-apply]').addEventListener('click', async (e) => {
+    if (coupon) { sessionStorage.removeItem(COUPON_KEY); render(); return; }
+    const code = $('#coupon').value.trim().toUpperCase();
+    if (!code) return;
+    busy(e.currentTarget, true);
     try {
-      const data = await post("/api/v1/coupons/apply", {
-        code,
-        subtotal: getCartSubtotal(loadCart()),
-      });
-      appliedCartCoupon = { code: data.code, discount_amount: data.discount_amount, final_total: data.final_total };
-      if (msg) {
-        msg.textContent = `${data.discount_pct}% off applied — saving ${formatCurrency(data.discount_amount)}!`;
-        msg.style.color = "var(--success, #22c55e)";
-      }
-      renderSummary(loadCart());
-      showToast(`Coupon "${data.code}" applied!`, "success");
-    } catch (err) {
-      appliedCartCoupon = null;
-      if (msg) {
-        msg.textContent = err.message;
-        msg.style.color = "var(--danger, #ef4444)";
-      }
-      renderSummary(loadCart());
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Apply";
-    }
+      const r = await api.applyCoupon(code, subtotal, cart.asOrderItems());
+      sessionStorage.setItem(COUPON_KEY, JSON.stringify({ code: r.code || code, discount_pct: r.discount_pct ?? r.discount ?? 0 }));
+      toast(`${code} applied`); render();
+    } catch (ex) { toast(ex.message, { type: 'error' }); busy(e.currentTarget, false); }
   });
 }
-
-window.addEventListener("DOMContentLoaded", async () => {
-  await initSite();
-  const list = document.querySelector("[data-cart-list]");
-  if (list) {
-    list.innerHTML = `
-      <div class="skeleton" style="height:8rem;margin-bottom:1rem;border-radius:var(--radius);"></div>
-      <div class="skeleton" style="height:8rem;margin-bottom:1rem;border-radius:var(--radius);"></div>
-      <div class="skeleton" style="height:8rem;margin-bottom:1rem;border-radius:var(--radius);"></div>
-    `;
-  }
-  
-  startGlobalLoader();
-  setTimeout(() => {
-    renderCart();
-    bindCartCoupon();
-    endGlobalLoader();
-    if (list) list.classList.add("fade-in");
-  }, 500);
-});
+addEventListener('tw:cart', render);
+render();
