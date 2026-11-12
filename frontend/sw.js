@@ -1,7 +1,7 @@
 // TridentWear service worker — offline shell + fast repeat visits.
 // Strategy: pages, CSS, JS and data = network-first (so a deploy shows up on the next load, not the one after);
 // images and fonts = cache-first with background refresh; API = network only (never cache prices, stock, auth, payments).
-const VERSION = 'tw-v3';
+const VERSION = 'tw-v4';
 const SHELL = [
   './', 'index.html', 'shop.html', 'product.html', 'cart.html', 'offline.html',
   'assets/css/tw.css', 'assets/js/ui.js', 'assets/js/api.js', 'assets/js/demo.js', 'assets/js/store.js', 'assets/js/config.js',
@@ -23,7 +23,7 @@ self.addEventListener('fetch', (e) => {
 
   const networkFirst = req.mode === 'navigate' || /\.(css|js|json|webmanifest)$/.test(url.pathname);
   if (networkFirst) {
-    e.respondWith(fetch(req).then((res) => { caches.open(VERSION).then((c) => c.put(req, res.clone())); return res; })
+    e.respondWith(fetch(req.mode === 'navigate' ? req : new Request(req, { cache: 'no-cache' })).then((res) => { caches.open(VERSION).then((c) => c.put(req, res.clone())); return res; })
       .catch(async () => (await caches.match(req)) || (req.mode === 'navigate' ? caches.match('offline.html') : Response.error())));
     return;
   }

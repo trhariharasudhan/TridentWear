@@ -212,6 +212,18 @@ async def add_security_headers(request: Request, call_next):
     # Camera is needed by the virtual try-on page (same origin only)
     response.headers["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=()"
 
+    # Caching: with no header, browsers guess and keep old CSS/JS after an update, which
+    # mixes new HTML with old code (blank / unstyled pages). Code and pages revalidate on
+    # every load (cheap 304 via ETag); images and fonts can be cached for a week.
+    path = request.url.path
+    if "cache-control" not in response.headers:
+        if path.endswith((".css", ".js", ".mjs", ".json", ".webmanifest", ".html")) or path == "/" or (
+            not path.startswith(("/api/", "/assets/", "/images/")) and "." not in path.rsplit("/", 1)[-1]
+        ):
+            response.headers["Cache-Control"] = "no-cache"
+        elif path.startswith(("/assets/", "/images/")):
+            response.headers["Cache-Control"] = "public, max-age=604800"
+
     is_prod = os.getenv("ENVIRONMENT", "development") == "production"
     if is_prod:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"

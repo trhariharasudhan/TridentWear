@@ -375,5 +375,13 @@ document.addEventListener('click', (e) => {
 // ---------------------------------------------------------------- PWA
 function registerSW() {
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
-  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  // When an updated service worker takes over a page that an older one served, reload once
+  // so the page never runs a mix of old and new code.
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloaded) return;
+    reloaded = true; location.reload();
+  });
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').then((r) => r.update()).catch(() => {}));
 }
