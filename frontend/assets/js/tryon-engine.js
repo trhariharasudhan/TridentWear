@@ -111,7 +111,17 @@ export function bodyTargets(lm, toCanvas, { scale = 1, offsetX = 0, offsetY = 0 
   rs = [mid[0] + (rs[0] - mid[0]) * widen, mid[1] + (rs[1] - mid[1]) * widen];
   hip = [mid[0] + (hip[0] - mid[0]) * (0.96 + (scale - 1) * 0.6), mid[1] + (hip[1] - mid[1]) * (0.96 + (scale - 1) * 0.6)];
   const shift = (p) => [p[0] + offsetX, p[1] + offsetY];
-  return { ls: shift(ls), rs: shift(rs), hip: shift(hip), quality, span };
+  // per-side hips (widened like the shoulders) and elbows, for the Live+ mesh rig
+  let lh = null, rh = null;
+  if (quality === 'full') {
+    const a = toCanvas(LH.x, LH.y), b = toCanvas(RH.x, RH.y);
+    const hm = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], hw = 1.22 * scale;
+    lh = shift([hip[0] + (a[0] - hm[0]) * hw, hip[1] + (a[1] - hm[1]) * hw]);
+    rh = shift([hip[0] + (b[0] - hm[0]) * hw, hip[1] + (b[1] - hm[1]) * hw]);
+  }
+  const elbow = (i) => (lm[i] && (lm[i].visibility ?? 1) > 0.55 ? shift(toCanvas(lm[i].x, lm[i].y)) : null);
+  const raw = { ls: shift(toCanvas(L.x, L.y)), rs: shift(toCanvas(R.x, R.y)) };
+  return { ls: shift(ls), rs: shift(rs), hip: shift(hip), lh, rh, le: elbow(13), re: elbow(14), raw, quality, span };
 }
 
 /** Draw the garment so its anchors land on the body targets. */
@@ -141,4 +151,136 @@ export function fitMapper(srcW, srcH, cw, ch, { mode = 'cover', mirror = false }
     rect: [dx, dy, dw, dh],
     toCanvas: (x, y) => [mirror ? cw - (dx + x * dw) : dx + x * dw, dy + y * dh],
   };
+}
+
+
+// ============================================================================
+// Fit Check Live+: mesh-warped garment that follows the body.
+//  - A bilinear rig maps garment shoulders/hips onto the body's shoulders/hips, so the
+//    garment leans and twists with the torso instead of staying a flat sheet.
+//  - Sleeves rotate around each shoulder toward the elbow (raise an arm, the sleeve follows).
+//  - The hem lags behind torso movement on a damped spring (cloth inertia).
+//  - The camera's own light is blended over the garment (soft-light) so it isn't a sticker.
+// Everything runs on a 2D canvas: no server, the camera never leaves the device.
+// ============================================================================
+const lerp = (a, b, t) => a + (b - a) * t;
+const lerp2 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+const smooth = (e0, e1, x) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+const rot = (p, c, a) => { const s = Math.sin(a), k = Math.cos(a), x = p[0] - c[0], y = p[1] - c[1]; return [c[0] + x * k - y * s, c[1] + x * s + y * k]; };
+const norm = (v) => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+const angleBetween = (a, b) => Math.atan2(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]);
+
+export class ClothSim {
+  constructor() { this.prev = null; this.off = [0, 0]; this.vel = [0, 0]; this.t = 0; }
+  step(anchor, now = performance.now(), span = 240) {
+    const dt = this.t ? Math.min(0.05, (now - this.t) / 1000) : 0.016; this.t = now;
+    if (!this.prev) { this.prev = anchor; return this.off; }
+    const mv = [(anchor[0] - this.prev[0]) / dt, (anchor[1] - this.prev[1]) / dt]; this.prev = anchor;
+    const k = 60, c = 9;   // spring ~1.2 Hz, lightly damped
+    for (let i = 0; i < 2; i++) {
+      this.vel[i] += (-k * this.off[i] - c * this.vel[i] - mv[i] * 0.6) * dt;
+      this.off[i] += this.vel[i] * dt;
+    }
+    const lim = span * 0.14; // swing scales with how big the body is in frame
+    this.off = this.off.map((v) => Math.max(-lim, Math.min(lim, v)));
+    return this.off;
+  }
+}
+
+/** Build the source -> destination mapping for one garment on one frame. */
+export function liveRig(anchors, w, h, t, sway = [0, 0]) {
+  const A = anchors || DEFAULT_ANCHORS;
+  const sLs = [A.ls[0] * w, A.ls[1] * h], sRs = [A.rs[0] * w, A.rs[1] * h], sHip = [A.hip[0] * w, A.hip[1] * h];
+  const half = (sLs[0] - sRs[0]) / 2 * 0.94;
+  const sLh = [sHip[0] + half, sHip[1]], sRh = [sHip[0] - half, sHip[1]];
+  const across = [(t.ls[0] - t.rs[0]) / 2 * 0.94, (t.ls[1] - t.rs[1]) / 2 * 0.94];
+  const dLs = t.ls, dRs = t.rs;
+  const dLh = t.lh || [t.hip[0] + across[0], t.hip[1] + across[1]];
+  const dRh = t.rh || [t.hip[0] - across[0], t.hip[1] - across[1]];
+
+  // sleeve rotation: from the garment's resting sleeve direction toward the elbow
+  const down = norm([(dLh[0] + dRh[0]) / 2 - (dLs[0] + dRs[0]) / 2, (dLh[1] + dRh[1]) / 2 - (dLs[1] + dRs[1]) / 2]);
+  const sleeve = (sh, other, elbow, rawSh) => {
+    if (!elbow) return 0;
+    const out = norm([sh[0] - other[0], sh[1] - other[1]]);
+    const rest = norm([down[0] * Math.cos(0.45) + out[0] * Math.sin(0.45), down[1] * Math.cos(0.45) + out[1] * Math.sin(0.45)]);
+    const arm = norm([elbow[0] - (rawSh || sh)[0], elbow[1] - (rawSh || sh)[1]]);
+    return Math.max(-1.1, Math.min(1.1, angleBetween(rest, arm) * 0.85));
+  };
+  const aL = sleeve(dLs, dRs, t.le, t.raw?.ls), aR = sleeve(dRs, dLs, t.re, t.raw?.rs);
+
+  return (x, y) => {
+    const v = (y - sRs[1]) / ((sRh[1] - sRs[1]) || 1);
+    const left = lerp(sRs[0], sRh[0], v), right = lerp(sLs[0], sLh[0], v);
+    const u = (x - left) / ((right - left) || 1);
+    let p = lerp2(lerp2(dRs, dLs, u), lerp2(dRh, dLh, u), v);
+    // sleeves: beyond the shoulder line, upper part of the garment
+    const up = 1 - smooth(0.25, 0.62, v);
+    if (u > 1 && aL) p = rot(p, dLs, aL * smooth(1, 1.3, u) * up);
+    if (u < 0 && aR) p = rot(p, dRs, aR * smooth(0, -0.3, u) * up);
+    // hem sway: lower rows lag behind the body
+    const hw = smooth(0.4, 1.15, v) ** 1.4;
+    return [p[0] + sway[0] * hw, p[1] + sway[1] * hw * 0.35];
+  };
+}
+
+function triangle(ctx, img, s, d) {
+  const m = affineFrom3(s, d); if (!m) return;
+  // grow the clip by ~0.7px around the centroid to hide hairline seams between triangles
+  const cx = (d[0][0] + d[1][0] + d[2][0]) / 3, cy = (d[0][1] + d[1][1] + d[2][1]) / 3;
+  const g = d.map(([x, y]) => { const dx = x - cx, dy = y - cy, l = Math.hypot(dx, dy) || 1; return [x + dx / l * 0.7, y + dy / l * 0.7]; });
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(g[0][0], g[0][1]); ctx.lineTo(g[1][0], g[1][1]); ctx.lineTo(g[2][0], g[2][1]); ctx.closePath(); ctx.clip();
+  ctx.setTransform(...m);
+  ctx.drawImage(img, 0, 0);
+  ctx.restore();
+}
+
+let layer = null, light = null;
+/**
+ * Live+ renderer. Draws the mesh-warped garment onto ctx.
+ * light: { source, rect:[x,y,w,h], mirror } — the camera frame, for lighting match (optional).
+ */
+export function drawGarmentLive(ctx, img, anchors, targets, { sim, light: lightSrc, cols = 7, rows = 9 } = {}) {
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  if (!w || !h) return false;
+  const cw = ctx.canvas.width, ch = ctx.canvas.height;
+  layer ||= document.createElement('canvas');
+  if (layer.width !== cw || layer.height !== ch) { layer.width = cw; layer.height = ch; }
+  const g = layer.getContext('2d');
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cw, ch);
+
+  const sway = sim ? sim.step(targets.hip, performance.now(), targets.span || 240) : [0, 0];
+  const map = liveRig(anchors, w, h, targets, sway);
+  // grid over the image (skip empty margins: garments sit inside ~5%..95%)
+  const x0 = w * 0.03, x1 = w * 0.97, y0 = h * 0.03, y1 = h * 0.97;
+  const P = [];
+  for (let r = 0; r <= rows; r++) { const row = []; for (let c = 0; c <= cols; c++) { const x = lerp(x0, x1, c / cols), y = lerp(y0, y1, r / rows); row.push([[x, y], map(x, y)]); } P.push(row); }
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const a = P[r][c], b = P[r][c + 1], d = P[r + 1][c], e = P[r + 1][c + 1];
+    triangle(g, img, [a[0], b[0], e[0]], [a[1], b[1], e[1]]);
+    triangle(g, img, [a[0], e[0], d[0]], [a[1], e[1], d[1]]);
+  }
+
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 8;
+  ctx.drawImage(layer, 0, 0);
+  ctx.restore();
+
+  // lighting match: soft-light the camera's own (blurred, grey) light over the garment only
+  if (lightSrc && 'filter' in ctx) {
+    const lw = Math.max(1, Math.round(cw / 4)), lhh = Math.max(1, Math.round(ch / 4));
+    light ||= document.createElement('canvas');
+    if (light.width !== lw || light.height !== lhh) { light.width = lw; light.height = lhh; }
+    const l = light.getContext('2d');
+    l.setTransform(1, 0, 0, 1, 0, 0); l.globalCompositeOperation = 'source-over'; l.clearRect(0, 0, lw, lhh);
+    l.filter = 'grayscale(1) blur(6px) contrast(1.15)';
+    l.save(); if (lightSrc.mirror) { l.translate(lw, 0); l.scale(-1, 1); }
+    const [rx, ry, rw, rh] = lightSrc.rect; l.drawImage(lightSrc.source, rx / 4, ry / 4, rw / 4, rh / 4); l.restore();
+    l.filter = 'none'; l.globalCompositeOperation = 'destination-in'; l.drawImage(layer, 0, 0, lw, lhh);
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'soft-light'; ctx.globalAlpha = 0.55;
+    ctx.drawImage(light, 0, 0, cw, ch); ctx.restore();
+  }
+  return true;
 }

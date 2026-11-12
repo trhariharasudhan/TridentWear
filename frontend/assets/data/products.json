@@ -780,21 +780,20 @@
     "color_hex": "#1b1b1e",
     "mrp": 2499,
     "gallery": [
-      "/images/products/twill-overshirt-black-front.webp",
-      "/images/products/twill-overshirt-black-back.webp"
+      "/images/products/twill-overshirt-black-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.7,
-        0.13
+        0.71,
+        0.122
       ],
       "rs": [
-        0.3,
-        0.13
+        0.29,
+        0.122
       ],
       "hip": [
         0.5,
-        0.78
+        0.908
       ]
     },
     "tag_metadata": {
@@ -847,21 +846,20 @@
     "color_hex": "#d5cab5",
     "mrp": 1899,
     "gallery": [
-      "/images/products/linen-camp-shirt-stone-front.webp",
-      "/images/products/linen-camp-shirt-stone-back.webp"
+      "/images/products/linen-camp-shirt-stone-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.72,
-        0.14
+        0.71,
+        0.139
       ],
       "rs": [
-        0.28,
-        0.14
+        0.29,
+        0.139
       ],
       "hip": [
         0.5,
-        0.8
+        0.889
       ]
     },
     "tag_metadata": {
@@ -980,21 +978,20 @@
     "color_hex": "#22304a",
     "mrp": 2199,
     "gallery": [
-      "/images/products/formal-slim-shirt-navy-front.webp",
-      "/images/products/formal-slim-shirt-navy-back.webp"
+      "/images/products/formal-slim-shirt-navy-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.7,
-        0.13
+        0.71,
+        0.122
       ],
       "rs": [
-        0.3,
-        0.13
+        0.29,
+        0.122
       ],
       "hip": [
         0.5,
-        0.78
+        0.908
       ]
     },
     "tag_metadata": {
@@ -1047,21 +1044,20 @@
     "color_hex": "#676a4b",
     "mrp": 1899,
     "gallery": [
-      "/images/products/linen-camp-shirt-olive-front.webp",
-      "/images/products/linen-camp-shirt-olive-back.webp"
+      "/images/products/linen-camp-shirt-olive-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.72,
-        0.14
+        0.71,
+        0.154
       ],
       "rs": [
-        0.28,
-        0.14
+        0.29,
+        0.154
       ],
       "hip": [
         0.5,
-        0.8
+        0.872
       ]
     },
     "tag_metadata": {

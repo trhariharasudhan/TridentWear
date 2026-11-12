@@ -14,6 +14,7 @@ OUT = 'frontend/assets/images/products'
 FONT = os.environ.get('BRICOLAGE_TTF', 'scripts/photos/bricolage.ttf')
 GOLD_HI, GOLD_LO = np.array([222, 189, 120]), np.array([160, 124, 56])
 AMBER = np.array([255, 196, 72])
+POCKET = {}
 LOGO = Image.open(os.environ.get('LOGO_MASK', 'scripts/photos/logo-mask.png')).getchannel('A')
 
 
@@ -125,8 +126,8 @@ def chest(img, kind):
     l, t, r, b = bbox(img)
     w, h = r - l, b - t
     if kind == 'oversized':
-        return 450 + w * 0.165, t + h * 0.25, round(w * 0.085)
-    return 450 + w * 0.17, t + h * 0.25, round(w * 0.09)  # classic
+        return 450 + w * 0.165, t + h * 0.245, round(w * 0.06)
+    return 450 + w * 0.17, t + h * 0.245, round(w * 0.064)  # classic
 
 
 def back_from(front: Image.Image):
@@ -179,12 +180,20 @@ def main():
         embroidery(back, 450, t + (b - t) * 0.13, round((r - l) * 0.045))
         save(back, f'{slug}-back')
 
-    pockets = {'oxford-button-down-sky': ('oxford-button-down-sky-front', 592, 445, 52),
-               'oxford-button-down-white': ('oxford-button-down-white-front', 586, 415, 52)}
+    pockets = {'oxford-button-down-sky': ('oxford-button-down-sky-front', 592, 445, 38),
+               'oxford-button-down-white': ('oxford-button-down-white-front', 586, 415, 38),
+               'twill-overshirt-black': ('twill-overshirt-black-front', *POCKET.get('twill', (600, 470)), 40),
+               'linen-camp-shirt-stone': ('linen-camp-shirt-stone-front', *POCKET.get('stone', (600, 452)), 38),
+               'linen-camp-shirt-olive': ('linen-camp-shirt-olive-front', *POCKET.get('olive', (592, 468)), 38)}
     for slug, (src, x, y, w) in pockets.items():
         img = load(src)
         embroidery(img, x, y, w)
         save(img, f'{slug}-front')
+    # formal shirt: no pocket -> small chest mark
+    img = load('formal-slim-shirt-navy-front')
+    l, t, r, b = bbox(img)
+    embroidery(img, 450 + (r - l) * 0.2, t + (b - t) * 0.25, 34)
+    save(img, 'formal-slim-shirt-navy-front')
 
     # Wordmark tees: same chest mark on the front, big wordmark across the back
     for slug, src in (('trident-wordmark-tee-black', 'essential-oversized-tee-jet-black-front'),
@@ -195,20 +204,19 @@ def main():
         save(img, f'{slug}-front')
         back = back_from(load(src))
         l, t, r, b = bbox(back)
-        art = stack(logo_mask(round((r - l) * 0.20)),
-                    text_art([('TridentWear', 92, 800, -2)]),
-                    text_art([('Heavyweight essentials, made in India', 24, 500, 1)]), gap=22)
+        art = stack(logo_mask(round((r - l) * 0.10)),
+                    text_art([('TridentWear', 50, 800, -1)]),
+                    text_art([('Made in India', 17, 500, 1)]), gap=12)
         ink = np.array([214, 178, 104]) if 'black' in slug else np.array([24, 26, 34])
-        print_(back, art, 450, t + (b - t) * 0.36, ink=ink)
+        print_(back, art, 450, t + (b - t) * 0.24, ink=ink)
         save(back, f'{slug}-back')
 
     # Violet Signal tee: front graphic + small back neck mark
     img = load('violet-signal-tee-front')
     l, t, r, b = bbox(img)
-    art = stack(logo_mask(round((r - l) * 0.24)),
-                text_art([('TridentWear', 70, 800, -1)]),
-                text_art([('Signal / 001', 26, 600, 3)]), gap=20)
-    print_(img, art, 450, t + (b - t) * 0.42)
+    art = stack(logo_mask(round((r - l) * 0.09)),
+                text_art([('Signal / 001', 22, 650, 2)]), gap=10)
+    print_(img, art, 450 + (r - l) * 0.165, t + (b - t) * 0.27)
     save(img, 'violet-signal-tee-front')
     back = back_from(load('violet-signal-tee-front'))
     l, t, r, b = bbox(back)

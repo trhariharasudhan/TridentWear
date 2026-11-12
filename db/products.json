@@ -726,21 +726,20 @@
     ],
     "image": "/images/products/formal-slim-shirt-navy-front.webp",
     "gallery": [
-      "/images/products/formal-slim-shirt-navy-front.webp",
-      "/images/products/formal-slim-shirt-navy-back.webp"
+      "/images/products/formal-slim-shirt-navy-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.7,
-        0.13
+        0.71,
+        0.122
       ],
       "rs": [
-        0.3,
-        0.13
+        0.29,
+        0.122
       ],
       "hip": [
         0.5,
-        0.78
+        0.908
       ]
     },
     "print_method": [
@@ -784,21 +783,20 @@
     ],
     "image": "/images/products/twill-overshirt-black-front.webp",
     "gallery": [
-      "/images/products/twill-overshirt-black-front.webp",
-      "/images/products/twill-overshirt-black-back.webp"
+      "/images/products/twill-overshirt-black-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.7,
-        0.13
+        0.71,
+        0.122
       ],
       "rs": [
-        0.3,
-        0.13
+        0.29,
+        0.122
       ],
       "hip": [
         0.5,
-        0.78
+        0.908
       ]
     },
     "print_method": [
@@ -842,21 +840,20 @@
     ],
     "image": "/images/products/linen-camp-shirt-stone-front.webp",
     "gallery": [
-      "/images/products/linen-camp-shirt-stone-front.webp",
-      "/images/products/linen-camp-shirt-stone-back.webp"
+      "/images/products/linen-camp-shirt-stone-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.72,
-        0.14
+        0.71,
+        0.139
       ],
       "rs": [
-        0.28,
-        0.14
+        0.29,
+        0.139
       ],
       "hip": [
         0.5,
-        0.8
+        0.889
       ]
     },
     "print_method": [
@@ -900,21 +897,20 @@
     ],
     "image": "/images/products/linen-camp-shirt-olive-front.webp",
     "gallery": [
-      "/images/products/linen-camp-shirt-olive-front.webp",
-      "/images/products/linen-camp-shirt-olive-back.webp"
+      "/images/products/linen-camp-shirt-olive-front.webp"
     ],
     "tryon": {
       "ls": [
-        0.72,
-        0.14
+        0.71,
+        0.154
       ],
       "rs": [
-        0.28,
-        0.14
+        0.29,
+        0.154
       ],
       "hip": [
         0.5,
-        0.8
+        0.872
       ]
     },
     "print_method": [

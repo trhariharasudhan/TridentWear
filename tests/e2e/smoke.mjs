@@ -33,8 +33,8 @@ const expect = (cond, msg) => { if (!cond) throw new Error(msg); };
 const page = await newPage();
 await step('home renders hero rail + featured products', async () => {
   await page.goto(`${BASE}/index.html`, { waitUntil: 'networkidle' });
-  await page.waitForSelector('.hanger__img');
-  expect((await page.locator('.hanger').count()) >= 4, 'hero hangers missing');
+  await page.waitForSelector('.piece__front');
+  expect((await page.locator('.piece').count()) >= 8, 'studio rail pieces missing');
   await page.waitForSelector('[data-featured] .card');
   if (DEMO) expect(await page.locator('.demo-banner').isVisible(), 'demo banner missing');
   await shot(page, '01-home');
@@ -164,6 +164,15 @@ await step('account dashboard: add address, it pre-fills checkout', async () => 
   await p.click('[data-addr] button.btn');
   await p.waitForSelector('.addr.is-default');
   expect((await p.textContent('.addr')).includes('560068'), 'saved address not listed');
+  // a returning, signed-in visitor (page reload) must get the dashboard, not a blank page
+  await p.reload({ waitUntil: 'networkidle' });
+  await p.waitForSelector('.profile-hero', { timeout: 8000 });
+  await p.click('[data-sec="profile"]'); await p.waitForSelector('[data-prefs]');
+  await p.fill('[data-prof] [name=birthday]', '1999-05-17'); await p.click('[data-prof] button.btn'); await p.waitForTimeout(500);
+  await p.check('[name=order_updates_whatsapp]', { force: true }); await p.waitForTimeout(700);
+  await p.reload({ waitUntil: 'networkidle' }); await p.waitForSelector('[data-prefs]');
+  expect((await p.inputValue('[data-prof] [name=birthday]')) === '1999-05-17', 'birthday not saved');
+  expect(await p.isChecked('[name=order_updates_whatsapp]'), 'notification preference not saved');
   await shot(p, '07b-account-addresses');
   await p.click('[data-sec="size"]');
   await p.fill('[data-size-form] [name=height]', '175'); await p.fill('[data-size-form] [name=weight]', '72');
@@ -180,19 +189,54 @@ await step('account dashboard: add address, it pre-fills checkout', async () => 
   await p.context().close();
 });
 
-await step('hero rail: arrows browse, page scroll does not move the rail', async () => {
-  const p = await newPage();
+await step('studio rail: page scroll does not move it; arrows, drag and twist do', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, reducedMotion: 'reduce' }); // no idle drift
+  const p = await ctx.newPage();
   await p.goto(`${BASE}/index.html`, { waitUntil: 'networkidle' });
-  await p.waitForTimeout(400);
-  const before = await p.evaluate(() => document.querySelector('[data-rail]').scrollLeft);
+  await p.waitForFunction(() => window.__studio);
+  const off = () => p.evaluate(() => Math.round(window.__studio.offset));
+  const before = await off();
   await p.mouse.wheel(0, 600); await p.waitForTimeout(400);
-  const afterScroll = await p.evaluate(() => document.querySelector('[data-rail]').scrollLeft);
-  const tf = await p.evaluate(() => getComputedStyle(document.querySelector('[data-rail]')).transform);
-  expect(before === afterScroll && (tf === 'none'), `rail moved on page scroll (${before} -> ${afterScroll}, ${tf})`);
-  await p.evaluate(() => scrollTo(0, 0));
-  await p.click('[data-rail-step="1"]'); await p.waitForTimeout(700);
-  const afterArrow = await p.evaluate(() => document.querySelector('[data-rail]').scrollLeft);
-  expect(afterArrow > before, 'next arrow did not move the rail');
+  expect((await off()) === before, 'rail moved on vertical page scroll');
+  await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(200);
+  await p.click('[data-rail-step="1"]'); await p.waitForTimeout(900);
+  const afterArrow = await off();
+  expect(afterArrow < before, `next arrow did not move the rail (${before} -> ${afterArrow})`);
+  // drag the rail by hand
+  const box = await p.locator('[data-stage]').boundingBox();
+  const y = box.y + box.height * 0.9;
+  await p.mouse.move(box.x + box.width / 2, y); await p.mouse.down();
+  for (let i = 1; i <= 10; i++) await p.mouse.move(box.x + box.width / 2 - i * 20, y);
+  await p.mouse.up(); await p.waitForTimeout(300);
+  expect((await off()) < afterArrow - 100, 'dragging did not move the rail');
+  // loop: travel far, the screen is still full of pieces
+  for (let i = 0; i < 40; i++) await p.evaluate(() => window.__studio.step(1));
+  await p.waitForTimeout(1500);
+  const visible = await p.evaluate(() => [...document.querySelectorAll('.piece')].filter((e) => { const r = e.getBoundingClientRect(); return r.right > 0 && r.left < innerWidth; }).length);
+  expect(visible >= 4, `rail did not loop (${visible} visible)`);
+  // a plain click still opens the product
+  await p.locator('.piece').filter({ has: p.locator('.piece__front') }).nth(2).evaluate((a) => a.click());
+  await p.waitForURL(/product\.html\?id=/);
+  await ctx.close();
+});
+
+await step('admin storefront editor changes the live site', async () => {
+  const p = await newPage();
+  await p.goto(`${BASE}/account.html?next=admin.html`, { waitUntil: 'networkidle' });
+  await p.fill('[name=email]', ADMIN[0]); await p.fill('[name=password]', ADMIN[1]);
+  await p.click('[data-login] button.btn');
+  await p.waitForURL(/admin\.html/); await p.waitForSelector('.kpi');
+  await p.click('[data-go="storefront"]');
+  await p.waitForSelector('[data-site]');
+  await p.fill('[data-site] [name=hero_line]', 'E2E line // Drop 02 soon');
+  await p.fill('[data-site] [name=announcements]', 'E2E announcement with CODE2026');
+  await p.click('[data-save]');
+  await p.waitForSelector('.toast');
+  await p.evaluate(() => sessionStorage.clear());
+  await p.goto(`${BASE}/index.html`, { waitUntil: 'networkidle' });
+  expect((await p.textContent('.studio__line')).includes('E2E line'), 'hero line not updated');
+  expect((await p.textContent('.topbar')).includes('E2E announcement'), 'announcement not updated');
+  expect((await p.innerHTML('.topbar')).includes('<b>CODE2026</b>'), 'code not bolded');
   await p.context().close();
 });
 

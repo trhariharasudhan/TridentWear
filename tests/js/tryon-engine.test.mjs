@@ -70,3 +70,47 @@ test('Smoother damps jitter between frames', () => {
   close([out[0].x, out[0].y], [0.5, 0.5]);
   assert.equal(s.push(null), null);
 });
+
+// ---- Live+ rig
+import { liveRig, ClothSim } from '../../frontend/assets/js/tryon-engine.js';
+const A = { ls: [0.7, 0.15], rs: [0.3, 0.15], hip: [0.5, 0.8] };
+const near = (a, b, eps = 0.5) => Math.abs(a[0] - b[0]) < eps && Math.abs(a[1] - b[1]) < eps;
+const T = { ls: [400, 200], rs: [200, 200], hip: [300, 500], lh: null, rh: null, le: null, re: null };
+
+test('liveRig maps garment shoulder/hip anchors onto the body targets', () => {
+  const map = liveRig(A, 1000, 1000, T);
+  assert.ok(near(map(700, 150), T.ls), 'left shoulder');
+  assert.ok(near(map(300, 150), T.rs), 'right shoulder');
+  assert.ok(near(map(500, 800), T.hip), 'hip centre');
+});
+
+test('liveRig follows a leaning torso (per-side hips)', () => {
+  const lean = { ...T, lh: [460, 520], rh: [260, 480] };
+  const map = liveRig(A, 1000, 1000, lean);
+  const half = (700 - 300) / 2 * 0.94;
+  assert.ok(near(map(500 + half, 800), lean.lh) && near(map(500 - half, 800), lean.rh));
+});
+
+test('raising an arm rotates only that sleeve', () => {
+  const still = liveRig(A, 1000, 1000, T);
+  const raised = liveRig(A, 1000, 1000, { ...T, le: [560, 120], raw: { ls: [400, 200], rs: [200, 200] } });
+  const sleeveL = [880, 200], sleeveR = [120, 200], chest = [500, 300];
+  assert.ok(!near(still(...sleeveL), raised(...sleeveL), 5), 'left sleeve moved');
+  assert.ok(near(still(...sleeveR), raised(...sleeveR)), 'right sleeve unchanged');
+  assert.ok(near(still(...chest), raised(...chest)), 'torso unchanged');
+});
+
+test('hem sway moves the hem, not the shoulders', () => {
+  const a = liveRig(A, 1000, 1000, T, [0, 0]), b = liveRig(A, 1000, 1000, T, [20, 0]);
+  assert.ok(near(a(700, 150), b(700, 150)), 'shoulders fixed');
+  assert.ok(b(500, 950)[0] - a(500, 950)[0] > 10, 'hem lags sideways');
+});
+
+test('ClothSim swings opposite to motion and settles', () => {
+  const sim = new ClothSim(); let t = 0;
+  sim.step([0, 0], t);
+  for (let i = 1; i <= 6; i++) sim.step([i * 10, 0], (t += 16));
+  assert.ok(sim.off[0] < 0, 'lags behind a move to the right');
+  for (let i = 0; i < 400; i++) sim.step([60, 0], (t += 16));
+  assert.ok(Math.abs(sim.off[0]) < 0.5, 'settles when still');
+});

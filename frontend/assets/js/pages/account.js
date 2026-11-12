@@ -1,5 +1,5 @@
-import { mountChrome, $, $$, esc, icon, inr, img, toast, busy, params, fmtDate, modal } from '../ui.js';
-import { session, wishlist } from '../store.js';
+import { mountChrome, $, $$, esc, icon, inr, img, toast, busy, params, fmtDate, modal, productCard } from '../ui.js';
+import { session, wishlist, getProducts } from '../store.js';
 import { api, getMode } from '../api.js';
 
 await mountChrome({ page: 'account' });
@@ -8,7 +8,6 @@ const next = params().get('next');
 const safeNext = next && /^[a-z0-9-]+\.html(\?[^#]*)?$/i.test(next) ? next : null; // only same-site pages
 
 const user = await session.load();
-user ? renderAccount(user) : renderAuth(location.hash === '#register' ? 'register' : 'login');
 
 // ------------------------------------------------------------------ auth screens
 function shell(inner) {
@@ -194,7 +193,7 @@ const stageOf = (st) => ({ placed: 0, pending: 0, cod_pending: 0, paid: 1, confi
 
 async function renderAccount(u) {
   const tabs = [
-    ['orders', 'Orders', icon.box], ['addresses', 'Addresses', icon.pin], ['size', 'My size', icon.ruler],
+    ['orders', 'Orders', icon.box], ['saved', 'Saved', icon.heart], ['addresses', 'Addresses', icon.pin], ['size', 'My size', icon.ruler],
     ['looks', 'Fit checks', icon.camera], ['profile', 'Details', icon.user], ['security', 'Security', icon.shield],
   ];
   const since = u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '';
@@ -207,9 +206,10 @@ async function renderAccount(u) {
     <div class="stat-row" data-stats>
       <button class="stat" data-go="orders"><b data-stat="orders">–</b><span>Orders</span></button>
       <button class="stat" data-go="orders"><b data-stat="transit">–</b><span>On the way</span></button>
-      <a class="stat" href="wishlist.html"><b>${wishlist.ids.length}</b><span>Saved pieces</span></a>
+      <button class="stat" data-go="saved"><b>${wishlist.ids.length}</b><span>Saved pieces</span></button>
       <button class="stat" data-go="looks"><b>${readLS(LOOKS_KEY, []).length}</b><span>Fit checks</span></button>
     </div>
+    <div class="offer-strip" data-offer hidden></div>
     <div class="account">
       <nav class="side-nav" aria-label="Account sections">${tabs.map(([k, l, i]) => `<button data-sec="${k}">${i}${l}</button>`).join('')}
         ${u.role === 'admin' ? `<a class="btn btn--violet btn--sm" href="admin.html" style="margin-top:8px">Open admin</a>` : ''}
@@ -220,13 +220,21 @@ async function renderAccount(u) {
   const show = (k) => {
     $$('[data-sec]').forEach((b) => b.classList.toggle('is-on', b.dataset.sec === k));
     history.replaceState(null, '', `#${k}`);
-    ({ orders: ordersSec, addresses: addressSec, size: sizeSec, looks: looksSec, profile: profileSec, security: securitySec })[k](u);
+    ({ orders: ordersSec, saved: savedSec, addresses: addressSec, size: sizeSec, looks: looksSec, profile: profileSec, security: securitySec })[k](u);
   };
   $$('[data-sec]').forEach((b) => b.addEventListener('click', () => show(b.dataset.sec)));
   $$('[data-go]').forEach((b) => b.addEventListener('click', () => { show(b.dataset.go); $('.account').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
   show(tabs.some(([k]) => `#${k}` === location.hash) ? location.hash.slice(1) : 'orders');
   api.orders().then((orders) => {
     $('[data-stat="orders"]').textContent = orders.length;
+    const offer = $('[data-offer]');
+    offer.hidden = false;
+    offer.innerHTML = orders.length
+      ? `<div><b>Member perk</b><span>Free shipping and 7-day exchanges on every order. Early access to Drop 02 lands in your inbox.</span></div>`
+      : `<div><b>20% off your first order</b><span>Use this code at checkout. It applies automatically to one order.</span></div><button class="offer-code" data-copy="TRIDENTFIRST">TRIDENTFIRST <small>Copy</small></button>`;
+    $('[data-copy]', offer)?.addEventListener('click', async (e) => {
+      try { await navigator.clipboard.writeText(e.currentTarget.dataset.copy); toast('Code copied'); } catch { toast('Code: TRIDENTFIRST'); }
+    });
     $('[data-stat="transit"]').textContent = orders.filter((o) => ['shipped', 'out_for_delivery'].includes(String(o.status).toLowerCase())).length;
   }).catch(() => {});
 }
@@ -258,6 +266,15 @@ async function ordersSec() {
     busy(b, true);
     try { await api.cancelOrder(b.dataset.cancel); toast('Order cancelled'); ordersSec(); } catch (ex) { busy(b, false); toast(ex.message, { type: 'error' }); }
   }));
+}
+
+// ---- saved pieces (wishlist)
+async function savedSec() {
+  const body = $('[data-sec-body]');
+  const ids = wishlist.ids;
+  if (!ids.length) { body.innerHTML = `<div class="acc-section">${sec('Saved pieces')}<div class="empty">${icon.heart}<b>Nothing saved yet</b><p class="muted">Tap the heart on any piece to keep it here.</p><a class="btn" href="shop.html">Browse the shop</a></div></div>`; return; }
+  const products = (await getProducts()).filter((p) => ids.includes(p.id));
+  body.innerHTML = `<div class="acc-section">${sec('Saved pieces', `<span class="muted">${products.length} saved</span>`)}<div class="grid grid--3">${products.map((p) => productCard(p)).join('')}</div></div>`;
 }
 
 // ---- saved addresses
@@ -339,32 +356,71 @@ function looksSec() {
   $('[data-clear-looks]')?.addEventListener('click', () => { if (!confirm('Delete all saved fit checks from this device?')) return; localStorage.removeItem(LOOKS_KEY); looksSec(); });
 }
 
-function profileSec(u) {
-  $('[data-sec-body]').innerHTML = `<div class="acc-section">${sec('Your details')}<form class="panel" data-prof>
+const PREFS = [
+  ['order_updates_email', 'Order updates by email', 'Confirmation, shipping and delivery.'],
+  ['order_updates_whatsapp', 'Order updates on WhatsApp', 'Same updates, on your phone.'],
+  ['new_drops', 'New drop alerts', 'One email when a new drop goes live.'],
+  ['marketing', 'Offers and member codes', 'Occasional discounts. Never more than twice a month.'],
+];
+async function profileSec(u) {
+  const body = $('[data-sec-body]');
+  body.innerHTML = '<div class="skeleton" style="height:220px"></div>';
+  let prof = {};
+  try { prof = await api.profile(); } catch { /* fall back to session copy */ }
+  const settings = prof.settings || {};
+  body.innerHTML = `<div class="acc-section">${sec('Your details')}<form class="panel" data-prof>
     <div class="form-grid">
-      <label class="field"><span>Name</span><input class="input" name="name" value="${esc(u.name || '')}" required minlength="2"></label>
+      <label class="field"><span>Name</span><input class="input" name="name" value="${esc(u.name || '')}" required minlength="2" autocomplete="name"></label>
       <label class="field"><span>Email</span><input class="input" value="${esc(u.email || '')}" disabled></label>
-      <label class="field"><span>Mobile</span><input class="input" name="phone" value="${esc(u.phone || '')}" inputmode="tel"></label>
+      <label class="field"><span>Mobile</span><input class="input" name="phone" value="${esc(u.phone || '')}" inputmode="tel" autocomplete="tel"></label>
+      <label class="field"><span>Birthday <small class="muted">(for a birthday code)</small></span><input class="input" type="date" name="birthday" value="${esc(prof.birthday || '')}" max="${new Date().toISOString().slice(0, 10)}"></label>
       <label class="field"><span>Gender</span><select class="select" name="gender">${['', 'Male', 'Female', 'Other', 'Prefer not to say'].map((g) => `<option ${String(u.gender || '').toLowerCase() === g.toLowerCase() ? 'selected' : ''} value="${g}">${g || 'Select'}</option>`).join('')}</select></label>
-    </div><p class="form-error" data-err></p><button class="btn">Save changes</button></form></div>`;
+    </div><p class="form-error" data-err></p><button class="btn">Save changes</button></form>
+    <form class="panel" data-prefs><h2 class="h3">Notifications</h2>
+      ${PREFS.map(([k, l, d]) => `<label class="switch"><span><b>${l}</b><small class="muted">${d}</small></span><input type="checkbox" role="switch" name="${k}" ${(settings[k] ?? (k === 'order_updates_email' || k === 'new_drops')) ? 'checked' : ''}><i aria-hidden="true"></i></label>`).join('')}
+    </form></div>`;
   $('[data-prof]').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = $('button', e.target); busy(btn, true);
-    try { const r = await api.updateProfile(Object.fromEntries(new FormData(e.target))); if (r?.user) session.set(r.user); toast('Profile saved'); }
+    try { const r = await api.updateProfile(Object.fromEntries(new FormData(e.target))); if (r?.user || r?.profile?.user) session.set(r.user || r.profile.user); toast('Details saved'); }
     catch (ex) { $('[data-err]').textContent = ex.message; } finally { busy(btn, false); }
+  });
+  $('[data-prefs]').addEventListener('change', async (e) => {
+    const f = e.currentTarget;
+    const next = Object.fromEntries(PREFS.map(([k]) => [k, f[k].checked]));
+    try { await api.updateProfile({ settings: next }); toast('Preferences saved'); }
+    catch (ex) { e.target.checked = !e.target.checked; toast(ex.message, { type: 'error' }); }
   });
 }
 
-function securitySec() {
+function securitySec(u) {
   $('[data-sec-body]').innerHTML = `<div class="acc-section">${sec('Security')}<form class="panel" data-pw>
     <h2 class="h3">Change password</h2>
     <label class="field"><span>Current password</span><input class="input" type="password" name="current_password" required autocomplete="current-password"></label>
     <label class="field"><span>New password</span><input class="input" type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
-    <p class="form-error" data-err></p><button class="btn">Update password</button></form></div>`;
+    <p class="form-error" data-err></p><button class="btn">Update password</button></form>
+    <div class="panel danger"><h2 class="h3">Delete account</h2><p class="muted" style="margin:0">This removes your name, email, phone, addresses and preferences. Past orders stay on record only for invoices and tax. This can't be undone.</p>
+      <button class="btn btn--ghost" data-delete-acc style="justify-self:start;color:var(--bad);border-color:currentColor">Delete my account</button></div></div>`;
   $('[data-pw]').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = $('button', e.target); busy(btn, true);
     try { const f = Object.fromEntries(new FormData(e.target)); const r = await api.changePassword({ ...f, confirm_password: f.new_password }); e.target.reset(); toast(r?.message || 'Password updated'); }
     catch (ex) { $('[data-err]').textContent = ex.message; } finally { busy(btn, false); }
   });
+  $('[data-delete-acc]').addEventListener('click', () => {
+    if (u?.role === 'admin') { toast("Admin accounts can't be deleted here", { type: 'error' }); return; }
+    const m = modal(`<h2 class="h3" style="margin-bottom:10px">Delete your account?</h2><p class="muted">Enter your password and type DELETE to confirm.</p>
+      <form data-del-form style="display:grid;gap:12px"><input class="input" type="password" name="password" placeholder="Password" required autocomplete="current-password">
+      <input class="input" name="confirm" placeholder="Type DELETE" required autocomplete="off"><p class="form-error" data-err></p>
+      <button class="btn" style="--bg:var(--bad)">Delete my account</button></form>`);
+    $('[data-del-form]', m.el).addEventListener('submit', async (e) => {
+      e.preventDefault(); const btn = $('button', e.target); busy(btn, true);
+      try { const r = await api.deleteAccount(Object.fromEntries(new FormData(e.target))); m.close(); session.set(null); toast(r?.message || 'Account deleted'); setTimeout(() => (location.href = 'index.html'), 1200); }
+      catch (ex) { $('[data-err]', e.target).textContent = ex.message; busy(btn, false); }
+    });
+  });
 }
+
+// First render runs last: renderAccount() uses constants declared further up this module
+// (calling it before them threw a TDZ error and left signed-in visitors with a blank page).
+user ? renderAccount(user) : renderAuth(location.hash === '#register' ? 'register' : 'login');

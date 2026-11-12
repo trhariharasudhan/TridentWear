@@ -15,6 +15,7 @@ class AccountProfilePayload(BaseModel):
     addresses: Optional[List[Dict[str, Any]]] = None
     default_address_id: Optional[str] = None
     settings: Optional[Dict[str, Any]] = None
+    birthday: Optional[str] = None
 
 
 @router.get("/profile")
@@ -69,3 +70,18 @@ def addresses_update(address_id: str, payload: AddressPayload, request: Request)
 @router.delete("/addresses/{address_id}")
 def addresses_delete(address_id: str, request: Request) -> Dict[str, Any]:
     return delete_address(address_id, request)
+
+
+
+# ---------------------------------------------------------------- delete account (DPDP right to erasure)
+from app.services.account_service import delete_account
+
+
+class DeleteAccountPayload(BaseModel):
+    password: str
+    confirm: str
+
+
+@router.post("/delete")
+def account_delete(payload: DeleteAccountPayload, request: Request) -> Dict[str, Any]:
+    return delete_account(payload, request)

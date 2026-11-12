@@ -130,13 +130,14 @@ export const demo = {
   logout: async () => localStorage.removeItem(SESSION),
   requestReset: async () => ({ success: true, message: 'Demo mode: password reset emails are not sent.' }),
   confirmReset: async () => ({ success: true }),
-  profile: async () => ({ user: pub(await requireUser()) }),
+  profile: async () => { const u = await requireUser(); const d = await db(); const raw = d.users.find((x) => x.id === u.id) || {}; return { user: pub(u), settings: { order_updates_email: true, order_updates_whatsapp: false, new_drops: true, marketing: false, ...(raw.settings || {}) }, birthday: raw.birthday || null }; },
   updateProfile: async (p) => {
     const me = await requireUser(); const d = await db(); const u = d.users.find((x) => x.id === me.id);
     Object.assign(u, Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined))); save(d);
     return { success: true, user: pub(u) };
   },
   changePassword: async () => ({ success: true, message: 'Demo mode: password unchanged.' }),
+  deleteAccount: async ({ confirm }) => { if (String(confirm).toUpperCase() !== 'DELETE') throw err('Type DELETE to confirm.'); const me = await requireUser(); const d = await db(); d.users = d.users.filter((x) => x.id !== me.id); save(d); localStorage.removeItem(SESSION); return { success: true, message: 'Your account has been deleted.' }; },
   addresses: async () => { const me = await requireUser(); const d = await db(); return (d.addresses || []).filter((a) => a.user_id === me.id).sort((a, b) => b.is_default - a.is_default); },
   addAddress: async (a) => {
     const me = await requireUser(); const d = await db(); d.addresses ||= [];
@@ -208,10 +209,12 @@ export const demo = {
   wishlist: async () => [], wishAdd: async () => ({ success: true }), wishRemove: async () => ({ success: true }),
   contact: async (p) => { const d = await db(); d.contacts.push({ ...p, created_at: now() }); save(d); return { success: true, message: 'Thanks! We will get back to you shortly.' }; },
 
+  site: async () => { try { return JSON.parse(localStorage.getItem('tw_demo_site') || 'null') || {}; } catch { return {}; } },
   tryonStatus: async () => ({ ai_enabled: false, provider: null, live_ar: true }),
   tryonGenerate: async () => { throw err('AI render needs the backend with REPLICATE_API_TOKEN configured.', 503); },
 
   admin: {
+    saveSite: async (p) => { await requireAdmin(); const cur = JSON.parse(localStorage.getItem('tw_demo_site') || '{}'); const next = { ...cur, ...p, contact: { ...(cur.contact || {}), ...(p.contact || {}) } }; localStorage.setItem('tw_demo_site', JSON.stringify(next)); return next; },
     analytics: async () => {
       await requireAdmin(); const d = await db();
       const sales = d.orders.filter((o) => o.status !== 'cancelled' && ['paid', 'cod_pending'].includes(o.payment_status));

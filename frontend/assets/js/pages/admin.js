@@ -20,9 +20,10 @@ if (!user || user.role !== 'admin') {
 const SECTIONS = [
   ['dashboard', 'Dashboard', icon.grid], ['products', 'Products', icon.bag], ['orders', 'Orders', icon.box],
   ['customers', 'Customers', icon.user], ['coupons', 'Coupons', icon.spark], ['reviews', 'Reviews', icon.heart],
+  ['storefront', 'Storefront', icon.home],
 ];
 root.innerHTML = `<div class="adm">
-  <aside class="adm-side"><a class="brand" href="index.html">${logo}<b>ADMIN</b></a>
+  <aside class="adm-side"><a class="brand" href="index.html">${logo}<b class="wordmark">Admin</b></a>
     ${SECTIONS.map(([k, l, i]) => `<button data-go="${k}">${i}${l}</button>`).join('')}
     <div class="spacer"></div><a href="index.html">${icon.home}View store</a><button data-logout>${icon.logout}Sign out</button></aside>
   <main class="adm-main" data-main></main></div>`;
@@ -34,10 +35,10 @@ const go = (k) => {
   $$('[data-go]').forEach((b) => b.classList.toggle('is-on', b.dataset.go === k));
   history.replaceState(null, '', `#${k}`);
   main.innerHTML = '<div class="skeleton" style="height:320px"></div>';
-  ({ dashboard, products, orders, customers, coupons, reviews })[k]().catch((e) => { main.innerHTML = `<p class="form-error">${esc(e.message)}</p>`; });
+  ({ dashboard, products, orders, customers, coupons, reviews, storefront })[k]().catch((e) => { main.innerHTML = `<p class="form-error">${esc(e.message)}</p>`; });
 };
 $$('[data-go]').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)));
-const top = (title, actions = '') => `<div class="adm-top"><div><span class="eyebrow">TridentWear admin</span><h1 class="h2" style="margin-top:6px">${title}</h1></div><div style="display:flex;gap:8px">${actions}</div></div>`;
+const top = (title, actions = '') => `<div class="adm-top"><div><h1 class="h2">${title}</h1></div><div style="display:flex;gap:8px">${actions}</div></div>`;
 const statusPill = (s) => `<span class="status status--${esc(String(s || '').toLowerCase())}">${esc(String(s || '—').replace('_', ' '))}</span>`;
 
 // ------------------------------------------------------------------ dashboard
@@ -271,3 +272,76 @@ async function reviews() {
 }
 
 go(SECTIONS.some(([k]) => `#${k}` === location.hash) ? location.hash.slice(1) : 'dashboard');
+
+
+// ------------------------------------------------------------------ storefront (no-deploy site settings)
+async function storefront() {
+  const [site, all] = await Promise.all([api.site().catch(() => ({})), getProducts()]);
+  const S = { announcements: [], hero_line: '', hero_text: '', drop_title: '', rail: [], drop: [], contact: {}, ...site };
+  let rail = [...(S.rail || [])], drop = [...(S.drop || [])];
+  const thumb = (p, list, kind) => {
+    const n = list.indexOf(p.id);
+    return `<button type="button" class="pick ${n >= 0 ? 'is-on' : ''}" data-pick="${kind}" data-id="${p.id}" title="${esc(p.name)} · ${esc(p.base_color)}">
+      <img src="${img(p.image)}" alt="" loading="lazy">${n >= 0 ? `<em>${n + 1}</em>` : ''}<span>${esc(p.name)}<small>${esc(p.base_color)}</small></span></button>`;
+  };
+  const order = (list) => list.map((id, i) => { const p = all.find((x) => x.id === id); return p ? `<span class="order-chip">${i + 1}. ${esc(p.name)} <small>${esc(p.base_color)}</small>
+      <button type="button" data-mv="${id}" data-dir="-1" aria-label="Move left">‹</button><button type="button" data-mv="${id}" data-dir="1" aria-label="Move right">›</button></span>` : ''; }).join('');
+  const render = () => {
+    main.innerHTML = `${top('Storefront', '<a class="btn btn--ghost btn--sm" href="index.html" target="_blank" rel="noopener">View store</a><button class="btn btn--sm" data-save>Save changes</button>')}
+    <p class="muted" style="margin:-8px 0 22px">Changes go live on the store within a minute. Nothing here needs a deploy.</p>
+    <form class="adm-form" data-site>
+      <section class="card-box"><h3>Announcement bar</h3><p class="muted">One message per line, up to 6. Codes written in capitals (like TRIDENTFIRST) show in bold.</p>
+        <textarea class="textarea" name="announcements" rows="4">${esc((S.announcements || []).join('\n'))}</textarea></section>
+      <section class="card-box"><h3>Hero</h3>
+        <label class="field"><span>Top line</span><input class="input" name="hero_line" maxlength="140" value="${esc(S.hero_line)}"></label>
+        <label class="field"><span>Description under the logo</span><textarea class="textarea" name="hero_text" maxlength="220" rows="2">${esc(S.hero_text)}</textarea></label></section>
+      <section class="card-box"><h3>The rail <small class="muted" data-rail-count>${rail.length ? `${rail.length} pieces` : 'Using the default rail'}</small></h3>
+        <p class="muted">Click pieces to hang them, in order. Leave empty to use the default rail. At least 4.</p>
+        <div class="order-list" data-rail-order>${order(rail)}</div>
+        <div class="pick-grid">${all.map((p) => thumb(p, rail, 'rail')).join('')}</div>
+        ${rail.length ? '<button type="button" class="linkish" data-clear="rail">Use the default rail</button>' : ''}</section>
+      <section class="card-box"><h3>Home page drop</h3>
+        <label class="field"><span>Section title</span><input class="input" name="drop_title" maxlength="60" value="${esc(S.drop_title)}"></label>
+        <p class="muted">Pick up to 4 products. Leave empty for the default picks.</p>
+        <div class="pick-grid">${all.map((p) => thumb(p, drop, 'drop')).join('')}</div></section>
+      <section class="card-box"><h3>Contact details</h3><div class="form-grid">
+        ${[['email', 'Email'], ['phone', 'Phone'], ['whatsapp', 'WhatsApp (digits with country code)'], ['instagram', 'Instagram link'], ['address', 'Address']].map(([k, l]) => `<label class="field ${k === 'address' ? 'full' : ''}"><span>${l}</span><input class="input" name="c_${k}" value="${esc(S.contact?.[k] || '')}"></label>`).join('')}
+      </div></section>
+      <p class="form-error" data-err></p>
+    </form>`;
+  };
+  render();
+  main.addEventListener('click', async (e) => {
+    const pick = e.target.closest('[data-pick]');
+    if (pick) {
+      const id = Number(pick.dataset.id); const list = pick.dataset.pick === 'rail' ? rail : drop;
+      const i = list.indexOf(id);
+      if (i >= 0) list.splice(i, 1);
+      else if (pick.dataset.pick === 'drop' && drop.length >= 4) { toast('The drop shows 4 products. Remove one first.', { type: 'error' }); return; }
+      else list.push(id);
+      keep(); render(); return;
+    }
+    const mv = e.target.closest('[data-mv]');
+    if (mv) { const id = Number(mv.dataset.mv), i = rail.indexOf(id), j = i + Number(mv.dataset.dir); if (j >= 0 && j < rail.length) { [rail[i], rail[j]] = [rail[j], rail[i]]; keep(); render(); } return; }
+    if (e.target.closest('[data-clear]')) { keep(); rail = []; render(); return; }
+    if (e.target.closest('[data-save]')) {
+      const f = $('[data-site]'); const btn = e.target.closest('[data-save]'); busy(btn, true);
+      const fd = Object.fromEntries(new FormData(f));
+      const body = {
+        announcements: fd.announcements.split('\n').map((x) => x.trim()).filter(Boolean),
+        hero_line: fd.hero_line, hero_text: fd.hero_text, drop_title: fd.drop_title, rail, drop,
+        contact: Object.fromEntries(Object.entries(fd).filter(([k]) => k.startsWith('c_')).map(([k, v]) => [k.slice(2), v])),
+      };
+      try { Object.assign(S, await api.admin.saveSite(body)); sessionStorage.removeItem('tw_site'); toast('Storefront saved. It is live now.'); }
+      catch (ex) { $('[data-err]').textContent = ex.message; toast(ex.message, { type: 'error' }); }
+      finally { busy(btn, false); }
+    }
+  });
+  // keep typed text when re-rendering after a pick
+  function keep() {
+    const f = $('[data-site]'); if (!f) return;
+    const fd = Object.fromEntries(new FormData(f));
+    S.announcements = fd.announcements.split('\n'); S.hero_line = fd.hero_line; S.hero_text = fd.hero_text; S.drop_title = fd.drop_title;
+    S.contact = Object.fromEntries(Object.entries(fd).filter(([k]) => k.startsWith('c_')).map(([k, v]) => [k.slice(2), v]));
+  }
+}

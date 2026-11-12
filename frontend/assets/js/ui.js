@@ -1,6 +1,6 @@
 // Shared UI: header/footer/drawers/tab bar, product cards, toasts, modals, helpers.
 import { CONFIG } from './config.js';
-import { getMode } from './api.js';
+import { getMode, api } from './api.js';
 import { cart, wishlist, session, getProducts } from './store.js';
 
 // ---------------------------------------------------------------- helpers
@@ -156,15 +156,32 @@ const NAV = [
   ['about.html', 'Story', 'about'],
 ];
 
-const ANNOUNCEMENTS = [
+let ANNOUNCEMENTS = [
   'Free shipping on every order across India',
   'Use code <b>TRIDENTFIRST</b> for 20% off your first order',
   `${CONFIG.returnDays}-day exchanges, no questions asked`,
   'See it on you first with <b>AI Fit Check</b>',
 ];
 
+// Admin-editable storefront settings (Admin > Storefront). Cached for a minute per tab.
+let SITE = null;
+export async function siteSettings() {
+  if (SITE) return SITE;
+  try {
+    const cached = JSON.parse(sessionStorage.getItem('tw_site') || 'null');
+    if (cached && Date.now() - cached.at < 60_000) return (SITE = cached.site);
+  } catch { /* ignore */ }
+  try { SITE = (await api.site()) || {}; } catch { SITE = {}; }
+  try { sessionStorage.setItem('tw_site', JSON.stringify({ at: Date.now(), site: SITE })); } catch { /* ignore */ }
+  return SITE;
+}
+// escape, then bold codes written in capitals (e.g. TRIDENTFIRST) so they stand out
+const announce = (t) => esc(t).replace(/\b([A-Z0-9]{6,})\b/g, '<b>$1</b>');
+
 export async function mountChrome({ page = '', overlayHeader = false } = {}) {
-  const logo = await logoSvg();
+  const [logo, site] = await Promise.all([logoSvg(), siteSettings()]);
+  if (site.contact) Object.assign(CONFIG.brand, Object.fromEntries(Object.entries(site.contact).filter(([, v]) => v)));
+  if (site.announcements?.length) ANNOUNCEMENTS = site.announcements.map(announce);
   document.documentElement.style.setProperty('--logo-mask', `url("${new URL('../brand/logo-mark.svg', import.meta.url).href}")`);
   const mode = await getMode();
   const top = document.createElement('div');
@@ -236,7 +253,26 @@ export async function mountChrome({ page = '', overlayHeader = false } = {}) {
   reveal();
   rotateAnnouncements();
   enableInstantNav();
+  spinLogos();
   registerSW();
+}
+
+// Click the Trident: it spins. On the home page it also scrolls to the top; elsewhere it
+// finishes the first half-turn before navigating home.
+function spinLogos() {
+  document.addEventListener('click', (e) => {
+    const mark = e.target.closest('.brand, .studio__brand h1');
+    if (!mark) return;
+    const svg = mark.querySelector('svg'); if (!svg) return;
+    svg.classList.remove('is-spinning'); void svg.getBoundingClientRect(); svg.classList.add('is-spinning');
+    svg.addEventListener('animationend', () => svg.classList.remove('is-spinning'), { once: true });
+    const a = mark.closest('a[href]');
+    if (!a) return;
+    const home = /(^|\/)(index\.html)?$/.test(location.pathname);
+    e.preventDefault();
+    if (home) scrollTo({ top: 0, behavior: 'smooth' });
+    else setTimeout(() => (location.href = a.href), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420);
+  });
 }
 
 function rotateAnnouncements() {

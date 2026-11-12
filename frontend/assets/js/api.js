@@ -91,6 +91,7 @@ const live = {
   confirmReset: (email, token, new_password) => request('/api/v1/auth/password-reset/confirm', { method: 'POST', body: { email, token, new_password } }),
   profile: () => request('/api/v1/account/profile'),
   updateProfile: (p) => request('/api/v1/account/profile', { method: 'PUT', body: p }),
+  deleteAccount: (p) => request('/api/v1/account/delete', { method: 'POST', body: p }),
   changePassword: (p) => request('/api/v1/account/password-change', { method: 'POST', body: p }),
   addresses: () => request('/api/v1/account/addresses').then((r) => r?.addresses || []),
   addAddress: (a) => request('/api/v1/account/addresses', { method: 'POST', body: a }),
@@ -112,6 +113,7 @@ const live = {
   wishRemove: (product_id) => request('/api/v1/wishlist/remove', { method: 'POST', body: { product_id } }),
   contact: (p) => request('/api/v1/contact', { method: 'POST', body: p }),
 
+  site: () => request('/api/v1/site').then((r) => r?.site || r),
   tryonStatus: () => request('/api/v1/tryon/status'),
   tryonGenerate: (form) => request('/api/v1/tryon/generate', { method: 'POST', form }),
 
@@ -132,6 +134,7 @@ const live = {
     reviews: () => request('/api/v1/admin/reviews'),
     moderateReview: (id, status) => request(`/api/v1/admin/reviews/${id}`, { method: 'PUT', body: { status } }),
     deleteReview: (id) => request(`/api/v1/admin/reviews/${id}`, { method: 'DELETE' }),
+    saveSite: (p) => request('/api/v1/admin/site', { method: 'PUT', body: p }).then((r) => r?.site || r),
   },
 };
 

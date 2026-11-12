@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>TridentWear — Heavyweight T-shirts & shirts, made in India</title>
   <meta name="description" content="TridentWear makes 240 GSM T-shirts and cotton shirts in India, each with the gold Trident mark. Try any piece on with AI Fit Check before you buy.">
-  <meta name="theme-color" content="#f3f4f2">
+  <meta name="theme-color" content="#23262d">
   <meta property="og:title" content="TridentWear — Heavyweight T-shirts & shirts">
   <meta property="og:description" content="240 GSM tees and cotton shirts, made in India. Try them on with AI Fit Check.">
   <meta property="og:image" content="assets/brand/og-image.jpg">
@@ -13,37 +13,34 @@
   <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preload" href="assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" as="image" href="assets/images/products/essential-oversized-tee-bone-white-front-480.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/images/products/violet-signal-tee-front-480.webp" fetchpriority="high">
   <link rel="stylesheet" href="assets/css/tw.css">
 </head>
 <body data-page="home">
 <main id="main">
 
-  <!-- The rail: real pieces on hangers. They drop in once, then stay still; you browse by dragging. -->
-  <section class="hero" aria-labelledby="hero-title">
-    <div class="wrap hero__top">
-      <h1 class="hero__title" id="hero-title">Tees and shirts with weight to them.</h1>
-      <div class="hero__aside">
-        <p>240 GSM cotton, a gold Trident on every piece, free shipping across India. Try anything on with your camera before you buy.</p>
-        <div class="hero__cta">
+  <!-- Studio rail: real garments on wire hangers. Drag to browse (it loops), twist a piece to see the back. -->
+  <section class="studio" aria-labelledby="hero-title">
+    <p class="studio__line">Heavyweight tees &nbsp;//&nbsp; Oxford shirts &nbsp;//&nbsp; Linen camp shirts &nbsp;//&nbsp; Made in India</p>
+    <div class="studio__stage" data-stage tabindex="0" aria-roledescription="carousel" aria-label="The rail. Drag or use the arrow keys to browse; drag a piece sideways to see its back.">
+      <div class="studio__rail" aria-hidden="true"></div>
+      <div class="studio__floor" data-floor aria-hidden="true"></div>
+      <div class="studio__track" data-track></div>
+    </div>
+    <div class="wrap studio__foot">
+      <div class="studio__caption" data-caption aria-live="polite"></div>
+      <div class="studio__brand">
+        <h1 id="hero-title"><span data-hero-mark></span>TridentWear</h1>
+        <p>240 GSM tees and cotton shirts with a small gold Trident. Try anything on with your camera first.</p>
+        <div class="studio__cta">
           <a class="btn" href="shop.html">Shop the drop</a>
           <a class="btn btn--ghost" href="tryon.html">Try it on <span class="tag tag--violet" style="height:22px">AI</span></a>
         </div>
       </div>
-    </div>
-
-    <div class="rail-scene">
-      <div class="rail" aria-hidden="true"></div>
-      <div class="rail-track" data-rail tabindex="0" aria-label="Featured pieces. Drag or use arrow keys to browse."></div>
-    </div>
-
-    <div class="wrap hero__foot">
-      <div class="rail-nav">
+      <div class="studio__nav">
         <button type="button" data-rail-step="-1" aria-label="Previous piece"></button>
         <button type="button" data-rail-step="1" aria-label="Next piece"></button>
-        <span class="rail-hint">Drag the rail to browse</span>
       </div>
-      <div class="hero__facts" data-facts></div>
     </div>
   </section>
 

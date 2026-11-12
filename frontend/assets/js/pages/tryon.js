@@ -2,7 +2,7 @@
 import { mountChrome, $, $$, esc, icon, inr, img, toast, busy, params, logoSvg } from '../ui.js';
 import { getProducts, cart } from '../store.js';
 import { api } from '../api.js';
-import { PoseEngine, Smoother, bodyTargets, drawGarment, fitMapper } from '../tryon-engine.js';
+import { PoseEngine, Smoother, bodyTargets, drawGarment, drawGarmentLive, ClothSim, fitMapper } from '../tryon-engine.js';
 
 await mountChrome({ page: 'tryon' });
 
@@ -20,6 +20,7 @@ const state = {
   showPoints: false, running: false, engine: null, engineError: null, stream: null, lastPose: null,
 };
 const smoother = new Smoother(0.5);
+const cloth = new ClothSim(); // hem inertia for Live+
 
 $('[data-flip]').innerHTML = icon.flip;
 $('[data-stop]').innerHTML = icon.close;
@@ -28,7 +29,19 @@ $('[data-stop]').innerHTML = icon.close;
 const products = (await getProducts()).filter((p) => p.stock > 0 || true);
 const wanted = Number(params().get('id'));
 $('[data-picker]').innerHTML = products.map((p) => `<button data-pick="${p.id}" title="${esc(p.name)} — ${esc(p.base_color)}"><img src="${img(p.image)}" alt="${esc(p.name)} ${esc(p.base_color)}" loading="lazy"></button>`).join('');
-$$('[data-pick]').forEach((b) => b.addEventListener('click', () => selectProduct(Number(b.dataset.pick))));
+$$('[data-pick]').forEach((b) => {
+  b.addEventListener('click', () => selectProduct(Number(b.dataset.pick)));
+  // Drag a piece onto yourself (desktop): drop it on the camera view to try it on
+  b.draggable = true;
+  b.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/tw-product', b.dataset.pick); e.dataTransfer.effectAllowed = 'copy'; el.viewport.classList.add('is-drop'); });
+  b.addEventListener('dragend', () => el.viewport.classList.remove('is-drop', 'is-over'));
+});
+el.viewport.addEventListener('dragover', (e) => { if (e.dataTransfer.types.includes('text/tw-product')) { e.preventDefault(); el.viewport.classList.add('is-over'); } });
+el.viewport.addEventListener('dragleave', () => el.viewport.classList.remove('is-over'));
+el.viewport.addEventListener('drop', (e) => {
+  const id = Number(e.dataTransfer.getData('text/tw-product')); if (!id) return;
+  e.preventDefault(); el.viewport.classList.remove('is-drop', 'is-over'); selectProduct(id);
+});
 
 function loadImage(src) {
   return new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
@@ -125,7 +138,13 @@ function paint(source, srcW, srcH, landmarks, fitMode) {
   }
   if (targets && state.garment) {
     if (mirror && targets.quality === 'manual') [targets.ls, targets.rs] = [targets.rs, targets.ls];
-    drawGarment(ctx, state.garment, state.product?.tryon, targets);
+    // Live+ (mesh that follows the body, sleeves, cloth sway, light match) when a body is tracked;
+    // the flat 3-point fit for manual placement.
+    if (targets.quality !== 'manual') {
+      drawGarmentLive(ctx, state.garment, state.product?.tryon, targets, { sim: cloth, light: { source, rect: map.rect, mirror } });
+    } else {
+      drawGarment(ctx, state.garment, state.product?.tryon, targets);
+    }
   }
   if (state.showPoints && landmarks) {
     ctx.fillStyle = '#ffc448';

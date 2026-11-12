@@ -259,7 +259,25 @@
     "neck_type": "Spread Collar",
     "cloth_type": "Full Sleeve Shirt",
     "stock": 60,
-    "description": "Slim-fit poplin shirt with a sharp spread collar and gold-embroidered pocket mark. Wrinkle-resistant finish."
+    "description": "Slim-fit poplin shirt with a sharp spread collar and gold-embroidered pocket mark. Wrinkle-resistant finish.",
+    "tryon": {
+      "ls": [
+        0.71,
+        0.122
+      ],
+      "rs": [
+        0.29,
+        0.122
+      ],
+      "hip": [
+        0.5,
+        0.908
+      ]
+    },
+    "gallery": [
+      "/images/products/formal-slim-shirt-navy-front.webp"
+    ],
+    "image": "/images/products/formal-slim-shirt-navy-front.webp"
   },
   {
     "id": 14,
@@ -281,7 +299,25 @@
     "neck_type": "Point Collar",
     "cloth_type": "Overshirt",
     "stock": 45,
-    "description": "Heavy 260 GSM cotton twill overshirt with twin flap pockets. Wear it buttoned up or open over a tee."
+    "description": "Heavy 260 GSM cotton twill overshirt with twin flap pockets. Wear it buttoned up or open over a tee.",
+    "tryon": {
+      "ls": [
+        0.71,
+        0.122
+      ],
+      "rs": [
+        0.29,
+        0.122
+      ],
+      "hip": [
+        0.5,
+        0.908
+      ]
+    },
+    "gallery": [
+      "/images/products/twill-overshirt-black-front.webp"
+    ],
+    "image": "/images/products/twill-overshirt-black-front.webp"
   },
   {
     "id": 15,
@@ -302,7 +338,25 @@
     "neck_type": "Camp Collar",
     "cloth_type": "Half Sleeve Shirt",
     "stock": 70,
-    "description": "Breathable linen-cotton camp collar shirt with a relaxed boxy cut. Built for Indian summers."
+    "description": "Breathable linen-cotton camp collar shirt with a relaxed boxy cut. Built for Indian summers.",
+    "tryon": {
+      "ls": [
+        0.71,
+        0.139
+      ],
+      "rs": [
+        0.29,
+        0.139
+      ],
+      "hip": [
+        0.5,
+        0.889
+      ]
+    },
+    "gallery": [
+      "/images/products/linen-camp-shirt-stone-front.webp"
+    ],
+    "image": "/images/products/linen-camp-shirt-stone-front.webp"
   },
   {
     "id": 16,
@@ -323,6 +377,24 @@
     "neck_type": "Camp Collar",
     "cloth_type": "Half Sleeve Shirt",
     "stock": 55,
-    "description": "Breathable linen-cotton camp collar shirt in olive with gold pocket embroidery."
+    "description": "Breathable linen-cotton camp collar shirt in olive with gold pocket embroidery.",
+    "tryon": {
+      "ls": [
+        0.71,
+        0.154
+      ],
+      "rs": [
+        0.29,
+        0.154
+      ],
+      "hip": [
+        0.5,
+        0.872
+      ]
+    },
+    "gallery": [
+      "/images/products/linen-camp-shirt-olive-front.webp"
+    ],
+    "image": "/images/products/linen-camp-shirt-olive-front.webp"
   }
 ]

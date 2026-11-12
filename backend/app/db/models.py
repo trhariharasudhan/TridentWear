@@ -32,6 +32,10 @@ users = Table(
     # Email-signup OTP (migration 20261111_0016). Was silently dropped in SQL mode.
     Column("otp", String),
     Column("otp_expiry", DateTime(timezone=True)),
+    # Profile preferences, birthday, account deletion (migration 20261112_0017)
+    Column("settings", JSON),
+    Column("birthday", String),
+    Column("deleted_at", DateTime(timezone=True)),
     Column("is_active", Boolean, default=True),
     Column("last_login_at", DateTime(timezone=True)),
     Column("password_reset_token", String, nullable=True),
@@ -291,3 +295,13 @@ admin_audit_logs = Table(
 
 
 
+
+
+# Admin-editable storefront settings (migration 20261112_0018)
+site_settings = Table(
+    "site_settings",
+    metadata,
+    Column("key", String, primary_key=True),
+    Column("value", JSON),
+    Column("updated_at", DateTime(timezone=True), server_default=func.now()),
+)

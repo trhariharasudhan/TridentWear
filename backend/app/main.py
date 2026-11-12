@@ -22,6 +22,7 @@ from app.api.reviews import router as reviews_router
 from app.api.wishlist import router as wishlist_router
 from app.api.coupons import router as coupons_router
 from app.api.tryon import router as tryon_router
+from app.api.site import router as site_router
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
@@ -76,6 +77,7 @@ app.include_router(reviews_router)
 app.include_router(wishlist_router)
 app.include_router(coupons_router)
 app.include_router(tryon_router)
+app.include_router(site_router)
 app.include_router(frontend_router)  # frontend last — catch-all routes
 
 from fastapi import Request, HTTPException
