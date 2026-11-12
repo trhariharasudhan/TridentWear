@@ -3,8 +3,10 @@ import { mountStudio } from '../studio.js';
 import { getProducts } from '../store.js';
 import { api } from '../api.js';
 
+// Pieces that have real 3/4 and side photos (<slug>-q.webp, <slug>-s.webp) turn like a turntable on the rail.
+const ANGLES = new Set(['essential-oversized-tee-bone-white', 'oxford-button-down-sky', 'essential-oversized-tee-jet-black']);
 // Studio rail order. Pieces with a back photo show it when twisted; shirts show a mirrored inside.
-const RAIL = ['violet-signal-tee', 'oxford-button-down-sky', 'essential-oversized-tee-bone-white', 'twill-overshirt-black',
+const RAIL = ['violet-signal-tee', 'oxford-button-down-sky', 'essential-oversized-tee-bone-white', 'twill-overshirt-black', 'essential-oversized-tee-jet-black',
   'trident-wordmark-tee-black', 'linen-camp-shirt-stone', 'heavyweight-classic-tee-maroon', 'formal-slim-shirt-navy',
   'essential-oversized-tee-olive', 'oxford-button-down-white', 'heavyweight-classic-tee-sand', 'linen-camp-shirt-olive'];
 
@@ -26,8 +28,10 @@ $('[data-hero-mark]').outerHTML = await logoSvg();
 const railProducts = site.rail?.length ? site.rail.map((id) => byId.get(id)) : RAIL.map((slug) => bySlug.get(slug));
 const pieces = railProducts.filter(Boolean).map((p) => {
   const front = img(p.image);
+  const views = ANGLES.has(p.slug) ? { q: front.replace('-front.webp', '-q.webp'), s: front.replace('-front.webp', '-s.webp') } : null;
+  if (views) { views.qset = srcset(views.q); views.sset = srcset(views.s); }
   return { id: p.id, href: `product.html?id=${p.id}`, label: `${esc(p.name)}, ${esc(p.base_color)}, ${inr(p.price)}`,
-    front, srcset: srcset(front), back: p.gallery?.[1] ? img(p.gallery[1]) : '', p };
+    front, srcset: srcset(front), back: p.gallery?.[1] ? img(p.gallery[1]) : '', color: p.color_hex, views, p };
 });
 const caption = $('[data-caption]');
 const studio = mountStudio($('[data-stage]'), pieces, {

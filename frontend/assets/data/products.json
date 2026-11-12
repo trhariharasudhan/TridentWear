@@ -4,7 +4,7 @@
     "name": "Essential Oversized Tee",
     "category": "tshirt",
     "price": 899,
-    "description": "Our signature 240 GSM heavyweight cotton tee with dropped shoulders, a boxy oversized cut and a gold-embroidered Trident mark on the chest. Bio-washed for a soft hand-feel that holds its shape wash after wash.",
+    "description": "Our signature 240 GSM heavyweight cotton tee with dropped shoulders and a boxy oversized cut. Bio-washed for a soft hand-feel that holds its shape wash after wash.",
     "image": "/images/products/essential-oversized-tee-jet-black-front.webp",
     "tag": "Bestseller",
     "sizes": [
@@ -24,10 +24,8 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -71,7 +69,7 @@
     "name": "Essential Oversized Tee",
     "category": "tshirt",
     "price": 899,
-    "description": "Our signature 240 GSM heavyweight cotton tee in a warm off-white. Dropped shoulders, boxy oversized cut and a tonal embroidered Trident mark.",
+    "description": "Our signature 240 GSM heavyweight cotton tee in a warm off-white. Dropped shoulders and a boxy oversized cut.",
     "image": "/images/products/essential-oversized-tee-bone-white-front.webp",
     "tag": "Bestseller",
     "sizes": [
@@ -91,10 +89,8 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -158,10 +154,8 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -202,10 +196,10 @@
   },
   {
     "id": 5,
-    "name": "Trident Wordmark Tee",
+    "name": "Flagship Oversized Tee",
     "category": "tshirt",
     "price": 1199,
-    "description": "The flagship graphic. Oversized 240 GSM tee with a large gold puff-print Trident mark and wordmark across the back, small chest logo up front.",
+    "description": "The flagship oversized 240 GSM tee in black. Dropped shoulders, a wide rib collar and a clean, unbranded finish.",
     "image": "/images/products/trident-wordmark-tee-black-front.webp",
     "tag": "Drop 01",
     "sizes": [
@@ -225,11 +219,8 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Graphic",
-    "design_color": "",
-    "print_method": [
-      "Embroidery",
-      "Puff Print"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -293,11 +284,8 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Graphic",
-    "design_color": "",
-    "print_method": [
-      "Embroidery",
-      "Puff Print"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -361,10 +349,8 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -405,10 +391,10 @@
   },
   {
     "id": 6,
-    "name": "Trident Wordmark Tee",
+    "name": "Flagship Oversized Tee",
     "category": "tshirt",
     "price": 1199,
-    "description": "The flagship graphic in white: oversized 240 GSM tee with a large black Trident back print and small chest logo.",
+    "description": "The flagship oversized 240 GSM tee in white. Dropped shoulders, a wide rib collar and a clean, unbranded finish.",
     "image": "/images/products/trident-wordmark-tee-white-front.webp",
     "tag": "Drop 01",
     "sizes": [
@@ -428,11 +414,8 @@
     "fit_type": "Oversized",
     "neck_type": "Round Neck",
     "design_type": "Graphic",
-    "design_color": "",
-    "print_method": [
-      "Embroidery",
-      "Puff Print"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -476,7 +459,7 @@
     "name": "Heavyweight Classic Tee",
     "category": "tshirt",
     "price": 749,
-    "description": "A regular-fit essential in 220 GSM combed cotton. Set-in sleeves, clean lines, embroidered chest mark.",
+    "description": "A regular-fit essential in 220 GSM combed cotton. Set-in sleeves and clean lines.",
     "image": "/images/products/heavyweight-classic-tee-navy-front.webp",
     "tag": "",
     "sizes": [
@@ -496,10 +479,8 @@
     "fit_type": "Regular",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -563,10 +544,8 @@
     "fit_type": "Regular",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -610,7 +589,7 @@
     "name": "Heavyweight Classic Tee",
     "category": "tshirt",
     "price": 749,
-    "description": "Regular-fit 220 GSM tee in deep maroon with a gold embroidered chest mark.",
+    "description": "Regular-fit 220 GSM combed cotton tee in deep maroon.",
     "image": "/images/products/heavyweight-classic-tee-maroon-front.webp",
     "tag": "",
     "sizes": [
@@ -630,10 +609,8 @@
     "fit_type": "Regular",
     "neck_type": "Round Neck",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -677,7 +654,7 @@
     "name": "Oxford Button-Down Shirt",
     "category": "shirt",
     "price": 1499,
-    "description": "Classic cotton oxford with a button-down collar, chest pocket with tonal Trident embroidery and a back box pleat. Office to weekend.",
+    "description": "Classic cotton oxford with a button-down collar, chest pocket and a back box pleat. Office to weekend.",
     "image": "/images/products/oxford-button-down-sky-front.webp",
     "tag": "Bestseller",
     "sizes": [
@@ -697,10 +674,8 @@
     "fit_type": "Regular",
     "neck_type": "Button-Down Collar",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -763,10 +738,8 @@
     "fit_type": "Relaxed",
     "neck_type": "Point Collar",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -829,10 +802,8 @@
     "fit_type": "Relaxed",
     "neck_type": "Camp Collar",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -875,7 +846,7 @@
     "name": "Oxford Button-Down Shirt",
     "category": "shirt",
     "price": 1499,
-    "description": "The white oxford every wardrobe needs. Button-down collar, chest pocket and tonal Trident embroidery.",
+    "description": "The white oxford every wardrobe needs. Button-down collar and a chest pocket.",
     "image": "/images/products/oxford-button-down-white-front.webp",
     "tag": "",
     "sizes": [
@@ -895,10 +866,8 @@
     "fit_type": "Regular",
     "neck_type": "Button-Down Collar",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -941,7 +910,7 @@
     "name": "Formal Slim Shirt",
     "category": "shirt",
     "price": 1599,
-    "description": "Slim-fit poplin shirt with a sharp spread collar and gold-embroidered pocket mark. Wrinkle-resistant finish.",
+    "description": "Slim-fit poplin shirt with a sharp spread collar and a clean chest pocket. Wrinkle-resistant finish.",
     "image": "/images/products/formal-slim-shirt-navy-front.webp",
     "tag": "",
     "sizes": [
@@ -961,10 +930,8 @@
     "fit_type": "Slim",
     "neck_type": "Spread Collar",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",
@@ -1007,7 +974,7 @@
     "name": "Linen Camp Collar Shirt",
     "category": "shirt",
     "price": 1399,
-    "description": "Breathable linen-cotton camp collar shirt in olive with gold pocket embroidery.",
+    "description": "Breathable linen-cotton camp collar shirt in olive with a patch pocket.",
     "image": "/images/products/linen-camp-shirt-olive-front.webp",
     "tag": "Summer",
     "sizes": [
@@ -1027,10 +994,8 @@
     "fit_type": "Relaxed",
     "neck_type": "Camp Collar",
     "design_type": "Solid",
-    "design_color": "",
-    "print_method": [
-      "Embroidery"
-    ],
+    "design_color": "None",
+    "print_method": [],
     "wash_care_label": true,
     "wash_care": [
       "Machine wash cold, inside out",

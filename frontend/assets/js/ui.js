@@ -315,7 +315,7 @@ function footer(logo) {
   f.innerHTML = `<div class="wrap">
     <div class="footer-grid">
       <div class="footer-brand"><a class="brand" href="index.html">${logo}<b class="wordmark">TridentWear</b></a>
-        <p style="max-width:34ch;margin:0">Heavyweight T-shirts and shirts, designed and made in India. Every piece carries the gold Trident.</p>
+        <p style="max-width:34ch;margin:0">Heavyweight T-shirts and shirts, designed and made in India. Cut clean, worn hard.</p>
         <div class="socials"><a href="${b.instagram}" aria-label="Instagram" rel="noopener" target="_blank">${icon.insta}</a><a href="https://wa.me/${b.whatsapp}" aria-label="WhatsApp" rel="noopener" target="_blank">${icon.whatsapp}</a><a href="mailto:${b.email}" aria-label="Email">${icon.mail}</a></div></div>
       <div><h4>Shop</h4><a href="shop.html?cat=tshirt">T-Shirts</a><a href="shop.html?cat=shirt">Shirts</a><a href="shop.html?sort=new">New arrivals</a><a href="tryon.html">AI Fit Check</a></div>
       <div><h4>Help</h4><a href="order.html">Track order</a><a href="policies.html#shipping">Shipping</a><a href="policies.html#returns">Returns & exchanges</a><a href="faq.html">FAQ</a><a href="contact.html">Contact us</a></div>

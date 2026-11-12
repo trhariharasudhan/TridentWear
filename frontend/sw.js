@@ -1,7 +1,7 @@
 // TridentWear service worker — offline shell + fast repeat visits.
 // Strategy: pages, CSS, JS and data = network-first (so a deploy shows up on the next load, not the one after);
 // images and fonts = cache-first with background refresh; API = network only (never cache prices, stock, auth, payments).
-const VERSION = 'tw-v4';
+const VERSION = 'tw-v5';
 const SHELL = [
   './', 'index.html', 'shop.html', 'product.html', 'cart.html', 'offline.html',
   'assets/css/tw.css', 'assets/js/ui.js', 'assets/js/api.js', 'assets/js/demo.js', 'assets/js/store.js', 'assets/js/config.js',

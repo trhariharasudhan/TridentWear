@@ -15,6 +15,7 @@ FONT = os.environ.get('BRICOLAGE_TTF', 'scripts/photos/bricolage.ttf')
 GOLD_HI, GOLD_LO = np.array([222, 189, 120]), np.array([160, 124, 56])
 AMBER = np.array([255, 196, 72])
 POCKET = {}
+LOGOS = os.environ.get('LOGOS', '0') == '1'  # off for now: plain garments
 LOGO = Image.open(os.environ.get('LOGO_MASK', 'scripts/photos/logo-mask.png')).getchannel('A')
 
 
@@ -57,6 +58,8 @@ def composite(base, layer_rgb, alpha, xy, shadow=True):
 
 
 def embroidery(base, cx, cy, width):
+    if not LOGOS:
+        return
     m = logo_mask(width)
     w, h = m.size
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
@@ -67,6 +70,8 @@ def embroidery(base, cx, cy, width):
 
 
 def print_(base, art: Image.Image, cx, cy, ink=None, opacity=0.94):
+    if not LOGOS:
+        return
     """art: L-mode mask of the graphic. Ink defaults to amber; slight grain like plastisol."""
     w, h = art.size
     rng = np.random.default_rng(7)

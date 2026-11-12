@@ -20,7 +20,7 @@ DEFAULTS: Dict[str, Any] = {
         "See it on you first with AI Fit Check",
     ],
     "hero_line": "Heavyweight tees // Oxford shirts // Linen camp shirts // Made in India",
-    "hero_text": "240 GSM tees and cotton shirts with a small gold Trident. Try anything on with your camera first.",
+    "hero_text": "240 GSM tees and cotton shirts, cut clean. Try anything on with your camera first.",
     "rail": [],          # product ids, in hanging order; empty = the default curated rail
     "drop_title": "Drop 01 is live",
     "drop": [],          # up to 4 product ids for the home page grid; empty = default picks

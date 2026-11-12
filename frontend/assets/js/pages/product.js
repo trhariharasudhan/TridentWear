@@ -63,7 +63,7 @@ root.innerHTML = `
     <div class="perks"><div>${icon.truck}Free shipping</div><div>${icon.swap}${CONFIG.returnDays}-day exchange</div><div>${icon.cash}COD available</div></div>
     <div>
       <details class="acc" open><summary>Details</summary><div class="acc__body"><table class="spec-table">
-        ${[['Fabric', p.fabric], ['Weight', p.gsm ? `${p.gsm} GSM` : ''], ['Fit', p.fit_type], ['Neck / collar', p.neck_type], ['Branding', (p.print_method || []).join(' + ') + ' Trident mark'], ['Style code', p.style_code], ['Made in', 'India']]
+        ${[['Fabric', p.fabric], ['Weight', p.gsm ? `${p.gsm} GSM` : ''], ['Fit', p.fit_type], ['Neck / collar', p.neck_type], ['Branding', (p.print_method || []).length ? p.print_method.join(' + ') + ' Trident mark' : ''], ['Style code', p.style_code], ['Made in', 'India']]
           .filter(([, v]) => v).map(([k, v]) => `<tr><td>${k}</td><td>${esc(v)}</td></tr>`).join('')}</table></div></details>
       <details class="acc"><summary>Wash care</summary><div class="acc__body"><ul style="margin:0;padding-left:18px">${(p.wash_care || []).map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div></details>
       <details class="acc"><summary>Delivery & returns</summary><div class="acc__body">
